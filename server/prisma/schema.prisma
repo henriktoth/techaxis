@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  WRITER
+  ADMIN
+}
+
+enum ArticleStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  REJECTED
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  name          String
+  password_hash String
+  role          Role     @default(WRITER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  articles Article[]
+  tasks    Task[]
+}
+
+model Article {
+  id          Int           @id @default(autoincrement())
+  title       String
+  content     String
+  thumbnail   String?
+  author      User          @relation(fields: [authorId], references: [id])
+  authorId    Int
+  status      ArticleStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  publishedAt DateTime?
+}
+
+model Task {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?
+  assignedTo   User?    @relation(fields: [assignedToId], references: [id])
+  assignedToId Int?
+  isCompleted  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
