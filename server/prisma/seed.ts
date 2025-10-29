@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import {Role, ArticleStatus } from '../src/generated/prisma/enums';
 import { PrismaClient } from '../src/generated/prisma/client';
@@ -63,7 +64,9 @@ async function main() {
         ],
     });
 
-    main()
+}
+
+main()
   .catch((e) => {
     console.error('Error during seeding:', e);
     process.exit(1);
@@ -72,4 +75,3 @@ async function main() {
     await prisma.$disconnect();
   });
     console.log('Seeding completed.');
-}
