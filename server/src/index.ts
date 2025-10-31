@@ -1,6 +1,7 @@
 import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import routes from './routes';
 
 dotenv.config();
 
@@ -11,13 +12,13 @@ const PORT = process.env.PORT || 8000;
 app.use(cors());
 app.use(express.json());
 
-// Test routes
-app.get('/', (req, res) => {
-    res.json({ message: 'Server is running' });
-})
+// Routes
+app.use('/api', routes)
 
-app.get('/api/test', (req, res) => {
-    res.json({ message: 'API is working' });
+// Error handler
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error(err);
+  res.status(500).json({ error: err.message });
 });
 
 // Start server
