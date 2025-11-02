@@ -33,4 +33,31 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
     }
 });
 
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
+    const { name, email, password } = req.body;
+    if (!email || !password || !name) return res.status(400).json({ message: 'Email, password and name required' });
+
+    try {
+        const existingUser = await prisma.user.findUnique({
+            where: { email },
+        });
+        if (existingUser) return res.status(409).json({ message: 'Email already in use' });
+
+        const password_hash = await bcrypt.hash(password, 10);
+
+        const newUser = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password_hash,
+                role: 'WRITER',
+            },
+        });
+
+        res.status(201).json({ id: newUser.id, name: newUser.name, email: newUser.email });
+    } catch (error) {
+        next(error);
+    }
+});
+
 export default router;
