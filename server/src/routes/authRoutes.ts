@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../db';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { signToken } from '../utils/auth';
 
 dotenv.config();
 
@@ -10,22 +10,27 @@ const router = Router();
 
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
     
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password required' });
+    }
+
     try {
         const user = await prisma.user.findUnique({
             where: { email },
         });
-        if (!user) return res.status(401).json({ message: 'Invalid email or password' });
 
-        const isCorrectPassword = await bcrypt.compare(password, user.password_hash);
-        if (!isCorrectPassword) return res.status(401).json({ message: 'Invalid email or password' });
-
-        if (!process.env.JWT_SECRET) {
-            throw new Error('JWT_SECRET is not set');
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid email or password' })
         }
 
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const isCorrectPassword = await bcrypt.compare(password, user.password_hash);
+
+        if (!isCorrectPassword) {
+            return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        const token = signToken({ userId: user.id });
 
         res.json({ token });
     } catch (error) {
@@ -35,13 +40,18 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 
 router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
     const { name, email, password } = req.body;
-    if (!email || !password || !name) return res.status(400).json({ message: 'Email, password and name required' });
+    if (!email || !password || !name) {
+        return res.status(400).json({ message: 'Email, password and name required' });
+    }
 
     try {
         const existingUser = await prisma.user.findUnique({
             where: { email },
         });
-        if (existingUser) return res.status(409).json({ message: 'Email already in use' });
+        
+        if (existingUser) {
+            return res.status(409).json({ message: 'Email already in use' });
+        }
 
         const password_hash = await bcrypt.hash(password, 10);
 
