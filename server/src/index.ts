@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {Request, Response} from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import routes from './routes/routes';
@@ -15,10 +15,11 @@ app.use(express.json());
 // Routes
 app.use('/api', routes)
 
-// Error handler
-app.use((err: any, req: any, res: any, next: any) => {
+// Error handler 
+app.use((err: unknown, req: Request, res: Response) => {
   console.error(err);
-  res.status(500).json({ error: err.message });
+  const message = err instanceof Error ? err.message : String(err);
+  res.status(500).json({ error: message });
 });
 
 // Start server
