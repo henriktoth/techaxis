@@ -1,24 +1,19 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const JWT_SECRET = process.env.JWT_SECRET
-const JWT_EXPIRES = process.env.JWT_EXPIRES ?? '1h'
+import ENV from '../config/env.config';
 
 export function signToken(payload: object) {
-  if (!JWT_SECRET) {
+  if (!ENV.jwt.secret) {
     throw new Error('JWT_SECRET is not set');
   }
-  const options: jwt.SignOptions = { expiresIn: JWT_EXPIRES as jwt.SignOptions['expiresIn'] };
-  return jwt.sign(payload, JWT_SECRET, options)
+  const options: jwt.SignOptions = { expiresIn: ENV.jwt.expiresIn as jwt.SignOptions['expiresIn'] };
+  return jwt.sign(payload, ENV.jwt.secret, options)
 }
 
 export function verifyToken(token: string) : jwt.JwtPayload {
-  if (!JWT_SECRET) {
+  if (!ENV.jwt.secret) {
     throw new Error('JWT_SECRET is not set');
   }
-  const decoded = jwt.verify(token, JWT_SECRET);
+  const decoded = jwt.verify(token, ENV.jwt.secret);
   if (typeof decoded === 'string') {
     throw new Error('Token payload must be an object');
   }

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Router } from 'express';
-import { prisma } from '../db';
+import { prisma } from '../config/db.config';
 
 const router = Router();
 

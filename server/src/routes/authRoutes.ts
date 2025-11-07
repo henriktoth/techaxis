@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { prisma } from '../db';
+import { prisma } from '../config/db.config';
 import bcrypt from 'bcrypt';
 import { signToken } from '../utils/auth';
 
