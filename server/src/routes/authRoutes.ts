@@ -1,10 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../db';
-import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import { signToken } from '../utils/auth';
 
-dotenv.config();
 
 const router = Router();
 

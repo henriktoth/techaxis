@@ -1,9 +1,7 @@
 import { Request, Response, NextFunction} from 'express';
-import { verifyToken } from '../utils/auth';
-import dotenv from 'dotenv';
+import { verifyToken } from '../utils/auth'
+import ENV from '../config';
 
-dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
@@ -12,7 +10,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
       throw new Error();
     }
     const token = bearerToken.split(' ')[1];
-    if (!token || !JWT_SECRET) {
+    if (!token || !ENV.jwt.secret) {
       throw new Error();
     }
 
