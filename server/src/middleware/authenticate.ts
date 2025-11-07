@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction} from 'express';
 import { verifyToken } from '../utils/auth'
-import ENV from '../config';
+import ENV from '../config/env.config';
 
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {
