@@ -7,7 +7,9 @@ const router = Router();
 // Test route
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const articles = await prisma.article.findMany();
+        const articles = await prisma.article.findMany({
+            where: { status: 'PUBLISHED' },
+        });
         res.json(articles);
     } catch (error) {
         next(error);
@@ -15,17 +17,21 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.params;
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid article id' });
+    }
+
     try {
         const article = await prisma.article.findUnique({
-            where: { id: Number(id) },
-
+            where: { id },
         });
-        if (article) {
-            res.json(article);
-        } else {
-            res.status(404).json({ message: 'Article not found' });
+        
+        if (!article || article.status !== 'PUBLISHED') {
+            return res.status(404).json({ message: 'Article not found' });
         }
+
+        res.json(article);
     } catch (error) {
         next(error);
     }
