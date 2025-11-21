@@ -1,7 +1,2 @@
-POST http://localhost:8000/api/auth/login
-Content-Type: application/json
-
-{
-    "email": "admin@techaxis.com",
-    "password": "password"
-}
+GET http://localhost:8000/api/articles/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTc2Mzc2MTMzMSwiZXhwIjoxNzY0MzY2MTMxfQ.adLiUvJRAGCCOOTUIJ4-Kv87sluzPcu2ghwMmhtsaWY

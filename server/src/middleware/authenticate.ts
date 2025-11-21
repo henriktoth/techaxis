@@ -14,7 +14,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
       throw new Error();
     }
 
-    req.user = verifyToken(token);
+    (req as Request & { user?: object }).user = verifyToken(token);
     next();
   } catch {
     return res.status(401).json({ message: 'Authentication failed' });
