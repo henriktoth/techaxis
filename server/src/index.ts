@@ -1,4 +1,4 @@
-import express, {Request, Response} from 'express';
+import express, {NextFunction, Request, Response} from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import routes from './routes/routes';
@@ -16,7 +16,7 @@ app.use(express.json());
 app.use('/api', routes)
 
 // Error handler 
-app.use((err: unknown, req: Request, res: Response) => {
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   console.error(err);
   const message = err instanceof Error ? err.message : String(err);
   res.status(500).json({ error: message });

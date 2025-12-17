@@ -1,6 +1,11 @@
 import jwt from 'jsonwebtoken';
 import ENV from '../config/env.config';
 
+/**
+  * Sign a JWT token with given payload.
+  * @returns JWT token string
+  * @param payload object to include in token
+*/
 export function signToken(payload: object) {
   if (!ENV.jwt.secret) {
     throw new Error('JWT_SECRET is not set');
@@ -9,6 +14,11 @@ export function signToken(payload: object) {
   return jwt.sign(payload, ENV.jwt.secret, options)
 }
 
+/**
+ * Verify a JWT token and return its payload.
+ * @returns decoded token payload as object
+ * @param token JWT token string
+ */
 export function verifyToken(token: string) : jwt.JwtPayload {
   if (!ENV.jwt.secret) {
     throw new Error('JWT_SECRET is not set');

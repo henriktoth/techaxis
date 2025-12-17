@@ -2,7 +2,11 @@ import { Request, Response, NextFunction} from 'express';
 import { verifyToken } from '../utils/auth'
 import ENV from '../config/env.config';
 
-
+/**
+ * Middleware to authenticate requests using JWT.
+ * @returns 401 if authentication fails otherwise calls next()
+ * @param req.headers.authorization Bearer token
+ */
 export function authenticate(req: Request, res: Response, next: NextFunction) {
   try {
     const bearerToken = req.headers.authorization;

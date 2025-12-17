@@ -5,10 +5,11 @@ import { authenticate } from '../middleware/authenticate';
 const router = Router();
 
 router.get('/', getPublishedArticles);
-router.get('/:id', getPublishedArticleById);
 
 router.get('/me', authenticate, getArticlesForUser);
 router.get('/me/:id', authenticate, getArticleForUserById);
+
+router.get('/:id', getPublishedArticleById);
 
 
 export default router;
