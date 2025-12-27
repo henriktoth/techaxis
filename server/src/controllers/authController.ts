@@ -31,7 +31,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        const token = signToken({ userId: user.id });
+        const token = signToken({ userId: user.id, role: user.role });
 
         res.json({ token });
     } catch (error) {
