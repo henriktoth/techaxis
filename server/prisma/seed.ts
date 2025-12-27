@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import {Role, ArticleStatus } from '../src/generated/prisma/enums';
-import { prisma } from '../src/db';
+import { prisma } from '../src/config/db.config';
 
 async function main() {
     console.log('Seeding database...');
