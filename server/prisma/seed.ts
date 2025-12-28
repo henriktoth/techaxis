@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
-import {Role, ArticleStatus } from '../src/generated/prisma/enums';
+import { Role, ArticleStatus } from '../src/generated/prisma/client';
 import { prisma } from '../src/config/db.config';
 
 async function main() {
@@ -32,12 +32,16 @@ async function main() {
         data: [
             {
                 title: 'First Article',
+                slug: 'first-article',
+                summary: 'Summary of the first article.',
                 content: 'This is the content of the first article.',
                 status: ArticleStatus.PUBLISHED,
                 authorId: writer.id,
             },
             {
                 title: 'Second Article',
+                slug: 'second-article',
+                summary: 'Summary of the second article.',
                 content: 'This is the content of the second article.',
                 status: ArticleStatus.DRAFT,
                 authorId: writer.id,

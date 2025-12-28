@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/db.config';
 
 /**
- * List all published articles (public).
- * @returns 200 with Article[]
+    * List all published articles (public).
+    * @returns 200 with Article[]
  */
 export const getPublishedArticles = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -17,14 +17,14 @@ export const getPublishedArticles = async (req: Request, res: Response, next: Ne
 };
 
 /**
- * Get a single published article by id (public).
- * @param req.params.id Article id (number)
- * @returns 200 with Article or 404 if not published/not found
+    * Get a single published article by id (public).
+    * @param req.params.id Article id (number)
+    * @returns 200 with Article or 404 if not published/not found
  */
 export const getPublishedArticleById = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
-        return res.status(400).json({ message: 'Invalid article id' });
+        return next();
     }
 
     try {
@@ -43,9 +43,9 @@ export const getPublishedArticleById = async (req: Request, res: Response, next:
 };
 
 /**
- * List articles for the authenticated user.
- * ADMIN: all articles; WRITER: own articles.
- * @returns 200 with Article[]
+    * List articles for the authenticated user.
+    * ADMIN: all articles; WRITER: own articles.
+    * @returns 200 with Article[]
  */
 export const getArticlesForUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -73,9 +73,9 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
 };
 
 /**
- * Get one article for the authenticated user.
- * ADMIN: any article; WRITER: only own articles; 404 if missing; 403 if forbidden.
- * @param req.params.id Article id (number)
+    * Get one article for the authenticated user.
+    * ADMIN: any article; WRITER: only own articles; 404 if missing; 403 if forbidden.
+    * @param req.params.id Article id (number)
  */
 export const getArticleForUserById = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);

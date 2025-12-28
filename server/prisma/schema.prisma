@@ -1,10 +1,11 @@
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -20,38 +21,59 @@ enum ArticleStatus {
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  email         String   @unique
+  id            Int    @id @default(autoincrement())
+  email         String @unique
   name          String
   password_hash String
-  role          Role     @default(WRITER)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  role          Role   @default(WRITER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   articles Article[]
   tasks    Task[]
 }
 
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  articles Article[]
+}
+
 model Article {
-  id          Int           @id @default(autoincrement())
-  title       String
-  content     String
-  thumbnail   String?
-  author      User          @relation(fields: [authorId], references: [id])
-  authorId    Int
-  status      ArticleStatus @default(DRAFT)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id        Int           @id @default(autoincrement())
+  slug      String        @unique
+  title     String
+  summary   String
+  content   String        @db.Text
+  thumbnail String?
+  status    ArticleStatus @default(DRAFT)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   publishedAt DateTime?
+
+  author   User @relation(fields: [authorId], references: [id])
+  authorId Int
+
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+
+  task   Task? @relation(fields: [taskId], references: [id])
+  taskId Int?  @unique
 }
 
 model Task {
-  id           Int      @id @default(autoincrement())
-  title        String
-  description  String?
-  assignedTo   User?    @relation(fields: [assignedToId], references: [id])
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String?
+  isCompleted Boolean @default(false)
+
+  assignedTo   User? @relation(fields: [assignedToId], references: [id])
   assignedToId Int?
-  isCompleted  Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+  article Article?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

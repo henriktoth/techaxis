@@ -39,11 +39,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     }
 };
 /**
- * Register a new user as WRITER.
- * @returns 201 with { id: number, name: string, email: string } or 409 if email in use, 400 if missing fields
- * @param req.body.name User name
- * @param req.body.email User email
- * @param req.body.password User password
+     * Register a new user as WRITER.
+     * @returns 201 with { id: number, name: string, email: string } or 409 if email in use, 400 if missing fields
+     * @param req.body.name User name
+     * @param req.body.email User email
+     * @param req.body.password User password
  */
 export const register = async (req: Request, res: Response, next: NextFunction) => {
     const { name, email, password } = req.body;
@@ -72,6 +72,42 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         });
 
         res.status(201).json({ id: newUser.id, name: newUser.name, email: newUser.email });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+     * Logout user (dummy endpoint for JWT).
+     * @returns 200 with { message: string }
+ */
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
+    res.status(200).json({ message: 'Logout successful' });
+}
+
+/**
+     * Get info about the authenticated user.
+     * @returns 200 with { id: number, name: string, email: string, role: string } or 401 if not authenticated, 404 if user not found
+     * @param req.user.userId Authenticated user id
+     * @param req.user.role Authenticated user role
+ */
+export const getUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        if (!user || typeof user.userId !== 'number') {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        const existingUser = await prisma.user.findUnique({
+            where: { id: user.userId },
+            select: { id: true, name: true, email: true, role: true },
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json(existingUser);
     } catch (error) {
         next(error);
     }
