@@ -10,7 +10,7 @@ export const getPublishedArticles = async (req: Request, res: Response, next: Ne
         const articles = await prisma.article.findMany({
             where: { status: 'PUBLISHED' },
         });
-        res.json(articles);
+        res.status(200).json(articles);
     } catch (error) {
         next(error);
     }
@@ -36,7 +36,7 @@ export const getPublishedArticleById = async (req: Request, res: Response, next:
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        res.json(article);
+        res.status(200).json(article);
     } catch (error) {
         next(error);
     }
@@ -56,14 +56,14 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
 
         if (user.role === 'ADMIN') {
             const articles = await prisma.article.findMany();
-            return res.json(articles);
+            return res.status(200).json(articles);
         }
 
         if (user.role === 'WRITER') {
             const articles = await prisma.article.findMany({
                 where: { authorId: user.userId },
             });
-            return res.json(articles);
+            return res.status(200).json(articles);
         }
 
         res.status(403).json({ message: 'Access denied' });
@@ -98,12 +98,12 @@ export const getArticleForUserById = async (req: Request, res: Response, next: N
         }
 
         if (user.role === 'ADMIN') {
-            return res.json(article);
+            return res.status(200).json(article);
         }
 
         if (user.role === 'WRITER') {
             if (article.authorId === user.userId) {
-                return res.json(article);
+                return res.status(200).json(article);
             }
             return res.status(403).json({ message: 'Access denied' });
         }
