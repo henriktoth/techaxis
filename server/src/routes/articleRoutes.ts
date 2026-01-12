@@ -1,8 +1,13 @@
 import { Router } from 'express';
-import { getPublishedArticles, getPublishedArticleById, getArticlesForUser, getArticleForUserById } from '../controllers/articleController';
+import { getPublishedArticles, getPublishedArticleById, getArticlesForUser, getArticleForUserById, addArticle, deleteArticle, updateArticle, reviewArticle } from '../controllers/articleController';
 import { authenticate } from '../middleware/authenticate';
 
 const router = Router();
+
+router.post('/', authenticate, addArticle);
+router.put('/:id', authenticate, updateArticle);
+router.delete('/:id', authenticate, deleteArticle);
+router.patch('/:id/review', authenticate, reviewArticle);
 
 router.get('/', getPublishedArticles);
 

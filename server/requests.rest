@@ -1,2 +1,34 @@
+### Get Articles for User
 GET http://localhost:8000/api/articles/me
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsImlhdCI6MTc2Mzc2MTMzMSwiZXhwIjoxNzY0MzY2MTMxfQ.adLiUvJRAGCCOOTUIJ4-Kv87sluzPcu2ghwMmhtsaWY
+
+### Register a new user
+POST http://localhost:8000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test Writer",
+  "email": "writer@example.com",
+  "password": "password123"
+}
+
+### Login (Copy the token from the response)
+POST http://localhost:8000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "writer@example.com",
+  "password": "password123"
+}
+
+### Create a new Article (Use the token from login)
+POST http://localhost:8000/api/articles
+Content-Type: application/json
+Authorization: Bearer <PASTE_TOKEN_HERE>
+
+{
+  "title": "My First Article",
+  "summary": "This is a short summary.",
+  "content": "<h1>Hello World</h1><p>This is the content.</p>",
+  "status": "DRAFT"
+}
