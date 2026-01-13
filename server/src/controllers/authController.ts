@@ -86,7 +86,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 export const getUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user || typeof user.userId !== 'number') {
+        if (!user) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 

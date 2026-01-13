@@ -61,14 +61,11 @@ export const getTaskById = async (req: Request, res: Response, next: NextFunctio
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        // Authorization Logic
         if (user.role === 'ADMIN') {
-            // Admin can view any task
             return res.status(200).json(task);
         } 
         
         if (user.role === 'WRITER') {
-            // Writer can only view tasks assigned to them
             if (task.assignedToId === user.userId) {
                 return res.status(200).json(task);
             } else {

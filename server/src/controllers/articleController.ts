@@ -25,7 +25,7 @@ export const getPublishedArticles = async (req: Request, res: Response, next: Ne
 export const getPublishedArticleById = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
-        return next();
+        return res.status(400).json({ message: 'Invalid article id' });
     }
 
     try {
@@ -257,11 +257,10 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        // Access Control
         if (user.role === 'ADMIN') {
             const isOwner = article.authorId === user.userId;
             const isPublished = article.status === 'PUBLISHED';
-            // "ADMIN can update any article that is either PUBLISHED or is in their userID"
+
             if (!isPublished && !isOwner) {
                 return res.status(403).json({ message: 'Admins can only edit their own articles or published articles.' });
             }
@@ -269,7 +268,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             if (article.authorId !== user.userId) {
                 return res.status(403).json({ message: 'Access denied' });
             }
-            // "WRITER can only update articles that is their userID and is either DRAFT, REVIEW or REJECTED"
+
             if (!['DRAFT', 'REVIEW', 'REJECTED'].includes(article.status)) {
                 return res.status(403).json({ message: 'Writers can only edit articles in DRAFT, REVIEW or REJECTED status' });
             }
@@ -327,7 +326,6 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
 
     const { status } = req.body;
     
-    // Strict validation for the specific buttons
     if (!status || (status !== 'PUBLISHED' && status !== 'REJECTED')) {
         return res.status(400).json({ message: 'Status must be either PUBLISHED or REJECTED' });
     }
@@ -335,7 +333,6 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
     try {
         const user = (req as Request & { user?: { userId: number; role: string } }).user;
         
-        // Strictly ADMIN only
         if (!user || user.role !== 'ADMIN') {
             return res.status(403).json({ message: 'Access denied. Only Admins can review articles.' });
         }
@@ -350,7 +347,6 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
 
         const data: any = { status };
         
-        // If accepting, set the publish date
         if (status === 'PUBLISHED') {
             data.publishedAt = new Date();
         }
