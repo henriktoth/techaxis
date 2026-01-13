@@ -1,6 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/db.config';
 
+/**
+ * Get all tasks.
+ * - ADMIN: can see all tasks
+ * - WRITER: can see only tasks assigned to them
+ * @returns 200 with tasks or 401 if not authenticated, 403 if access denied
+ */
 export const getAllTasks = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = (req as Request & { user?: { userId: number; role: string } }).user;
@@ -35,6 +41,13 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
+/**
+ * Get task by id.
+ * - ADMIN: can see any task
+ * - WRITER: can see only tasks assigned to them
+ * @returns 200 with task or 401 if not authenticated, 403 if access denied, 404 if task not found
+ * @param req.params.id Task id
+ */
 export const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     if (Number.isNaN(id)) {
