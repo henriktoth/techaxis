@@ -8,7 +8,7 @@ const router = Router();
 
 router.use('/articles', articleRoutes);
 router.use('/tasks', taskRoutes);
-router.use('/auth', authRoutes);
 router.use('/categories', categoryRoutes);
+router.use('/auth', authRoutes);
 
 export default router;

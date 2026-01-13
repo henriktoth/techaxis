@@ -78,14 +78,6 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 };
 
 /**
-     * Logout user (dummy endpoint for JWT).
-     * @returns 200 with { message: string }
- */
-export const logout = async (req: Request, res: Response, next: NextFunction) => {
-    res.status(200).json({ message: 'Logout successful' });
-}
-
-/**
      * Get info about the authenticated user.
      * @returns 200 with { id: number, name: string, email: string, role: string } or 401 if not authenticated, 404 if user not found
      * @param req.user.userId Authenticated user id
