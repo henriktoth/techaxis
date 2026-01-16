@@ -56,20 +56,21 @@ model Article {
   author   User @relation(fields: [authorId], references: [id])
   authorId Int
 
-  category   Category? @relation(fields: [categoryId], references: [id])
-  categoryId Int?
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int      @default(5) // id 5 = Other
 
   task   Task? @relation(fields: [taskId], references: [id])
   taskId Int?  @unique
 }
 
 model Task {
-  id          Int     @id @default(autoincrement())
-  title       String
-  description String?
-  isCompleted Boolean @default(false)
-
-  assignedTo   User? @relation(fields: [assignedToId], references: [id])
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String    @db.Text
+  isCompleted  Boolean   @default(false)
+  priority     Int       @default(0)
+  dueDate      DateTime?
+  assignedTo   User?     @relation(fields: [assignedToId], references: [id])
   assignedToId Int?
 
   article Article?

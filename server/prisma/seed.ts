@@ -6,8 +6,10 @@ import { prisma } from '../src/config/db.config';
 async function main() {
     console.log('Seeding database...');
 
+    // Clear data
     await prisma.task.deleteMany();
     await prisma.article.deleteMany();
+    await prisma.category.deleteMany();
     await prisma.user.deleteMany();
 
     const admin = await prisma.user.create({
@@ -27,6 +29,13 @@ async function main() {
             role: Role.WRITER,
         },
     });
+    
+    // Create categories
+    const catReview = await prisma.category.create({ data: { name: 'Product Review' } });
+    const catHardware = await prisma.category.create({ data: { name: 'Hardware' } });
+    const catSoftware = await prisma.category.create({ data: { name: 'Software' } });
+    const catAI = await prisma.category.create({ data: { name: 'AI' } });
+    const catOther = await prisma.category.create({ data: { name: 'Other' } });
 
     await prisma.article.createMany({
         data: [
@@ -37,6 +46,7 @@ async function main() {
                 content: 'This is the content of the first article.',
                 status: ArticleStatus.PUBLISHED,
                 authorId: writer.id,
+                categoryId: catSoftware.id,
             },
             {
                 title: 'Second Article',
@@ -45,6 +55,7 @@ async function main() {
                 content: 'This is the content of the second article.',
                 status: ArticleStatus.DRAFT,
                 authorId: writer.id,
+                categoryId: catHardware.id,
             },
         ],
     });
@@ -65,7 +76,8 @@ async function main() {
             },
         ],
     });
-
+    
+    console.log('Seeding completed.');
 }
 
 main()
@@ -76,4 +88,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-    console.log('Seeding completed.');
