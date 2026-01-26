@@ -14,4 +14,22 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
   }
 };
 
+export const getCategoryById = async (req: Request, res: Response, next: NextFunction) => {
+  try{
+    const { id } = req.params;
+    if (isNaN(Number(id))) {
+      return res.status(400).json({ message: 'Invalid category ID' });
+    }
+    const category = await prisma.category.findUnique({
+      where: { id: Number(id) },
+    });
 
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+    res.status(200).json(category);
+  }
+  catch (error) {
+    next(error);
+  }
+};

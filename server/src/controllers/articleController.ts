@@ -24,7 +24,7 @@ export const getPublishedArticles = async (req: Request, res: Response, next: Ne
  */
 export const getPublishedArticleById = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
+    if (isNaN(Number(id))) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
@@ -80,7 +80,7 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
  */
 export const getArticleForUserById = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
+    if (isNaN(Number(id))) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
@@ -189,7 +189,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
  */
 export const deleteArticle = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
+    if (isNaN(Number(id))) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
@@ -239,7 +239,7 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
  */
 export const updateArticle = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
+    if (isNaN(Number(id))) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
@@ -320,7 +320,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
  */
 export const reviewArticle = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (Number.isNaN(id)) {
+    if (isNaN(Number(id))) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
