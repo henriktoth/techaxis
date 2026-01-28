@@ -219,11 +219,11 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
              return res.status(403).json({ message: 'Access denied' });
         }
 
-        await prisma.article.delete({
+        const deletedArticle = await prisma.article.delete({
              where: { id },
         });
 
-        res.status(200).json({ message: 'Article deleted successfully' });
+        res.status(200).json(deletedArticle);
     } catch (error) {
         next(error);
     }
