@@ -106,16 +106,6 @@ export const getTaskById = async (req: Request, res: Response, next: NextFunctio
  */
 export const createTask = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-
-        if (!user) {
-            return res.status(401).json({ message: 'Authentication required' });
-        }
-
-        if (user.role !== 'ADMIN') {
-            return res.status(403).json({ message: 'Access denied. Only admins can create tasks.' });
-        }
-
         if (!req.body) {
             return res.status(400).json({ message: 'Request body is required' });
         }
@@ -133,7 +123,6 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
             }
         }
 
-        // Check if assigned user exists
         if (assignedToId) {
             const assigneeExists = await prisma.user.findUnique({
                 where: { id: Number(assignedToId) }
@@ -172,22 +161,12 @@ export const updateTask = async (req: Request, res: Response, next: NextFunction
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-
-        if (!user) {
-            return res.status(401).json({ message: 'Authentication required' });
-        }
-
         const existingTask = await prisma.task.findUnique({
             where: { id }
         });
 
         if (!existingTask) {
             return res.status(404).json({ message: 'Task not found' });
-        }
-
-        if (user.role !== 'ADMIN') {
-            return res.status(403).json({ message: 'Only ADMIN users can update tasks.' });
         }
 
         const { title, description, isCompleted, priority, dueDate, assignedToId } = req.body;
@@ -246,16 +225,6 @@ export const deleteTask = async (req: Request, res: Response, next: NextFunction
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-
-        if (!user) {
-            return res.status(401).json({ message: 'Authentication required' });
-        }
-
-        if (user.role !== 'ADMIN') {
-            return res.status(403).json({ message: 'Access denied. Only admins can delete tasks.' });
-        }
-
         const existingTask = await prisma.task.findUnique({
             where: { id }
         });

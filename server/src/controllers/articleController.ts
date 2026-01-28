@@ -51,7 +51,7 @@ export const getPublishedArticleById = async (req: Request, res: Response, next:
 export const getArticlesForUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user || typeof user.userId !== 'number' || !user.role) {
+        if (!user) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -86,7 +86,7 @@ export const getArticleForUserById = async (req: Request, res: Response, next: N
 
     try {
         const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user || typeof user.userId !== 'number' || !user.role) {
+        if (!user) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -245,6 +245,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
 
     try {
         const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        
         if (!user) {
             return res.status(401).json({ message: 'Authentication required' });
         }
