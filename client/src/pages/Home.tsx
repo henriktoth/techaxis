@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import type { Article, Category } from "../types";
-import CategoryNav from "../components/Navbar";
+import Navbar from "../components/Navbar"; // Renamed import
 import ArticleCard from "../components/ArticleCard";
 
 const Home = () => {
@@ -9,6 +9,8 @@ const Home = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,6 +32,10 @@ const Home = () => {
 
     fetchData();
   }, []);
+
+  const filteredArticles = selectedCategoryId
+    ? articles.filter((article) => article.categoryId === selectedCategoryId)
+    : articles;
 
   if (loading) {
     return (
@@ -54,15 +60,24 @@ const Home = () => {
         <h1 className="text-5xl font-bold mb-8 text-slate-900">
           TechAxis
         </h1>
-        
-        <CategoryNav categories={categories} />
+
+        <Navbar 
+          categories={categories} 
+          selectedCategoryId={selectedCategoryId}
+          onSelectCategory={setSelectedCategoryId}
+        />
       </header>
 
       <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {articles.map((article) => (
-
-          <ArticleCard key={article.id} article={article} />
-        ))}
+        {filteredArticles.length > 0 ? (
+          filteredArticles.map((article) => (
+            <ArticleCard key={article.id} article={article} />
+          ))
+        ) : (
+          <div className="col-span-full text-center text-gray-500 py-10">
+            No articles found in this category.
+          </div>
+        )}
       </main>
     </div>
   );

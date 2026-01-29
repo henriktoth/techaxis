@@ -6,6 +6,7 @@ export interface Article {
   thumbnail: string | null;
   status: string;
   publishedAt: string | null;
+  categoryId: number;
 }
 
 export interface Category {

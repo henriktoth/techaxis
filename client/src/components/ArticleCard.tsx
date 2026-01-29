@@ -23,11 +23,11 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
       </div>
 
 
-      <div className="flex flex-col flex-grow p-6">
+      <div className="flex flex-col grow p-6">
         <h2 className="text-xl font-bold mb-3 text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
           {article.title}
         </h2>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed flex-grow">
+        <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed grow">
           {article.summary}
         </p>
 
