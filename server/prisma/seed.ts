@@ -6,7 +6,6 @@ import { prisma } from '../src/config/db.config';
 async function main() {
     console.log('Seeding database...');
 
-    // Clear data
     await prisma.task.deleteMany();
     await prisma.article.deleteMany();
     await prisma.category.deleteMany();
@@ -30,7 +29,6 @@ async function main() {
         },
     });
     
-    // Create categories
     const catReview = await prisma.category.create({ data: { name: 'Product Review' } });
     const catHardware = await prisma.category.create({ data: { name: 'Hardware' } });
     const catSoftware = await prisma.category.create({ data: { name: 'Software' } });
@@ -39,7 +37,6 @@ async function main() {
 
     await prisma.article.createMany({
         data: [
-            // Software
             {
                 title: 'First Software Article',
                 slug: 'first-software-article',
@@ -51,7 +48,6 @@ async function main() {
                 publishedAt: new Date(),
                 thumbnail: 'https://placehold.co/600x400?text=Software',
             },
-            // Hardware
             {
                 title: 'First Hardware Article',
                 slug: 'first-hardware-article',
@@ -63,7 +59,6 @@ async function main() {
                 publishedAt: new Date(),
                 thumbnail: 'https://placehold.co/600x400?text=Hardware',
             },
-            // Review
             {
                 title: 'First Product Review',
                 slug: 'first-product-review',
@@ -75,7 +70,6 @@ async function main() {
                 publishedAt: new Date(),
                 thumbnail: 'https://placehold.co/600x400?text=Review',
             },
-            // AI
             {
                 title: 'First AI Article',
                 slug: 'first-ai-article',
@@ -87,7 +81,6 @@ async function main() {
                 publishedAt: new Date(),
                 thumbnail: 'https://placehold.co/600x400?text=AI',
             },
-            // Other (Draft)
             {
                 title: 'First Other Article (Draft)',
                 slug: 'first-other-article-draft',
@@ -98,8 +91,7 @@ async function main() {
                 categoryId: catOther.id,
                 thumbnail: null,
             },
-             // Extra Software
-             {
+            {
                 title: 'Second Software Article',
                 slug: 'second-software-article',
                 summary: 'Summary of the second software article.',
