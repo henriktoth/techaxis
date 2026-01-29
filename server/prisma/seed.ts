@@ -39,23 +39,76 @@ async function main() {
 
     await prisma.article.createMany({
         data: [
+            // Software
             {
-                title: 'First Article',
-                slug: 'first-article',
-                summary: 'Summary of the first article.',
-                content: 'This is the content of the first article.',
+                title: 'First Software Article',
+                slug: 'first-software-article',
+                summary: 'Summary of the first software article.',
+                content: '<p>This is the content of the first software article.</p>',
                 status: ArticleStatus.PUBLISHED,
                 authorId: writer.id,
                 categoryId: catSoftware.id,
+                publishedAt: new Date(),
+                thumbnail: 'https://placehold.co/600x400?text=Software',
             },
+            // Hardware
             {
-                title: 'Second Article',
-                slug: 'second-article',
-                summary: 'Summary of the second article.',
-                content: 'This is the content of the second article.',
-                status: ArticleStatus.DRAFT,
+                title: 'First Hardware Article',
+                slug: 'first-hardware-article',
+                summary: 'Summary of the first hardware article.',
+                content: '<p>This is the content of the first hardware article.</p>',
+                status: ArticleStatus.PUBLISHED,
                 authorId: writer.id,
                 categoryId: catHardware.id,
+                publishedAt: new Date(),
+                thumbnail: 'https://placehold.co/600x400?text=Hardware',
+            },
+            // Review
+            {
+                title: 'First Product Review',
+                slug: 'first-product-review',
+                summary: 'Summary of the first product review.',
+                content: '<p>This is the content of the product review.</p>',
+                status: ArticleStatus.PUBLISHED,
+                authorId: admin.id,
+                categoryId: catReview.id,
+                publishedAt: new Date(),
+                thumbnail: 'https://placehold.co/600x400?text=Review',
+            },
+            // AI
+            {
+                title: 'First AI Article',
+                slug: 'first-ai-article',
+                summary: 'Summary of the first AI article.',
+                content: '<p>This is the content of the AI article.</p>',
+                status: ArticleStatus.PUBLISHED,
+                authorId: writer.id,
+                categoryId: catAI.id,
+                publishedAt: new Date(),
+                thumbnail: 'https://placehold.co/600x400?text=AI',
+            },
+            // Other (Draft)
+            {
+                title: 'First Other Article (Draft)',
+                slug: 'first-other-article-draft',
+                summary: 'Summary of the draft article.',
+                content: '<p>This is the content of the draft article.</p>',
+                status: ArticleStatus.DRAFT,
+                authorId: writer.id,
+                categoryId: catOther.id,
+                thumbnail: null,
+            },
+             // Extra Software
+             {
+                title: 'Second Software Article',
+                slug: 'second-software-article',
+                summary: 'Summary of the second software article.',
+                content: '<p>This is the content of the second software article.</p>',
+                status: ArticleStatus.PUBLISHED,
+                authorId: writer.id,
+                categoryId: catSoftware.id,
+                publishedAt: new Date(),
+                thumbnail: 'https://placehold.co/600x400?text=Software+2',
             },
         ],
     });
@@ -63,14 +116,14 @@ async function main() {
     await prisma.task.createMany({
         data: [
             {
-                title: 'Review First Article',
-                description: 'Review the first article for publication.',
+                title: 'Review First Software Article',
+                description: 'Review the software article for publication.',
                 assignedToId: admin.id,
                 isCompleted: false,
             },
             {
-                title: 'Edit Second Article',
-                description: 'Edit the second article before submission.',
+                title: 'Edit Draft Article',
+                description: 'Finish writing the draft article.',
                 assignedToId: writer.id,
                 isCompleted: false,
             },

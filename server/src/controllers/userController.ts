@@ -2,6 +2,10 @@ import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../config/db.config';
 import bcrypt from 'bcrypt';
 
+/**
+ * Get all users. (Admin only)
+ * @returns 200 with users list
+ */
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const users = await prisma.user.findMany({
@@ -19,6 +23,11 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
+/**
+ * Get user by id. (Admin only)
+ * @returns 200 with user or 404 if not found
+ * @param req.params.id User id
+ */
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
@@ -47,6 +56,12 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
+/**
+ * Update user by id. (Admin only)
+ * @returns 200 with updated user or 404 if not found
+ * @param req.params.id User id
+ * @param req.body User data to update
+ */
 export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
@@ -102,6 +117,11 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
     }
 };
 
+/**
+ * Delete user by id. (Admin only)
+ * @returns 200 with deleted user or 404 if not found
+ * @param req.params.id User id
+ */
 export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
