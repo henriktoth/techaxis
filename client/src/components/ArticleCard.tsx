@@ -7,7 +7,7 @@ interface ArticleCardProps {
 const ArticleCard = ({ article }: ArticleCardProps) => {
   return (
     <article className="flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:scale-105 transition-transform duration-300 group cursor-pointer">
-      {/* Image Container */}
+
       <div className="h-56 w-full overflow-hidden bg-gray-100">
         {article.thumbnail ? (
           <img
@@ -22,7 +22,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
         )}
       </div>
 
-      {/* Content Container */}
+
       <div className="flex flex-col flex-grow p-6">
         <h2 className="text-xl font-bold mb-3 text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
           {article.title}
@@ -31,7 +31,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
           {article.summary}
         </p>
 
-        {/* Footer */}
+
         <div className="mt-auto pt-4 border-t border-gray-100">
           <span className="inline-flex items-center text-sm font-semibold text-blue-600">
             Read Article

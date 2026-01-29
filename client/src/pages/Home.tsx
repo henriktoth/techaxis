@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import type { Article, Category } from "../types";
-import CategoryNav from "../components/CategoryNav";
+import CategoryNav from "../components/Navbar";
 import ArticleCard from "../components/ArticleCard";
 
 const Home = () => {
@@ -60,7 +60,7 @@ const Home = () => {
 
       <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {articles.map((article) => (
-          
+
           <ArticleCard key={article.id} article={article} />
         ))}
       </main>
