@@ -1,0 +1,14 @@
+export interface Article {
+  id: number;
+  slug: string;
+  title: string;
+  summary: string;
+  thumbnail: string | null;
+  status: string;
+  publishedAt: string | null;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+}

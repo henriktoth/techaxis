@@ -1,21 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import "./Home.css";
-
-interface Article {
-  id: number;
-  slug: string;
-  title: string;
-  summary: string;
-  thumbnail: string | null;
-  status: string;
-  publishedAt: string | null;
-}
-
-interface Category {
-  id: number;
-  name: string;
-}
+import type { Article, Category } from "../types";
+import CategoryNav from "../components/CategoryNav";
+import ArticleCard from "../components/ArticleCard";
 
 const Home = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -44,48 +31,37 @@ const Home = () => {
     fetchData();
   }, []);
 
-  if (loading) return <div className="loading">Loading TechAxis...</div>;
-  if (error) return <div className="error">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-gray-500 text-lg">
+        Loading TechAxis...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-red-500 text-lg">
+        {error}
+      </div>
+    );
+  }
 
   return (
-    <div className="container">
-      <header className="site-header">
-        <h1 className="brand-title">TechAxis</h1>
+    <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 font-sans text-gray-900">
+
+      <header className="text-center mb-12">
+        <h1 className="text-5xl font-bold mb-8 text-slate-900">
+          TechAxis
+        </h1>
         
-        <nav className="category-nav">
-          <button className="category-pill active">All</button>
-          {categories.map((cat) => (
-            <button key={cat.id} className="category-pill">
-              {cat.name}
-            </button>
-          ))}
-        </nav>
+        <CategoryNav categories={categories} />
       </header>
 
-      <main className="article-grid">
+      <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {articles.map((article) => (
-          <article key={article.id} className="article-card">
-            <div className="card-image-container">
-              {article.thumbnail ? (
-                <img 
-                  src={article.thumbnail} 
-                  alt={article.title} 
-                  className="card-img" 
-                />
-              ) : (
-                <div className="card-placeholder">
-                   <span>TechAxis</span>
-                </div>
-              )}
-            </div>
-            <div className="card-content">
-              <h2 className="card-title">{article.title}</h2>
-              <p className="card-summary">{article.summary}</p>
-              <div className="card-footer">
-                <span className="read-more">Read Article →</span>
-              </div>
-            </div>
-          </article>
+          
+          <ArticleCard key={article.id} article={article} />
         ))}
       </main>
     </div>
