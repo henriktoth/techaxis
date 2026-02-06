@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import type { Article, Category } from "../types";
-import Navbar from "../components/Navbar"; // Renamed import
+import Navbar from "../components/Navbar";
 import ArticleCard from "../components/ArticleCard";
+import Footer from "../components/Footer";
 
 const Home = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -74,7 +75,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen flex flex-col">
       <Navbar 
         categories={categories} 
         selectedCategoryId={selectedCategoryId}
@@ -164,6 +165,8 @@ const Home = () => {
           </div>
         )}
       </main>
+      
+      <Footer />
     </div>
   );
 };
