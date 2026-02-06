@@ -47,6 +47,7 @@ async function main() {
                 categoryId: catSoftware.id,
                 publishedAt: new Date(),
                 thumbnail: 'https://placehold.co/600x400?text=Software',
+                isFeatured: true,
             },
             {
                 title: 'First Hardware Article',

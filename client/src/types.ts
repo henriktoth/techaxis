@@ -5,6 +5,7 @@ export interface Article {
   summary: string;
   thumbnail: string | null;
   status: string;
+  isFeatured: boolean;
   publishedAt: string | null;
   categoryId: number;
 }

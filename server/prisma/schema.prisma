@@ -41,13 +41,14 @@ model Category {
 }
 
 model Article {
-  id        Int           @id @default(autoincrement())
-  slug      String        @unique
-  title     String
-  summary   String
-  content   String        @db.Text
-  thumbnail String?
-  status    ArticleStatus @default(DRAFT)
+  id         Int           @id @default(autoincrement())
+  slug       String        @unique
+  title      String
+  summary    String
+  content    String        @db.Text
+  thumbnail  String?
+  status     ArticleStatus @default(DRAFT)
+  isFeatured Boolean       @default(false)
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -69,7 +70,7 @@ model Task {
   description  String    @db.Text
   isCompleted  Boolean   @default(false)
   priority     Int       @default(0)
-  dueDate      DateTime?
+  dueDate      DateTime? //lehet az hogy lejarat utan visszakerül a foszerkesztohoz.
   assignedTo   User?     @relation(fields: [assignedToId], references: [id])
   assignedToId Int?
 
