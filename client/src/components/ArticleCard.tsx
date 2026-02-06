@@ -8,9 +8,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
   return (
     <article className="group relative flex flex-col bg-[#111827] border border-white/5 rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(99,102,241,0.2)] hover:border-indigo-500/20 h-full">
       
-      {/* Image Container */}
       <div className="relative h-52 w-full overflow-hidden">
-        {/* Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-transparent to-transparent z-10 opacity-60" />
         
         {article.thumbnail ? (
@@ -37,7 +35,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
 
         <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
            <span className="text-xs font-mono text-slate-500 uppercase tracking-wider">
-              {new Date(article.publishedAt || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''}
            </span>
            
            <span className="inline-flex items-center text-sm font-semibold text-indigo-400 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">

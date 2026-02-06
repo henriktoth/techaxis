@@ -4,9 +4,10 @@ interface NavbarProps {
   categories: Category[];
   selectedCategoryId: number | null;
   onSelectCategory: (id: number | null) => void;
+  onSearch: (query: string) => void;
 }
 
-const Navbar = ({ categories, selectedCategoryId, onSelectCategory }: NavbarProps) => {
+const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch }: NavbarProps) => {
   
   const getNavItemClass = (isActive: boolean) =>
     `relative px-5 py-2 text-sm font-medium transition-all duration-300 rounded-full ${
@@ -19,7 +20,6 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory }: NavbarProp
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0B1120]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-[#0B1120]/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
           <div 
             className="flex-shrink-0 cursor-pointer group" 
             onClick={() => onSelectCategory(null)}
@@ -29,7 +29,6 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory }: NavbarProp
             </span>
           </div>
 
-          {/* Categories */}
           <div className="hidden md:flex items-center space-x-2">
             <button
               onClick={() => onSelectCategory(null)}
@@ -49,7 +48,20 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory }: NavbarProp
             ))}
           </div>
 
-           {/* Mobile Menu Button (Simplified for now, could be expanded) */}
+          <div className="hidden md:flex items-center ml-4">
+            <div className="relative">
+              <input 
+                type="text" 
+                placeholder="Search..."
+                className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500/50 w-64 transition-all"
+                onChange={(e) => onSearch(e.target.value)}
+              />
+              <svg className="absolute right-3 top-2.5 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+
            <div className="md:hidden">
               <div className="h-6 w-6 text-slate-400">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,7 +72,6 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory }: NavbarProp
         </div>
       </div>
       
-      {/* Mobile Category Bar (Horizontal Scroll) */}
       <div className="md:hidden border-t border-white/5 overflow-x-auto">
         <div className="flex px-4 py-3 space-x-3 min-w-max">
             <button

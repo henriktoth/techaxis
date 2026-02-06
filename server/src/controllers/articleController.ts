@@ -8,8 +8,18 @@ import slugify from 'slugify';
  */
 export const getPublishedArticles = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const { search } = req.query;
+        const whereClause: any = { status: 'PUBLISHED' };
+
+        if (search) {
+            whereClause.title = {
+                contains: String(search),
+                mode: 'insensitive',
+            };
+        }
+
         const articles = await prisma.article.findMany({
-            where: { status: 'PUBLISHED' },
+            where: whereClause,
             orderBy: [
                 { isFeatured: 'desc' },
                 { publishedAt: 'desc' },

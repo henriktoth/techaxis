@@ -11,34 +11,50 @@ const Home = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       try {
-        const [articlesRes, categoriesRes] = await Promise.all([
-          axios.get<Article[]>("http://localhost:8000/api/articles"),
-          axios.get<Category[]>("http://localhost:8000/api/categories"),
-        ]);
-
-        setArticles(articlesRes.data);
+        const categoriesRes = await axios.get<Category[]>("http://localhost:8000/api/categories");
         setCategories(categoriesRes.data);
       } catch (err) {
         console.error(err);
         setError("Failed to load content.");
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const url = searchQuery 
+          ? `http://localhost:8000/api/articles?search=${searchQuery}`
+          : "http://localhost:8000/api/articles";
+          
+        const articlesRes = await axios.get<Article[]>(url);
+        setArticles(articlesRes.data);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load articles.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    const debounceTimer = setTimeout(() => {
+      fetchArticles();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   const filteredArticles = selectedCategoryId
     ? articles.filter((article) => article.categoryId === selectedCategoryId)
     : articles;
 
-  // Prioritize the explicitly featured article, otherwise fallback to the first one (latest)
-  const heroArticle = filteredArticles.find((a) => a.isFeatured) || filteredArticles[0];
+    const heroArticle = filteredArticles.find((a) => a.isFeatured) || filteredArticles[0];
   const remainingArticles = filteredArticles.filter((a) => a.id !== heroArticle?.id);
 
   if (loading) {
@@ -63,6 +79,7 @@ const Home = () => {
         categories={categories} 
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={setSelectedCategoryId}
+        onSearch={setSearchQuery}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28">
