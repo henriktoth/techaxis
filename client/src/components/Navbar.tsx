@@ -10,7 +10,7 @@ interface NavbarProps {
 const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch }: NavbarProps) => {
   
   const getNavItemClass = (isActive: boolean) =>
-    `relative px-5 py-2 text-sm font-medium transition-all duration-300 rounded-full ${
+    `relative px-5 py-2 text-sm font-medium transition-all duration-300 rounded-full cursor-pointer ${
       isActive
         ? "text-white bg-indigo-600/10 text-indigo-400 shadow-[0_0_20px_-5px_theme(colors.indigo.500/0.5)] border border-indigo-500/20"
         : "text-slate-400 hover:text-white hover:bg-white/5"
