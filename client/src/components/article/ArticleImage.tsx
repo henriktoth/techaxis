@@ -1,4 +1,3 @@
-// components/article/ArticleImage.tsx
 import type { Article } from "../../types";
 
 interface ArticleImageProps {

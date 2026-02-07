@@ -1,4 +1,3 @@
-// components/article/ArticleHeader.tsx
 import type { Article} from "../../types";
 
 interface ArticleHeaderProps {

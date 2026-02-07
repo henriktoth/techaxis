@@ -83,7 +83,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#0B1120] text-gray-100 font-sans selection:bg-indigo-500/30">
       
       <Navbar 
         categories={categories} 
