@@ -1,0 +1,8 @@
+{
+  "name": "tech-axis-root",
+  "private": true,
+  "scripts": {
+    "dev": "./start.sh",
+    "start": "./start.sh"
+  }
+}
