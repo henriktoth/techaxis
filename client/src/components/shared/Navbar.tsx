@@ -29,7 +29,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch }: 
             </span>
           </div>
 
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden xl:flex items-center space-x-2">
             <button
               onClick={() => onSelectCategory(null)}
               className={getNavItemClass(selectedCategoryId === null)}
@@ -48,12 +48,12 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch }: 
             ))}
           </div>
 
-          <div className="hidden md:flex items-center ml-4">
+          <div className="flex items-center ml-auto xl:ml-4">
             <div className="relative">
               <input 
                 type="text" 
                 placeholder="Search..."
-                className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500/50 w-64 transition-all"
+                className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500/50 w-32 md:w-64 transition-all"
                 onChange={(e) => onSearch(e.target.value)}
               />
               <svg className="absolute right-3 top-2.5 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,17 +62,10 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch }: 
             </div>
           </div>
 
-           <div className="md:hidden">
-              <div className="h-6 w-6 text-slate-400">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-              </div>
-           </div>
         </div>
       </div>
       
-      <div className="md:hidden border-t border-white/5 overflow-x-auto">
+      <div className="xl:hidden border-t border-white/5 overflow-x-auto">
         <div className="flex px-4 py-3 space-x-3 min-w-max">
             <button
               onClick={() => onSelectCategory(null)}
