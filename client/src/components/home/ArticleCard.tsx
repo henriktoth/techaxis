@@ -1,4 +1,5 @@
-import type { Article } from "../types";
+import { Link } from "react-router-dom";
+import type { Article } from "../../types";
 
 interface ArticleCardProps {
   article: Article;
@@ -7,9 +8,10 @@ interface ArticleCardProps {
 const ArticleCard = ({ article }: ArticleCardProps) => {
   return (
     <article className="group relative flex flex-col bg-[#111827] border border-white/5 rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(99,102,241,0.2)] hover:border-indigo-500/20 h-full cursor-pointer">
+      <Link to={`/article/${article.slug}`} className="absolute inset-0 z-30" />
       
       <div className="relative h-52 w-full overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#111827] via-transparent to-transparent z-10 opacity-60" />
+       <div className="absolute inset-0 bg-linear-to-t from-[#111827] via-transparent to-transparent z-10 opacity-60" />
         
         {article.thumbnail ? (
           <img

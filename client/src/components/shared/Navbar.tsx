@@ -1,4 +1,4 @@
-import type { Category } from "../types";
+import type { Category } from "../../types";
 
 interface NavbarProps {
   categories: Category[];
@@ -17,14 +17,14 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch }: 
     }`;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0B1120]/80 backdrop-blur-xl supports-[backdrop-filter]:bg-[#0B1120]/60">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0B1120]/80 backdrop-blur-xl supports-backdrop-filter:bg-[#0B1120]/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div 
-            className="flex-shrink-0 cursor-pointer group" 
+            className="shrink-0 cursor-pointer group" 
             onClick={() => onSelectCategory(null)}
           >
-            <span className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent group-hover:from-indigo-400 group-hover:to-cyan-400 transition-all duration-500">
+            <span className="text-2xl font-bold bg-linear-to-r from-white to-slate-400 bg-clip-text text-transparent group-hover:from-indigo-400 group-hover:to-cyan-400 transition-all duration-500">
               TechAxis<span className="text-indigo-500">.</span>
             </span>
           </div>

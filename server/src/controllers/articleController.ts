@@ -32,20 +32,26 @@ export const getPublishedArticles = async (req: Request, res: Response, next: Ne
 };
 
 /**
-    * Get a single published article by id (public).
-    * @param req.params.id Article id (number)
+    * Get a single published article by id or slug (public).
+    * @param req.params.id Article id (number) or slug (string)
     * @returns 200 with Article or 404 if not published/not found
  */
 export const getPublishedArticleById = async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
-    if (isNaN(Number(id))) {
-        return res.status(400).json({ message: 'Invalid article id' });
-    }
-
+    const param = req.params.id;
+    const id = Number(param);
+    
     try {
-        const article = await prisma.article.findUnique({
-            where: { id },
-        });
+        let article;
+
+        if (!isNaN(id)) {
+            article = await prisma.article.findUnique({
+                where: { id },
+            });
+        } else {
+            article = await prisma.article.findUnique({
+                where: { slug: param },
+            });
+        }
 
         if (!article || article.status !== 'PUBLISHED') {
             return res.status(404).json({ message: 'Article not found' });
