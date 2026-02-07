@@ -72,7 +72,7 @@ const ArticleDetails = () => {
         onSearch={() => navigate('/')} 
       />
 
-      <main className="grow pt-28 pb-12 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="grow pt-40 md:pt-28 pb-12 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <ArticleHeader 
             article={article} 
