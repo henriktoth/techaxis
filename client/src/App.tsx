@@ -10,8 +10,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/article/:slug" element={<ArticleDetails />} />
-        <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<Dashboard />} />
       </Routes>
     </>
   );

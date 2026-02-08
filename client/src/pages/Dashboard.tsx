@@ -50,7 +50,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        navigate('/admin');
+        navigate('/admin/login');
         return;
       }
 
@@ -70,7 +70,7 @@ const Dashboard = () => {
         console.error('Error fetching dashboard data:', err);
         if (err.response?.status === 401) {
             localStorage.removeItem('token');
-            navigate('/admin');
+            navigate('/admin/login');
         } else {
             setError('Failed to load dashboard data.');
         }
@@ -84,7 +84,7 @@ const Dashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/admin');
+    navigate('/admin/login');
   };
 
   const handleDeleteArticle = async (id: number) => {

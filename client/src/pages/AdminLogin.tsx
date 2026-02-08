@@ -23,7 +23,7 @@ const AdminLogin = () => {
       const { token } = response.data;
       
       localStorage.setItem('token', token);
-      navigate('/dashboard');
+      navigate('/admin/dashboard');
     } catch (err: any) {
       console.error('Login error:', err);
       const errorMessage = err.response?.data?.message || 'An unexpected error occurred. Please try again.';
