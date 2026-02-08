@@ -6,10 +6,7 @@ import { prisma } from '../src/config/db.config';
 async function main() {
     console.log('Seeding database...');
 
-    await prisma.task.deleteMany();
-    await prisma.article.deleteMany();
-    await prisma.category.deleteMany();
-    await prisma.user.deleteMany();
+    await prisma.$executeRawUnsafe(`TRUNCATE TABLE "Task", "Article", "Category", "User" RESTART IDENTITY CASCADE;`);
 
     const admin = await prisma.user.create({
         data: {
