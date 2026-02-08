@@ -165,10 +165,6 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
         }
 
         if (user.role === 'WRITER') {
-             // Writers might pass isFeatured, but we probably want to ignore it or set to false unless Admin approves.
-             // But for now, let's allow it if passed, or we can restrict it. 
-             // Simplest: only ADMINs can set isFeatured = true?
-             // The user query didn't specify. I'll just pass it through.
             if (articleStatus !== 'DRAFT' && articleStatus !== 'REVIEW') {
                 return res.status(400).json({ message: 'Writers can only create articles with DRAFT or REVIEW status' });
             }
@@ -184,6 +180,21 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             publishedAt = new Date();
         }
 
+        let resolvedCategoryId: number | undefined;
+        if (categoryId) {
+            const category = await prisma.category.findUnique({ where: { id: Number(categoryId) } });
+            if (!category) {
+                return res.status(400).json({ message: 'Invalid category ID' });
+            }
+            resolvedCategoryId = category.id;
+        } else {
+
+            const otherCategory = await prisma.category.findUnique({ where: { name: 'Other' } });
+             if (otherCategory) {
+                 resolvedCategoryId = otherCategory.id;
+             }
+        }
+
         const newArticle = await prisma.article.create({
             data: {
                 title,
@@ -195,7 +206,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
                 publishedAt,
                 slug: uniqueSlug,
                 authorId: user.userId,
-                categoryId: categoryId ? Number(categoryId) : undefined,
+                categoryId: resolvedCategoryId,
             },
         });
 

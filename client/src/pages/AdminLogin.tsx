@@ -1,13 +1,36 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password });
+    setError(null);
+    setIsLoading(true);
 
+    try {
+      const response = await axios.post('http://localhost:8000/api/auth/login', {
+        email,
+        password,
+      });
+
+      const { token } = response.data;
+      
+      localStorage.setItem('token', token);
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.message || 'An unexpected error occurred. Please try again.';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -17,6 +40,12 @@ const AdminLogin = () => {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">TechAxis Admin</h1>
           <p className="text-gray-500">Sign in to manage content</p>
         </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -31,6 +60,7 @@ const AdminLogin = () => {
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white placeholder-gray-500"
               placeholder="admin@techaxis.com"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -46,14 +76,20 @@ const AdminLogin = () => {
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 bg-gray-50 hover:bg-white placeholder-gray-500"
               placeholder="••••••••"
               required
+              disabled={isLoading}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-sm mt-4"
+            disabled={isLoading}
+            className={`w-full text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-sm mt-4 ${
+              isLoading 
+                ? 'bg-blue-400 cursor-not-allowed' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
           >
-            Sign In
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 

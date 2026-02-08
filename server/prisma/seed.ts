@@ -14,7 +14,7 @@ async function main() {
     const admin = await prisma.user.create({
         data: {
             email: 'admin@techaxis.com',
-            name: 'Admin',
+            name: 'Admin User',
             password_hash: await bcrypt.hash('password', 10),
             role: Role.ADMIN,
         },
@@ -23,7 +23,7 @@ async function main() {
     const writer = await prisma.user.create({
         data: {
             email: 'writer@techaxis.com',
-            name: 'Writer',
+            name: 'Writer User',
             password_hash: await bcrypt.hash('password', 10),
             role: Role.WRITER,
         },
