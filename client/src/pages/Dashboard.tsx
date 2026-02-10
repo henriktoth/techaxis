@@ -180,7 +180,7 @@ const Dashboard = () => {
                 searchQuery={searchQuery} 
                 setSearchQuery={setSearchQuery} 
                 title={user?.role === 'ADMIN' ? 'All Articles' : 'My Articles'}
-                onNewArticle={() => alert('Create Article feature coming soon (nav to /create-article)')}
+                onNewArticle={() => navigate('/admin/article/create')}
             />
             
             <ArticleTable 

@@ -173,7 +173,13 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
         }
 
         const slugBase = slugify(title, { lower: true, strict: true });
-        const uniqueSlug = `${slugBase}-${Date.now()}`;
+        let uniqueSlug = slugBase;
+        let counter = 1;
+
+        while (await prisma.article.findUnique({ where: { slug: uniqueSlug } })) {
+            uniqueSlug = `${slugBase}-${counter}`;
+            counter++;
+        }
 
         let publishedAt: Date | undefined;
         if (articleStatus === 'PUBLISHED') {
@@ -318,7 +324,15 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
 
         if (title) {
             data.title = title;
-            data.slug = `${slugify(title, { lower: true, strict: true })}-${Date.now()}`;
+            const slugBase = slugify(title, { lower: true, strict: true });
+            let uniqueSlug = slugBase;
+            let counter = 1;
+
+            while (await prisma.article.findFirst({ where: { slug: uniqueSlug, NOT: { id } } })) {
+                uniqueSlug = `${slugBase}-${counter}`;
+                counter++;
+            }
+            data.slug = uniqueSlug;
         }
         if (summary) data.summary = summary;
         if (content) data.content = content;
