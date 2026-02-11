@@ -16,6 +16,14 @@ const DashboardHeader = ({ user, onLogout }: DashboardHeaderProps) => {
         </p>
       </div>
       <div className="flex gap-3">
+        {user?.role === 'ADMIN' && (
+          <Link 
+            to="/admin/users"
+            className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer border border-blue-200"
+          >
+            Manage Users
+          </Link>
+        )}
         <Link 
           to="/"
           className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/db.config';
+import { Prisma } from '../generated/prisma/client';
 import slugify from 'slugify';
 
 /**
@@ -9,7 +10,7 @@ import slugify from 'slugify';
 export const getPublishedArticles = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { search } = req.query;
-        const whereClause: any = { status: 'PUBLISHED' };
+        const whereClause: Prisma.ArticleWhereInput = { status: 'PUBLISHED' };
 
         if (search) {
             whereClause.title = {
@@ -320,7 +321,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         }
 
         const { title, summary, content, thumbnail, categoryId, status, isFeatured } = req.body;
-        const data: any = {};
+        const data: Prisma.ArticleUpdateInput = {};
 
         if (title) {
             data.title = title;
@@ -397,7 +398,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        const data: any = { status };
+        const data: Prisma.ArticleUpdateInput = { status };
         
         if (status === 'PUBLISHED') {
             data.publishedAt = new Date();

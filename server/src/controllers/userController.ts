@@ -118,6 +118,53 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
+ * Create a new user. (Admin only)
+ * @returns 201 with created user or 400/409 on error
+ * @param req.body.name Name
+ * @param req.body.email Email
+ * @param req.body.password Password
+ * @param req.body.role Role (WRITER | ADMIN)
+ */
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { name, email, password, role } = req.body;
+
+        if (!name || !email || !password || !role) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        const existingUser = await prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (existingUser) {
+            return res.status(409).json({ message: 'Email already in use' });
+        }
+
+        const password_hash = await bcrypt.hash(password, 10);
+
+        const newUser = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password_hash,
+                role,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+            },
+        });
+
+        res.status(201).json(newUser);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * Delete user by id. (Admin only)
  * @returns 200 with deleted user or 404 if not found
  * @param req.params.id User id

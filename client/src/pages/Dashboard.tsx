@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { Article, User } from '../types';
-import DashboardHeader from '../components/dashboard/DashboardHeader';
+import DashboardLayout from '../components/dashboard/DashboardLayout';
 import StatsOverview from '../components/dashboard/StatsOverview';
 import ArticleFilters from '../components/dashboard/ArticleFilters';
 import ArticleTable from '../components/dashboard/ArticleTable';
@@ -161,41 +161,43 @@ const Dashboard = () => {
   const draftCount = articles.filter(a => a.status === 'DRAFT').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 font-sans">
-      <div className="max-w-7xl mx-auto">
-        <DashboardHeader 
-            user={user} 
-            onLogout={handleLogout} 
-        />
+    <DashboardLayout user={user} onLogout={handleLogout}>
+      <div className="p-8 font-sans">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+             <p className="text-gray-500">Overview of your articles and key statistics.</p>
+          </div>
         
-        <StatsOverview 
-            totalArticles={totalArticles} 
-            publishedCount={publishedCount} 
-            draftCount={draftCount} 
-        />
+          <StatsOverview 
+              totalArticles={totalArticles} 
+              publishedCount={publishedCount} 
+              draftCount={draftCount} 
+          />
 
-        {/* Articles Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
-            <ArticleFilters 
-                searchQuery={searchQuery} 
-                setSearchQuery={setSearchQuery} 
-                title={user?.role === 'ADMIN' ? 'All Articles' : 'My Articles'}
-                onNewArticle={() => navigate('/admin/article/create')}
-            />
-            
-            <ArticleTable 
-                articles={filteredArticles}
-                sortField={sortField}
-                sortDirection={sortDirection}
-                onSort={handleSort}
-                user={user}
-                authors={authors}
-                onDelete={handleDeleteArticle}
-                searchQuery={searchQuery}
-            />
+          {/* Articles Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
+              <ArticleFilters 
+                  searchQuery={searchQuery} 
+                  setSearchQuery={setSearchQuery} 
+                  title={user?.role === 'ADMIN' ? 'All Articles' : 'My Articles'}
+                  onNewArticle={() => navigate('/admin/article/create')}
+              />
+              
+              <ArticleTable 
+                  articles={filteredArticles}
+                  sortField={sortField}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                  user={user}
+                  authors={authors}
+                  onDelete={handleDeleteArticle}
+                  searchQuery={searchQuery}
+              />
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
