@@ -15,10 +15,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/article/:slug" element={<ArticleDetails />} />
+        
         <Route path="/admin/login" element={<AdminLogin />} />
+        
         <Route path="/admin/dashboard" element={<Dashboard />} />
+        
         <Route path="/admin/article/create" element={<CreateArticle />} />
         <Route path="/admin/article/edit/:id" element={<EditArticle />} />
+        
         <Route path="/admin/users" element={<Users />} />
         <Route path="/admin/users/create" element={<CreateUser />} />
         <Route path="/admin/users/edit/:id" element={<EditUser />} />

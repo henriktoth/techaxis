@@ -8,6 +8,7 @@ import { ArrowLeft } from 'lucide-react';
 
 const CreateUser = () => {
     const navigate = useNavigate();
+    
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [formData, setFormData] = useState({
         name: '',
@@ -15,6 +16,7 @@ const CreateUser = () => {
         password: '',
         role: 'WRITER' as User['role']
     });
+    
     const [isLoading, setIsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);

@@ -9,6 +9,7 @@ import { ArrowLeft } from 'lucide-react';
 const EditUser = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [formData, setFormData] = useState({
         name: '',
@@ -16,6 +17,7 @@ const EditUser = () => {
         password: '',
         role: 'WRITER' as User['role']
     });
+    
     const [isLoading, setIsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ const EditUser = () => {
                 setFormData({
                     name: userRes.data.name,
                     email: userRes.data.email,
-                    password: '', // Don't fill password
+                    password: '',
                     role: userRes.data.role
                 });
 

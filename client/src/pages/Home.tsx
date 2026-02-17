@@ -10,15 +10,15 @@ import HeroArticle from "../components/home/HeroArticle";
 import EmptyState from "../components/shared/EmptyState";
 
 const Home = () => {
-  //States
   const [articles, setArticles] = useState<Article[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Effect: Fetch Categories
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -32,7 +32,6 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  // Effect: Fetch Articles (with optional search)
   useEffect(() => {
     const fetchArticles = async () => {
       try {
@@ -57,14 +56,12 @@ const Home = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
 
-  //Constants
   const filteredArticles = selectedCategoryId
     ? articles.filter((article) => article.categoryId === selectedCategoryId)
     : articles;
   const heroArticle = filteredArticles.find((a) => a.isFeatured);
   const remainingArticles = filteredArticles.filter((a) => a.id !== heroArticle?.id);
 
-  //Loading State
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0B1120] text-indigo-500 font-mono text-xl animate-pulse">
@@ -73,7 +70,6 @@ const Home = () => {
     );
   }
 
-  //Error State
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0B1120] text-red-500 font-bold text-xl">

@@ -9,12 +9,14 @@ import ArticleTable from '../components/dashboard/ArticleTable';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  
   const [user, setUser] = useState<User | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [authors, setAuthors] = useState<Record<number, User>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<keyof Article | 'author'>('publishedAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,7 +29,7 @@ const Dashboard = () => {
         const newAuthors: Record<number, User> = {};
 
         await Promise.all(uniqueAuthorIds.map(async (id) => {
-            if (authors[id]) return; // Already fetched
+            if (authors[id]) return;
             try {
                 const res = await axios.get(`http://localhost:8000/api/users/${id}`, {
                     headers: { Authorization: `Bearer ${token}` }
@@ -66,9 +68,9 @@ const Dashboard = () => {
 
         setUser(userRes.data);
         setArticles(articlesRes.data);
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        if (err.response?.status === 401) {
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
             localStorage.removeItem('token');
             navigate('/admin/login');
         } else {
@@ -97,8 +99,11 @@ const Dashboard = () => {
         });
         
         setArticles(articles.filter(a => a.id !== id));
-    } catch (err: any) {
-        const errorMessage = err.response?.data?.message || 'Failed to delete article';
+    } catch (err) {
+        let errorMessage = 'Failed to delete article';
+        if (axios.isAxiosError(err) && err.response?.data?.message) {
+             errorMessage = err.response.data.message;
+        }
         alert(errorMessage);
         console.error(err);
     }

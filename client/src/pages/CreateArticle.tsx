@@ -8,7 +8,6 @@ import ArticleForm from '../components/dashboard/ArticleForm';
 const CreateArticle = () => {
     const navigate = useNavigate();
     
-    // Form state
     const [formData, setFormData] = useState({
         title: '',
         summary: '',
@@ -19,11 +18,9 @@ const CreateArticle = () => {
         isFeatured: false
     });
     
-    // Data state
     const [categories, setCategories] = useState<Category[]>([]);
     const [user, setUser] = useState<User | null>(null);
     
-    // UI state
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);

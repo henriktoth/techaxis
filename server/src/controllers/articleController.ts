@@ -338,7 +338,11 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         if (summary) data.summary = summary;
         if (content) data.content = content;
         if (thumbnail !== undefined) data.thumbnail = thumbnail;
-        if (categoryId) data.categoryId = Number(categoryId);
+        if (categoryId) {
+            data.category = {
+                connect: { id: Number(categoryId) }
+            };
+        }
         if (isFeatured !== undefined) data.isFeatured = isFeatured;
 
         if (status) {

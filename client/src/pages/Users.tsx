@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
-import { Edit, Trash2, UserPlus, ArrowLeft } from 'lucide-react';
+import { Edit, Trash2, UserPlus } from 'lucide-react';
 
 const Users = () => {
     const navigate = useNavigate();

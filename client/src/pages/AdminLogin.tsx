@@ -3,11 +3,12 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const AdminLogin = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,9 +25,12 @@ const AdminLogin = () => {
       
       localStorage.setItem('token', token);
       navigate('/admin/dashboard');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Login error:', err);
-      const errorMessage = err.response?.data?.message || 'An unexpected error occurred. Please try again.';
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
       setError(errorMessage);
     } finally {
       setIsLoading(false);

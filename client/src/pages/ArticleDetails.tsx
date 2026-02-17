@@ -2,26 +2,23 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import type { Article, Category } from "../types";
+
 import Navbar from "../components/shared/Navbar";
 import Footer from "../components/shared/Footer";
-
-// Article Components
 import ArticleHeader from "../components/article/ArticleHeader";
 import ArticleImage from "../components/article/ArticleImage";
 import ArticleContent from "../components/article/ArticleContent";
 
 const ArticleDetails = () => {
-  // Helper Hooks
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   
-  // States
   const [article, setArticle] = useState<Article | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Effect: Fetch Article & Categories
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -45,7 +42,6 @@ const ArticleDetails = () => {
     }
   }, [slug]);
 
-  // Loading
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0B1120] text-indigo-500 font-mono text-xl animate-pulse">
@@ -54,7 +50,6 @@ const ArticleDetails = () => {
     );
   }
 
-  // Error or Not Found
   if (error || !article) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0B1120] text-red-500 font-bold text-xl">

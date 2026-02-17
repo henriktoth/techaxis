@@ -9,7 +9,6 @@ const EditArticle = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     
-    // Form state
     const [formData, setFormData] = useState({
         title: '',
         summary: '',
@@ -20,12 +19,10 @@ const EditArticle = () => {
         isFeatured: false
     });
     
-    // Data state
     const [categories, setCategories] = useState<Category[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [originalArticle, setOriginalArticle] = useState<Article | null>(null);
     
-    // UI state
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);

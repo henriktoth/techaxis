@@ -6,6 +6,7 @@ import {
     LogOut, 
     ExternalLink
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface SidebarProps {
   user: User | null;
@@ -19,7 +20,7 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
-  const NavItem = ({ to, icon: Icon, title, exact = false }: { to: string; icon: any; title: string; exact?: boolean }) => {
+  const NavItem = ({ to, icon: Icon, title, exact = false }: { to: string; icon: LucideIcon; title: string; exact?: boolean }) => {
     const active = exact ? location.pathname === to : isActive(to);
     return (
         <Link
