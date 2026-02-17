@@ -5,7 +5,7 @@ export interface Article {
   summary: string;
   content: string;
   thumbnail: string | null;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  status: 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'REJECTED';
   isFeatured: boolean;
   publishedAt: string | null;
   createdAt?: string;

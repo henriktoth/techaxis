@@ -5,6 +5,7 @@ import AdminLogin from "./pages/AdminLogin";
 import Dashboard from "./pages/Dashboard";
 import EditArticle from "./pages/EditArticle";
 import CreateArticle from "./pages/CreateArticle";
+import ReviewArticle from "./pages/ReviewArticle";
 import Users from "./pages/Users";
 import CreateUser from "./pages/CreateUser";
 import EditUser from "./pages/EditUser";
@@ -22,6 +23,7 @@ function App() {
         
         <Route path="/admin/article/create" element={<CreateArticle />} />
         <Route path="/admin/article/edit/:id" element={<EditArticle />} />
+        <Route path="/admin/article/review/:id" element={<ReviewArticle />} />
         
         <Route path="/admin/users" element={<Users />} />
         <Route path="/admin/users/create" element={<CreateUser />} />

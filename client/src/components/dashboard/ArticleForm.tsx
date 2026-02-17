@@ -40,13 +40,19 @@ const ArticleForm = ({
   const isWriter = user?.role === 'WRITER';
   const canEditFeatured = user?.role === 'ADMIN';
 
+  const generatedSlug = formData.title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
   const handleChange = (field: keyof typeof formData, value: string | number | boolean | Article['status']) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
     <form onSubmit={onSubmit} className="bg-white shadow rounded-lg p-6 space-y-6">
-      {/* Title */}
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">
           Title
@@ -61,18 +67,16 @@ const ArticleForm = ({
         />
       </div>
 
-      {/* Slug (Read-only or auto-generated info) */}
       <div>
         <label className="block text-sm font-medium text-gray-500">
           Slug (preview)
         </label>
         <div className="mt-1 p-2 bg-gray-50 rounded text-gray-500 text-sm">
-          {slug || '...'}
+          {generatedSlug || slug || '...'}
         </div>
         <p className="mt-1 text-xs text-gray-400">Slug is automatically updated based on title.</p>
       </div>
 
-      {/* Summary */}
       <div>
         <label htmlFor="summary" className="block text-sm font-medium text-gray-700">
           Summary
@@ -86,7 +90,6 @@ const ArticleForm = ({
         />
       </div>
 
-      {/* Category */}
       <div>
         <label htmlFor="category" className="block text-sm font-medium text-gray-700">
           Category
@@ -106,7 +109,6 @@ const ArticleForm = ({
         </select>
       </div>
 
-      {/* Thumbnail URL */}
       <div>
         <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700">
           Thumbnail URL
@@ -116,12 +118,11 @@ const ArticleForm = ({
           id="thumbnail"
           value={formData.thumbnail}
           onChange={(e) => handleChange('thumbnail', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border placeholder-gray-400"
           placeholder="https://example.com/image.jpg"
         />
       </div>
 
-      {/* Content */}
       <div>
         <label htmlFor="content" className="block text-sm font-medium text-gray-700">
           Content
@@ -137,7 +138,6 @@ const ArticleForm = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Status */}
         <div>
           <label htmlFor="status" className="block text-sm font-medium text-gray-700">
             Status
@@ -152,11 +152,10 @@ const ArticleForm = ({
             <option value="REVIEW" disabled={isWriter && formData.status === 'PUBLISHED'}>Review</option>
             {/* Writers cannot set to PUBLISHED */}
             <option value="PUBLISHED" disabled={isWriter}>Published</option>
-            <option value="ARCHIVED" disabled={isWriter}>Archived</option>
+            <option value="REJECTED" disabled={isWriter}>Rejected</option>
           </select>
         </div>
 
-        {/* Featured (Admin only) */}
         {canEditFeatured && (
           <div className="flex items-center h-full pt-6">
             <input

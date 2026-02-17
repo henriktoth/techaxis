@@ -46,7 +46,7 @@ const Dashboard = () => {
     };
 
     fetchAuthors();
-  }, [user, articles]);
+  }, [user, articles, authors]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,7 +70,7 @@ const Dashboard = () => {
         setArticles(articlesRes.data);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        if (axios.isAxiosError(err) && err.response?.status === 401) {
+        if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 404)) {
             localStorage.removeItem('token');
             navigate('/admin/login');
         } else {
@@ -135,7 +135,6 @@ const Dashboard = () => {
     }
   };
 
-  // Derived stats
   const filteredArticles = articles.filter(article => 
     article.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     article.slug.toLowerCase().includes(searchQuery.toLowerCase())
@@ -180,7 +179,6 @@ const Dashboard = () => {
               draftCount={draftCount} 
           />
 
-          {/* Articles Section */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
               <ArticleFilters 
                   searchQuery={searchQuery} 
