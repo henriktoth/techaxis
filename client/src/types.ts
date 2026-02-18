@@ -1,3 +1,19 @@
+export interface Task {
+  id: number;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+  priority: number;
+  dueDate: string | null;
+  assignedToId: number | null;
+  assignedTo?: {
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Article {
   id: number;
   slug: string;

@@ -4,7 +4,8 @@ import {
     LayoutDashboard, 
     Users, 
     LogOut, 
-    ExternalLink
+    ExternalLink,
+    ClipboardList
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -48,6 +49,7 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
       {/* Navigation Links */}
       <nav className="flex-1 flex flex-col gap-4 w-full px-3">
         <NavItem to="/admin/dashboard" icon={LayoutDashboard} title="Articles" exact={true} />
+        <NavItem to="/admin/tasks" icon={ClipboardList} title="Tasks" />
         
         {user?.role === 'ADMIN' && (
             <NavItem to="/admin/users" icon={Users} title="Users" />

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "./pages/Home";
 import ArticleDetails from "./pages/ArticleDetails";
 import AdminLogin from "./pages/AdminLogin";
@@ -9,28 +9,34 @@ import ReviewArticle from "./pages/ReviewArticle";
 import Users from "./pages/Users";
 import CreateUser from "./pages/CreateUser";
 import EditUser from "./pages/EditUser";
+import Tasks from "./pages/Tasks";
+
+import CreateTask from "./pages/CreateTask";
+import EditTask from "./pages/EditTask";
+
+const router = createBrowserRouter([
+  { path: "/", element: <Home /> },
+  { path: "/article/:slug", element: <ArticleDetails /> },
+  
+  { path: "/admin/login", element: <AdminLogin /> },
+  
+  { path: "/admin/dashboard", element: <Dashboard /> },
+  
+  { path: "/admin/article/create", element: <CreateArticle /> },
+  { path: "/admin/article/edit/:id", element: <EditArticle /> },
+  { path: "/admin/article/review/:id", element: <ReviewArticle /> },
+  
+  { path: "/admin/users", element: <Users /> },
+  { path: "/admin/users/create", element: <CreateUser /> },
+  { path: "/admin/users/edit/:id", element: <EditUser /> },
+  
+  { path: "/admin/tasks", element: <Tasks /> },
+  { path: "/admin/tasks/create", element: <CreateTask /> },
+  { path: "/admin/tasks/edit/:id", element: <EditTask /> },
+]);
 
 function App() {
-  return (
-    <>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/article/:slug" element={<ArticleDetails />} />
-        
-        <Route path="/admin/login" element={<AdminLogin />} />
-        
-        <Route path="/admin/dashboard" element={<Dashboard />} />
-        
-        <Route path="/admin/article/create" element={<CreateArticle />} />
-        <Route path="/admin/article/edit/:id" element={<EditArticle />} />
-        <Route path="/admin/article/review/:id" element={<ReviewArticle />} />
-        
-        <Route path="/admin/users" element={<Users />} />
-        <Route path="/admin/users/create" element={<CreateUser />} />
-        <Route path="/admin/users/edit/:id" element={<EditUser />} />
-      </Routes>
-    </>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;
