@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import TaskForm from '../components/dashboard/TaskForm';
@@ -21,7 +22,6 @@ const CreateTask = () => {
     });
     
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,7 +53,7 @@ const CreateTask = () => {
                     navigate('/admin/login');
                 } else {
                     console.error(err);
-                    setError('Failed to load data.');
+                    toast.error('Failed to load data.');
                 }
             } finally {
                 setIsLoading(false);
@@ -64,7 +64,6 @@ const CreateTask = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
         
         const token = localStorage.getItem('token');
         if (!token) return;
@@ -77,11 +76,12 @@ const CreateTask = () => {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            toast.success('Task created successfully');
             navigate('/admin/tasks');
         } catch (err) {
             console.error('Error creating task:', err);
              const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to create task.';
-            setError(message || 'Failed to create task.');
+            toast.error(message || 'Failed to create task.');
         }
     };
 
@@ -104,12 +104,6 @@ const CreateTask = () => {
                         </button>
 
                         <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Task</h1>
-
-                        {error && (
-                            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-                                {error}
-                            </div>
-                        )}
 
                         <TaskForm 
                             formData={formData}

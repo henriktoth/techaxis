@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { Article, Category, User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import ArticleForm from '../components/dashboard/ArticleForm';
@@ -20,7 +21,7 @@ const CreateArticle = () => {
     
     const [categories, setCategories] = useState<Category[]>([]);
     const [user, setUser] = useState<User | null>(null);
-    
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
@@ -92,11 +93,13 @@ const CreateArticle = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            toast.success('Article created successfully');
             navigate('/admin/dashboard');
         } catch (err) {
             console.error('Error creating article:', err);
             const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to create article.';
             setError(message || 'Failed to create article.');
+            toast.error(message || 'Failed to create article.');
             setSaving(false);
         }
     };

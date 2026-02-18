@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { User, Task } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import TaskForm from '../components/dashboard/TaskForm';
@@ -22,7 +23,6 @@ const EditTask = () => {
     });
     
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -66,7 +66,7 @@ const EditTask = () => {
                     navigate('/admin/login');
                 } else {
                     console.error(err);
-                    setError('Failed to load data.');
+                    toast.error('Failed to load data.');
                 }
             } finally {
                 setIsLoading(false);
@@ -77,7 +77,6 @@ const EditTask = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
         
         const token = localStorage.getItem('token');
         if (!token) return;
@@ -90,11 +89,12 @@ const EditTask = () => {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            toast.success('Task updated successfully');
             navigate('/admin/tasks');
         } catch (err) {
             console.error('Error updating task:', err);
              const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to update task.';
-            setError(message || 'Failed to update task.');
+            toast.error(message || 'Failed to update task.');
         }
     };
 
@@ -117,12 +117,6 @@ const EditTask = () => {
                         </button>
 
                         <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Task</h1>
-
-                        {error && (
-                            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-                                {error}
-                            </div>
-                        )}
 
                         <TaskForm
                             formData={formData}

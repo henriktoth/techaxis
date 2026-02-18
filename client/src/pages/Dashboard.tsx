@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { Article, User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import StatsOverview from '../components/dashboard/StatsOverview';
@@ -99,12 +100,13 @@ const Dashboard = () => {
         });
         
         setArticles(articles.filter(a => a.id !== id));
+        toast.success('Article deleted successfully');
     } catch (err) {
         let errorMessage = 'Failed to delete article';
         if (axios.isAxiosError(err) && err.response?.data?.message) {
              errorMessage = err.response.data.message;
         }
-        alert(errorMessage);
+        toast.error(errorMessage);
         console.error(err);
     }
   };

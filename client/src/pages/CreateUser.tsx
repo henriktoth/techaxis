@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import UserForm from '../components/dashboard/UserForm';
@@ -19,7 +20,6 @@ const CreateUser = () => {
     
     const [isLoading, setIsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -53,7 +53,6 @@ const CreateUser = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
         setSaving(true);
         
         const token = localStorage.getItem('token');
@@ -63,11 +62,12 @@ const CreateUser = () => {
             await axios.post('http://localhost:8000/api/users', formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            toast.success('User created successfully');
             navigate('/admin/users');
         } catch (err) {
             console.error('Error creating user:', err);
              const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to create user.';
-            setError(message || 'Failed to create user.');
+            toast.error(message || 'Failed to create user.');
             setSaving(false);
         }
     };
@@ -91,12 +91,6 @@ const CreateUser = () => {
                         </button>
 
                         <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New User</h1>
-
-                        {error && (
-                            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-                                {error}
-                            </div>
-                        )}
 
                         <UserForm 
                             formData={formData}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import { Edit, Trash2, UserPlus } from 'lucide-react';
@@ -9,6 +10,7 @@ const Users = () => {
     const navigate = useNavigate();
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [users, setUsers] = useState<User[]>([]);
+    
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -67,9 +69,10 @@ const Users = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(users.filter(u => u.id !== id));
+            toast.success('User deleted successfully');
         } catch (err) {
             console.error('Error deleting user:', err);
-            alert('Failed to delete user.');
+            toast.error('Failed to delete user.');
         }
     };
 

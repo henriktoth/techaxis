@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import UserForm from '../components/dashboard/UserForm';
@@ -20,7 +21,6 @@ const EditUser = () => {
     
     const [isLoading, setIsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,7 +53,7 @@ const EditUser = () => {
                     localStorage.removeItem('token');
                     navigate('/admin/login');
                 } else {
-                    setError('Failed to load user data.');
+                    toast.error('Failed to load user data.');
                 }
             } finally {
                 setIsLoading(false);
@@ -64,7 +64,6 @@ const EditUser = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
         setSaving(true);
         
         const token = localStorage.getItem('token');
@@ -83,11 +82,12 @@ const EditUser = () => {
             await axios.put(`http://localhost:8000/api/users/${id}`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            toast.success('User updated successfully');
             navigate('/admin/users');
         } catch (err) {
             console.error('Error updating user:', err);
              const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to update user.';
-            setError(message || 'Failed to update user.');
+            toast.error(message || 'Failed to update user.');
             setSaving(false);
         }
     };
@@ -111,12 +111,6 @@ const EditUser = () => {
                         </button>
 
                         <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit User</h1>
-
-                        {error && (
-                            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-                                {error}
-                            </div>
-                        )}
 
                         <UserForm 
                             formData={formData}

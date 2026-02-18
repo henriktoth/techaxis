@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { Article, Category, User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 
@@ -91,11 +92,12 @@ const ReviewArticle = () => {
             await axios.patch(`http://localhost:8000/api/articles/${id}/review`, { status }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            toast.success(`Article ${status === 'PUBLISHED' ? 'published' : 'rejected'} successfully`);
             navigate('/admin/dashboard');
         } catch (err) {
             console.error('Error reviewing article:', err);
             const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to submit review.';
-            alert(message);
+            toast.error(message);
             setProcessing(false);
         }
     };

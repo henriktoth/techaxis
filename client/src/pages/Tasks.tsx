@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { Task, User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import { Plus, Check, Calendar, User as UserIcon, Trash2, Edit, Save } from 'lucide-react';
@@ -15,8 +16,6 @@ const Tasks = () => {
 
     const hasUnsavedChanges = Object.keys(pendingChanges).length > 0;
 
-    // Use blocker to prevent navigation if there are unsaved changes
-    /* @ts-ignore - useBlocker might not be fully typed depending on router version/setup */
     const blocker = useBlocker(
         ({ currentLocation, nextLocation }) =>
             hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
@@ -85,9 +84,10 @@ const Tasks = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             fetchData();
+            toast.success('Task deleted successfully');
         } catch (err) {
             console.error(err);
-            alert('Failed to delete task');
+            toast.error('Failed to delete task');
         }
     };
 
@@ -99,7 +99,6 @@ const Tasks = () => {
                 const task = tasks.find(t => t.id === id);
                 if (!task) return;
 
-                // Only send request if new status differs from original
                 if (task.isCompleted !== newStatus) {
                     await axios.patch(`http://localhost:8000/api/tasks/${id}/toggle-status`, {}, {
                         headers: { Authorization: `Bearer ${token}` }
@@ -110,9 +109,10 @@ const Tasks = () => {
             await Promise.all(updates);
             setPendingChanges({});
             fetchData();
+            toast.success('Tasks updated successfully');
         } catch (err) {
             console.error('Failed to save changes:', err);
-            alert('Failed to save changes. Please try again.');
+            toast.error('Failed to save changes');
         }
     };
 
@@ -122,14 +122,12 @@ const Tasks = () => {
 
         setPendingChanges(prev => {
             const currentPending = prev[id];
-            // If user clicked, calculate new state
-            // If currently pending, toggle that pending state
-            // If not pending, toggle original state
+          
             const currentState = currentPending !== undefined ? currentPending : task.isCompleted;
             const newState = !currentState;
 
             const newChanges = { ...prev };
-            // If new state matches original, remove from pending
+
             if (newState === task.isCompleted) {
                 delete newChanges[id];
             } else {

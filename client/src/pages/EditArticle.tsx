@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import type { Article, Category, User } from '../types';
 import DashboardLayout from '../components/dashboard/DashboardLayout';
 import ArticleForm from '../components/dashboard/ArticleForm';
@@ -116,11 +117,13 @@ const EditArticle = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            toast.success('Article updated successfully');
             navigate('/admin/dashboard');
         } catch (err) {
             console.error('Error updating article:', err);
             const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to update article.';
             setError(message || 'Failed to update article.');
+            toast.error(message || 'Failed to update article.');
             setSaving(false);
         }
     };
