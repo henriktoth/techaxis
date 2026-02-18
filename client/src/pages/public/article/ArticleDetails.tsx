@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import type { Article, Category } from "../types";
+import type { Article, Category } from "../../../types";
 
-import Navbar from "../components/shared/Navbar";
-import Footer from "../components/shared/Footer";
-import ArticleHeader from "../components/article/ArticleHeader";
-import ArticleImage from "../components/article/ArticleImage";
-import ArticleContent from "../components/article/ArticleContent";
+import Navbar from "../../../components/shared/Navbar";
+import Footer from "../../../components/shared/Footer";
+import ArticleHeader from "../../../components/article/ArticleHeader";
+import ArticleImage from "../../../components/article/ArticleImage";
+import ArticleContent from "../../../components/article/ArticleContent";
 
 const ArticleDetails = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -19,6 +19,7 @@ const ArticleDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  //FETCH: Article + Categories (calls: GET /api/articles/:slug, GET /api/categories)
   useEffect(() => {
     const fetchData = async () => {
       try {

@@ -9,6 +9,6 @@ trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 (cd server && npm run dev) &
 
-(cd server && npx prisma studio --schema=./prisma/schema.prisma --schema=./prisma/schema.prisma) &
+(cd server && npx prisma studio) &
 
 wait

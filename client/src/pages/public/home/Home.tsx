@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import type { Article, Category } from "../types";
+import type { Article, Category } from "../../../types";
 
-import Navbar from "../components/shared/Navbar";
-import ArticleCard from "../components/home/ArticleCard";
-import Footer from "../components/shared/Footer";
-import PageHeader from "../components/home/PageHeader";
-import HeroArticle from "../components/home/HeroArticle";
-import EmptyState from "../components/shared/EmptyState";
+import Navbar from "../../../components/shared/Navbar";
+import ArticleCard from "../../../components/home/ArticleCard";
+import Footer from "../../../components/shared/Footer";
+import PageHeader from "../../../components/home/PageHeader";
+import HeroArticle from "../../../components/home/HeroArticle";
+import EmptyState from "../../../components/shared/EmptyState";
 
 const Home = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -18,7 +18,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-
+  // FETCH: Categories (calls: GET /api/categories)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -32,6 +32,7 @@ const Home = () => {
     fetchCategories();
   }, []);
 
+  //FETCH: Articles (with search query) (calls: GET /api/articles?search=)
   useEffect(() => {
     const fetchArticles = async () => {
       try {
@@ -56,6 +57,7 @@ const Home = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
 
+  // CONSTANTS: filtered articles, hero article, remaining articles
   const filteredArticles = selectedCategoryId
     ? articles.filter((article) => article.categoryId === selectedCategoryId)
     : articles;

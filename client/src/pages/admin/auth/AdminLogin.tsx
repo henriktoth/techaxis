@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // HANDLER: Form submission (calls: POST /api/auth/login)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setIsLoading(true);
 
     try {
@@ -31,7 +32,7 @@ const AdminLogin = () => {
       if (axios.isAxiosError(err) && err.response?.data?.message) {
         errorMessage = err.response.data.message;
       }
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -40,16 +41,11 @@ const AdminLogin = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 font-sans text-gray-900 selection:bg-blue-100">
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-10 border border-gray-100">
+        
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">TechAxis Admin</h1>
           <p className="text-gray-500">Sign in to manage content</p>
         </div>
-
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm text-center">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -102,6 +98,7 @@ const AdminLogin = () => {
             In case of forgotten password contact your supervisor.
           </p>
         </div>
+
       </div>
     </div>
   );

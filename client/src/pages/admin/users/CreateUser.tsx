@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { User } from '../types';
-import DashboardLayout from '../components/dashboard/DashboardLayout';
-import UserForm from '../components/dashboard/UserForm';
+import type { User } from '../../../types';
+import DashboardLayout from '../../../components/dashboard/DashboardLayout';
+import UserForm from '../../../components/dashboard/UserForm';
 import { ArrowLeft } from 'lucide-react';
 
 const CreateUser = () => {
@@ -21,6 +21,7 @@ const CreateUser = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    //FETCH: User details (calls: GET /api/auth/me)
     useEffect(() => {
         const fetchUser = async () => {
             const token = localStorage.getItem('token');
@@ -51,6 +52,7 @@ const CreateUser = () => {
         fetchUser();
     }, [navigate]);
 
+    //HANDLER: Form submit (calls: POST /api/users)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);

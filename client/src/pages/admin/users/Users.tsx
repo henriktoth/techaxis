@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { User } from '../types';
-import DashboardLayout from '../components/dashboard/DashboardLayout';
-import { Edit, Trash2, UserPlus } from 'lucide-react';
+import type { User } from '../../../types';
+import DashboardLayout from '../../../components/dashboard/DashboardLayout';
+import UserTable from '../../../components/dashboard/UserTable';
+import { UserPlus } from 'lucide-react';
 
 const Users = () => {
     const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Users = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    //FETCH: User details + all users (calls: GET /api/auth/me, GET /api/users)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -60,6 +62,7 @@ const Users = () => {
         fetchData();
     }, [navigate]);
 
+    //HANDLER: Delete user (calls: DELETE /api/users/:id)
     const handleDeleteUser = async (id: number) => {
         if (!window.confirm('Are you sure you want to delete this user?')) return;
 
@@ -112,52 +115,12 @@ const Users = () => {
                                 Add User
                             </button>
                         </div>
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {users.map((user) => (
-                                    <tr key={user.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-500">{user.email}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 
-                                                  user.role === 'WRITER' ? 'bg-blue-100 text-blue-800' : 
-                                                  'bg-gray-100 text-gray-800'}`}>
-                                                {user.role}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button
-                                                onClick={() => navigate(`/admin/users/edit/${user.id}`)}
-                                                className="text-indigo-600 hover:text-indigo-900 mr-4 inline-block"
-                                                title="Edit"
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteUser(user.id)}
-                                                className="text-red-600 hover:text-red-900 inline-block"
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        
+                        <UserTable 
+                            users={users} 
+                            onEdit={(id) => navigate(`/admin/users/edit/${id}`)} 
+                            onDelete={handleDeleteUser} 
+                        />
                     </div>
                  </div>
             </div>

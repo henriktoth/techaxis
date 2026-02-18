@@ -10,13 +10,11 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children, user, onLogout }: DashboardLayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar - fixed width */}
+
       <Sidebar user={user} onLogout={onLogout} />
 
-      {/* Main Content Area */}
       <div className="flex-1 ml-20 transition-all duration-300 relative">
         
-        {/* User Profile - Floating Top Right */}
         {user && (
             <div className="absolute top-10 right-8 z-10 flex items-center gap-3">
                 <div className="text-right hidden sm:block">
@@ -29,7 +27,6 @@ const DashboardLayout = ({ children, user, onLogout }: DashboardLayoutProps) => 
             </div>
         )}
 
-        {/* Page Content */}
         <div>
             {children}
         </div>

@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { Article, Category, User } from '../types';
-import DashboardLayout from '../components/dashboard/DashboardLayout';
-import ArticleForm from '../components/dashboard/ArticleForm';
+import type { Article, Category, User } from '../../../types';
+import DashboardLayout from '../../../components/dashboard/DashboardLayout';
+import ArticleForm from '../../../components/dashboard/ArticleForm';
 
 const CreateArticle = () => {
     const navigate = useNavigate();
@@ -26,6 +26,7 @@ const CreateArticle = () => {
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
+    //FETCH: User details + categories (calls: GET /api/auth/me, GET /api/categories)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -67,9 +68,9 @@ const CreateArticle = () => {
         fetchData();
     }, [navigate]);
 
+    //HANDLER: Form submit (calls: POST /api/articles)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
         setSaving(true);
         
         const token = localStorage.getItem('token');
@@ -98,7 +99,6 @@ const CreateArticle = () => {
         } catch (err) {
             console.error('Error creating article:', err);
             const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to create article.';
-            setError(message || 'Failed to create article.');
             toast.error(message || 'Failed to create article.');
             setSaving(false);
         }

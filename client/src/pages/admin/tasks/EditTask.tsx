@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { User } from '../types';
-import DashboardLayout from '../components/dashboard/DashboardLayout';
-import TaskForm from '../components/dashboard/TaskForm';
+import type { User } from '../../../types';
+import DashboardLayout from '../../../components/dashboard/DashboardLayout';
+import TaskForm from '../../../components/dashboard/TaskForm';
 import { ArrowLeft } from 'lucide-react';
 
-const CreateTask = () => {
+const EditTask = () => {
     const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
     
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [users, setUsers] = useState<User[]>([]);
@@ -23,6 +24,7 @@ const CreateTask = () => {
     
     const [isLoading, setIsLoading] = useState(true);
 
+    //FETCH: Task details + user details + all users (calls: GET /api/tasks/:id, GET /api/auth/me, GET /api/users)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -36,17 +38,29 @@ const CreateTask = () => {
                      headers: { Authorization: `Bearer ${token}` }
                 };
 
-                const [usersRes, meRes] = await Promise.all([
+                const [usersRes, meRes, taskRes] = await Promise.all([
                     axios.get('http://localhost:8000/api/users', config),
-                    axios.get('http://localhost:8000/api/auth/me', config)
+                    axios.get('http://localhost:8000/api/auth/me', config),
+                    axios.get(`http://localhost:8000/api/tasks/${id}`, config)
                 ]);
 
                 setUsers(usersRes.data);
                 setCurrentUser(meRes.data);
                 
-                 if (meRes.data.role !== 'ADMIN') {
+                if (meRes.data.role !== 'ADMIN') {
                      navigate('/admin/dashboard');
+                     return;
                 }
+
+                const task = taskRes.data;
+                setFormData({
+                    title: task.title,
+                    description: task.description,
+                    priority: task.priority,
+                    dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+                    assignedToId: task.assignedToId || ""
+                });
+
             } catch (err) {
                  if (axios.isAxiosError(err) && err.response?.status === 401) {
                     localStorage.removeItem('token');
@@ -60,8 +74,9 @@ const CreateTask = () => {
             }
         };
         fetchData();
-    }, [navigate]);
+    }, [navigate, id]);
 
+    //HANDLER: Form submit (calls: PUT /api/tasks/:id)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
@@ -69,19 +84,19 @@ const CreateTask = () => {
         if (!token) return;
 
         try {
-            await axios.post('http://localhost:8000/api/tasks', {
+            await axios.put(`http://localhost:8000/api/tasks/${id}`, {
                 ...formData,
                 dueDate: formData.dueDate ? new Date(formData.dueDate).toISOString() : null,
                 assignedToId: formData.assignedToId ? Number(formData.assignedToId) : null
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('Task created successfully');
+            toast.success('Task updated successfully');
             navigate('/admin/tasks');
         } catch (err) {
-            console.error('Error creating task:', err);
-             const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to create task.';
-            toast.error(message || 'Failed to create task.');
+            console.error('Error updating task:', err);
+             const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to update task.';
+            toast.error(message || 'Failed to update task.');
         }
     };
 
@@ -103,15 +118,15 @@ const CreateTask = () => {
                             Back to Tasks
                         </button>
 
-                        <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Task</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Task</h1>
 
-                        <TaskForm 
+                        <TaskForm
                             formData={formData}
                             setFormData={setFormData}
                             users={users}
                             onSubmit={handleSubmit}
                             onCancel={() => navigate('/admin/tasks')}
-                            submitText="Create Task"
+                            submitText="Save Changes"
                         />
                     </main>
                  </div>
@@ -120,4 +135,4 @@ const CreateTask = () => {
     );
 };
 
-export default CreateTask;
+export default EditTask;

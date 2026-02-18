@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { Article, Category, User } from '../types';
-import DashboardLayout from '../components/dashboard/DashboardLayout';
-import ArticleForm from '../components/dashboard/ArticleForm';
+import type { Article, Category, User } from '../../../types';
+import DashboardLayout from '../../../components/dashboard/DashboardLayout';
+import ArticleForm from '../../../components/dashboard/ArticleForm';
 
 const EditArticle = () => {
     const { id } = useParams<{ id: string }>();
@@ -28,6 +28,7 @@ const EditArticle = () => {
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
+    //FETCH: Article details + user details + categories (calls: GET /api/articles/:id, GET /api/auth/me, GET /api/categories)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -91,9 +92,9 @@ const EditArticle = () => {
         }
     }, [id, navigate]);
 
+    //HANDLER: Form submit (calls: PUT /api/articles/:id)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(null);
         setSaving(true);
         
         const token = localStorage.getItem('token');
@@ -122,7 +123,6 @@ const EditArticle = () => {
         } catch (err) {
             console.error('Error updating article:', err);
             const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to update article.';
-            setError(message || 'Failed to update article.');
             toast.error(message || 'Failed to update article.');
             setSaving(false);
         }

@@ -30,7 +30,15 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
         } else if (user.role === 'WRITER') {
             tasks = await prisma.task.findMany({
                 where: {
-                    assignedToId: user.userId
+                    OR: [
+                        { assignedToId: user.userId },
+                        { assignedToId: null }
+                    ]
+                },
+                include: {
+                    assignedTo: {
+                        select: { name: true, email: true }
+                    }
                 }
             });
         } else {
@@ -81,10 +89,10 @@ export const getTaskById = async (req: Request, res: Response, next: NextFunctio
         } 
         
         if (user.role === 'WRITER') {
-            if (task.assignedToId === user.userId) {
+            if (task.assignedToId === user.userId || task.assignedToId === null) {
                 return res.status(200).json(task);
             } else {
-                return res.status(403).json({ message: 'Access denied. You can only view tasks assigned to you.' });
+                return res.status(403).json({ message: 'Access denied. You can only view tasks assigned to you or unassigned tasks.' });
             }
         }
 
@@ -288,5 +296,88 @@ export const toggleTaskStatus = async (req: Request, res: Response, next: NextFu
         next(error);
     }
 };
+
+/**
+ * Assign a task to the current user (Writer takes a task).
+ * - Only works if the task is currently unassigned.
+ */
+export const takeTask = async (req: Request, res: Response, next: NextFunction) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid task id' });
+    }
+
+    try {
+        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        if (!user) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        const task = await prisma.task.findUnique({ where: { id } });
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        if (task.assignedToId !== null) {
+            return res.status(400).json({ message: 'Task is already assigned' });
+        }
+
+        const updatedTask = await prisma.task.update({
+            where: { id },
+            data: { assignedToId: user.userId },
+            include: {
+                assignedTo: {
+                    select: { name: true, email: true }
+                }
+            }
+        });
+
+        res.status(200).json(updatedTask);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Unassign a task from the current user (Writer drops a task).
+ * - Only works if the task is currently assigned to the user.
+ */
+export const dropTask = async (req: Request, res: Response, next: NextFunction) => {
+    const id = Number(req.params.id);
+    if (isNaN(id)) {
+        return res.status(400).json({ message: 'Invalid task id' });
+    }
+
+    try {
+        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        if (!user) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
+
+        const task = await prisma.task.findUnique({ where: { id } });
+        if (!task) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        if (task.assignedToId !== user.userId) {
+            return res.status(403).json({ message: 'Access denied. You can only drop tasks assigned to you.' });
+        }
+
+        const updatedTask = await prisma.task.update({
+            where: { id },
+            data: { assignedToId: null },
+            include: {
+                assignedTo: {
+                    select: { name: true, email: true }
+                }
+            }
+        });
+
+        res.status(200).json(updatedTask);
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 

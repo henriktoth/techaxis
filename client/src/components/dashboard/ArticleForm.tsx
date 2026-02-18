@@ -150,7 +150,6 @@ const ArticleForm = ({
           >
             <option value="DRAFT">Draft</option>
             <option value="REVIEW" disabled={isWriter && formData.status === 'PUBLISHED'}>Review</option>
-            {/* Writers cannot set to PUBLISHED */}
             <option value="PUBLISHED" disabled={isWriter}>Published</option>
             <option value="REJECTED" disabled={isWriter}>Rejected</option>
           </select>

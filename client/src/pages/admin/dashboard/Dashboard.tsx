@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { Article, User } from '../types';
-import DashboardLayout from '../components/dashboard/DashboardLayout';
-import StatsOverview from '../components/dashboard/StatsOverview';
-import ArticleFilters from '../components/dashboard/ArticleFilters';
-import ArticleTable from '../components/dashboard/ArticleTable';
+import type { Article, User } from '../../../types';
+import DashboardLayout from '../../../components/dashboard/DashboardLayout';
+import StatsOverview from '../../../components/dashboard/StatsOverview';
+import ArticleFilters from '../../../components/dashboard/ArticleFilters';
+import ArticleTable from '../../../components/dashboard/ArticleTable';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -21,6 +21,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  //FETCH: Author details for articles (calls: GET /api/users/:id)
   useEffect(() => {
     const fetchAuthors = async () => {
         if (user?.role !== 'ADMIN' || articles.length === 0) return;
@@ -49,6 +50,7 @@ const Dashboard = () => {
     fetchAuthors();
   }, [user, articles, authors]);
 
+  //FETCH: Dashboard data (calls: GET /api/auth/me, GET /api/articles/me)
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
@@ -85,11 +87,13 @@ const Dashboard = () => {
     fetchData();
   }, [navigate]);
 
+  //HANDLER: Logout (deletes token, redirects to login)
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/admin/login');
   };
 
+  //HANDLER: Delete article (calls: DELETE /api/articles/:id)
   const handleDeleteArticle = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this article?')) return;
 
@@ -111,23 +115,6 @@ const Dashboard = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="text-gray-500">Loading dashboard...</div>
-        </div>
-    );
-  }
-
-  if (error) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="text-red-500">{error}</div>
-             <button onClick={handleLogout} className="ml-4 text-blue-500 underline cursor-pointer">Logout</button>
-        </div>
-      );
-  }
-
   const handleSort = (field: keyof Article | 'author') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -137,6 +124,7 @@ const Dashboard = () => {
     }
   };
 
+  //FUNCTION: Get sorted and filtered articles based on search query, sort field, and sort direction
   const filteredArticles = articles.filter(article => 
     article.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     article.slug.toLowerCase().includes(searchQuery.toLowerCase())
@@ -162,14 +150,33 @@ const Dashboard = () => {
     return 0;
   });
   
+  // CONSTANTS: total articles, published count, draft count
   const totalArticles = articles.length;
   const publishedCount = articles.filter(a => a.status === 'PUBLISHED').length;
   const draftCount = articles.filter(a => a.status === 'DRAFT').length;
+
+  if (isLoading) {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="text-gray-500">Loading dashboard...</div>
+        </div>
+    );
+  }
+
+  if (error) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="text-red-500">{error}</div>
+             <button onClick={handleLogout} className="ml-4 text-blue-500 underline cursor-pointer">Logout</button>
+        </div>
+      );
+  }
 
   return (
     <DashboardLayout user={user} onLogout={handleLogout}>
       <div className="p-8 font-sans">
         <div className="max-w-7xl mx-auto">
+          
           <div className="mb-8">
              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
              <p className="text-gray-500">Overview of your articles and key statistics.</p>

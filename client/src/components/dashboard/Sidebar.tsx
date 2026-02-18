@@ -35,7 +35,6 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
         >
             <Icon className={`h-6 w-6 ${active ? 'text-white' : 'text-current'}`} />
             
-            {/* Tooltip */}
             <span className="absolute left-full ml-4 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">
                 {title}
             </span>
@@ -46,7 +45,6 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
   return (
     <div className="w-20 bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col items-center py-6 z-50">
       
-      {/* Navigation Links */}
       <nav className="flex-1 flex flex-col gap-4 w-full px-3">
         <NavItem to="/admin/dashboard" icon={LayoutDashboard} title="Articles" exact={true} />
         <NavItem to="/admin/tasks" icon={ClipboardList} title="Tasks" />
@@ -56,7 +54,6 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
         )}
       </nav>
 
-      {/* Lower Section */}
       <div className="mt-auto flex flex-col gap-4 px-3 w-full">
         <a 
             href="/" 

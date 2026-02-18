@@ -34,7 +34,7 @@ const UserForm = ({
 
   return (
     <form onSubmit={onSubmit} className="bg-white shadow rounded-lg p-6 space-y-6">
-      {/* Name */}
+
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           Name
@@ -49,7 +49,6 @@ const UserForm = ({
         />
       </div>
 
-      {/* Email */}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Email
@@ -64,7 +63,6 @@ const UserForm = ({
         />
       </div>
 
-      {/* Password */}
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
           {isEditing ? 'New Password (leave blank to keep current)' : 'Password'}
@@ -79,7 +77,6 @@ const UserForm = ({
         />
       </div>
 
-      {/* Role */}
       <div>
         <label htmlFor="role" className="block text-sm font-medium text-gray-700">
           Role

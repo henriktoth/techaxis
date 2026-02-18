@@ -27,6 +27,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 )}
               </div>
             </th>
+
             <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => onSort('status')}>
               <div className="flex items-center gap-1">
                 Status
@@ -35,6 +36,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 )}
               </div>
             </th>
+
             <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => onSort('publishedAt')}>
               <div className="flex items-center gap-1">
                 Date
@@ -43,6 +45,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 )}
               </div>
             </th>
+
             {user?.role === 'ADMIN' && (
               <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => onSort('author')}>
                 <div className="flex items-center gap-1">
@@ -53,9 +56,11 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 </div>
               </th>
             )}
+
             <th className="px-6 py-4 text-left" colSpan={user?.role === 'ADMIN' ? 4 : 3}>Actions</th>
           </tr>
         </thead>
+
         <tbody className="divide-y divide-gray-100">
           {articles.length === 0 ? (
             <tr>
@@ -72,6 +77,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                     /{article.slug}
                   </div>
                 </td>
+
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                     ${
@@ -84,9 +90,11 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                     {article.status}
                   </span>
                 </td>
+
                 <td className="px-6 py-4">
                   {new Date(article.createdAt || article.publishedAt || Date.now()).toLocaleDateString()}
                 </td>
+
                 {user?.role === 'ADMIN' && (
                   <td className="px-6 py-4 relative group">
                     {article.authorId && authors[article.authorId] ? (

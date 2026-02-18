@@ -1,19 +1,19 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
-import Home from "./pages/Home";
-import ArticleDetails from "./pages/ArticleDetails";
-import AdminLogin from "./pages/AdminLogin";
-import Dashboard from "./pages/Dashboard";
-import EditArticle from "./pages/EditArticle";
-import CreateArticle from "./pages/CreateArticle";
-import ReviewArticle from "./pages/ReviewArticle";
-import Users from "./pages/Users";
-import CreateUser from "./pages/CreateUser";
-import EditUser from "./pages/EditUser";
-import Tasks from "./pages/Tasks";
 
-import CreateTask from "./pages/CreateTask";
-import EditTask from "./pages/EditTask";
+import Home from "./pages/public/home/Home";
+import ArticleDetails from "./pages/public/article/ArticleDetails";
+import AdminLogin from "./pages/admin/auth/AdminLogin";
+import Dashboard from "./pages/admin/dashboard/Dashboard";
+import EditArticle from "./pages/admin/article/EditArticle";
+import CreateArticle from "./pages/admin/article/CreateArticle";
+import ReviewArticle from "./pages/admin/article/ReviewArticle";
+import Users from "./pages/admin/users/Users";
+import CreateUser from "./pages/admin/users/CreateUser";
+import EditUser from "./pages/admin/users/EditUser";
+import Tasks from "./pages/admin/tasks/Tasks";
+import CreateTask from "./pages/admin/tasks/CreateTask";
+import EditTask from "./pages/admin/tasks/EditTask";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
