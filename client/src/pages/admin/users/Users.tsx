@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
-import UserTable from '../../../components/dashboard/UserTable';
+import UserCard from '../../../components/dashboard/UserCard';
 import { UserPlus } from 'lucide-react';
 
 const Users = () => {
@@ -79,11 +79,13 @@ const Users = () => {
         }
     };
 
+    const admins = users.filter(u => u.role === 'ADMIN');
+    const writers = users.filter(u => u.role === 'WRITER');
+    const regularUsers = users.filter(u => u.role === 'USER');
+
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-gray-500">Loading users...</div>
-            </div>
+            <div className="flex justify-center items-center min-h-screen">Loading...</div>
         );
     }
 
@@ -92,10 +94,17 @@ const Users = () => {
             localStorage.removeItem('token');
             navigate('/admin/login');
         }}>
-            <div className="p-8 font-sans">
-                 <div className="max-w-7xl mx-auto">
-                    <div className="mb-10">
-                        <h1 className="text-2xl font-bold text-gray-900">Manage Users</h1>
+            <div className="p-8">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    <div className="flex justify-between items-center mb-8">
+                        <h1 className="text-3xl font-bold text-gray-900">Manage Users</h1>
+                        <button
+                            onClick={() => navigate('/admin/users/create')}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                        >
+                            <UserPlus size={20} />
+                            Add User
+                        </button>
                     </div>
 
                     {error && (
@@ -104,25 +113,72 @@ const Users = () => {
                         </div>
                     )}
 
-                    <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
-                        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-gray-900">All Users</h2>
-                            <button
-                                onClick={() => navigate('/admin/users/create')}
-                                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Add User
-                            </button>
+                    {/* Admins Section */}
+                    <div className="space-y-4">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                            Admins
+                        </h2>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {admins.map(user => (
+                                <UserCard
+                                    key={user.id}
+                                    user={user}
+                                    currentUser={currentUser}
+                                    onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
+                                    onDelete={handleDeleteUser}
+                                />
+                            ))}
+                            {admins.length === 0 && (
+                                <div className="col-span-full text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                    No admin users found.
+                                </div>
+                            )}
                         </div>
-                        
-                        <UserTable 
-                            users={users} 
-                            onEdit={(id) => navigate(`/admin/users/edit/${id}`)} 
-                            onDelete={handleDeleteUser} 
-                        />
                     </div>
-                 </div>
+
+                    {/* Writers Section */}
+                    <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                            Writers
+                        </h2>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {writers.map(user => (
+                                <UserCard
+                                    key={user.id}
+                                    user={user}
+                                    currentUser={currentUser}
+                                    onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
+                                    onDelete={handleDeleteUser}
+                                />
+                            ))}
+                            {writers.length === 0 && (
+                                <div className="col-span-full text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                    No writer users found.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Regular Users Section (if any) */}
+                    {regularUsers.length > 0 && (
+                        <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
+                            <h2 className="text-xl font-semibold text-gray-800">
+                                Regular Users
+                            </h2>
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {regularUsers.map(user => (
+                                    <UserCard
+                                        key={user.id}
+                                        user={user}
+                                        currentUser={currentUser}
+                                        onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
+                                        onDelete={handleDeleteUser}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </DashboardLayout>
     );

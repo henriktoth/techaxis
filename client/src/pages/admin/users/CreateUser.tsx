@@ -84,15 +84,16 @@ const CreateUser = () => {
             <div className="p-8 font-sans">
                  <div className="max-w-7xl mx-auto">
                     <main className="max-w-2xl mx-auto py-8">
-                         <button 
-                            onClick={() => navigate('/admin/users')}
-                            className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-1" />
-                            Back to Users
-                        </button>
-
-                        <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New User</h1>
+                        <div className="flex items-center justify-between mb-6">
+                            <h1 className="text-2xl font-bold text-gray-900">Create New User</h1>
+                            <button
+                                onClick={() => navigate('/admin/users')}
+                                type="button"
+                                className="text-gray-600 hover:text-gray-900"
+                            >
+                                Cancel
+                            </button>
+                        </div>
 
                         <UserForm 
                             formData={formData}

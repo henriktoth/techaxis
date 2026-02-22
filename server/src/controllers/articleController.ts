@@ -303,10 +303,10 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
 
         if (user.role === 'ADMIN') {
             const isOwner = article.authorId === user.userId;
-            const isPublished = article.status === 'PUBLISHED';
+            const isAllowedStatus = ['PUBLISHED', 'REVIEW'].includes(article.status);
 
-            if (!isPublished && !isOwner) {
-                return res.status(403).json({ message: 'Admins can only edit their own articles or published articles.' });
+            if (!isOwner && !isAllowedStatus) {
+                return res.status(403).json({ message: 'Admins can only edit their own articles or articles in PUBLISHED/REVIEW status.' });
             }
         } else if (user.role === 'WRITER') {
             if (article.authorId !== user.userId) {

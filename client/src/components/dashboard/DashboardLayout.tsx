@@ -15,18 +15,6 @@ const DashboardLayout = ({ children, user, onLogout }: DashboardLayoutProps) => 
 
       <div className="flex-1 ml-20 transition-all duration-300 relative">
         
-        {user && (
-            <div className="absolute top-10 right-8 z-10 flex items-center gap-3">
-                <div className="text-right hidden sm:block">
-                    <p className="text-sm font-semibold text-gray-900 leading-tight">{user.name}</p>
-                    <p className="text-xs text-gray-500 capitalize leading-tight">{user.role.toLowerCase()}</p>
-                </div>
-                <div className="h-10 w-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold shadow-sm text-sm border-2 border-white">
-                    {user.name.charAt(0).toUpperCase()}
-                </div>
-            </div>
-        )}
-
         <div>
             {children}
         </div>

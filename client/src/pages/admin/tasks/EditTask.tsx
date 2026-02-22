@@ -110,15 +110,16 @@ const EditTask = () => {
             <div className="p-8 font-sans">
                  <div className="max-w-7xl mx-auto">
                     <main className="max-w-2xl mx-auto py-8">
-                         <button 
-                            onClick={() => navigate('/admin/tasks')}
-                            className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-1" />
-                            Back to Tasks
-                        </button>
-
-                        <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Task</h1>
+                        <div className="flex items-center justify-between mb-6">
+                             <h1 className="text-2xl font-bold text-gray-900">Edit Task</h1>
+                             <button
+                                onClick={() => navigate('/admin/tasks')}
+                                type="button"
+                                className="text-gray-600 hover:text-gray-900"
+                            >
+                                Cancel
+                            </button>
+                        </div>
 
                         <TaskForm
                             formData={formData}
