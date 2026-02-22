@@ -14,10 +14,8 @@ const UserCard = ({
     onEdit,
     onDelete
 }: UserCardProps) => {
+
     
-    // Only admins can edit/delete, but usually they can't delete themselves in this UI context without issues, 
-    // but the backend handles permissions. 
-    // Generally, in User management, Admin can do anything.
     const canManage = currentUser?.role === 'ADMIN';
 
     return (

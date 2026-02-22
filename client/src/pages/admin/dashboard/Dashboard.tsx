@@ -150,10 +150,11 @@ const Dashboard = () => {
     return 0;
   });
   
-  // CONSTANTS: total articles, published count, draft count
+  // CONSTANTS: total articles, published count, draft count, review count
   const totalArticles = articles.length;
   const publishedCount = articles.filter(a => a.status === 'PUBLISHED').length;
   const draftCount = articles.filter(a => a.status === 'DRAFT').length;
+  const reviewCount = articles.filter(a => a.status === 'REVIEW').length;
 
   if (isLoading) {
     return (
@@ -185,7 +186,8 @@ const Dashboard = () => {
           <StatsOverview 
               totalArticles={totalArticles} 
               publishedCount={publishedCount} 
-              draftCount={draftCount} 
+              draftCount={draftCount}
+              reviewCount={reviewCount}
           />
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
