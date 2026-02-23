@@ -175,12 +175,12 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout user={user} onLogout={handleLogout}>
-      <div className="p-8 font-sans">
+      <div className="p-4 sm:p-8 font-sans">
         <div className="max-w-7xl mx-auto">
           
-          <div className="mb-8">
-             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-             <p className="text-gray-500">Overview of your articles and key statistics.</p>
+          <div className="mb-6 sm:mb-8">
+             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
+             <p className="text-sm sm:text-base text-gray-500">Overview of your articles and key statistics.</p>
           </div>
         
           <StatsOverview 
@@ -190,7 +190,7 @@ const Dashboard = () => {
               reviewCount={reviewCount}
           />
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 relative">
               <ArticleFilters 
                   searchQuery={searchQuery} 
                   setSearchQuery={setSearchQuery} 

@@ -13,7 +13,7 @@ const DashboardLayout = ({ children, user, onLogout }: DashboardLayoutProps) => 
 
       <Sidebar user={user} onLogout={onLogout} />
 
-      <div className="flex-1 ml-20 transition-all duration-300 relative">
+      <div className="flex-1 ml-20 transition-all duration-300 relative flex flex-col min-w-0">
         
         <div>
             {children}

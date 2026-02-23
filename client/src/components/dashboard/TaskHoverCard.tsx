@@ -15,7 +15,7 @@ const TaskHoverCard = ({ task }: TaskHoverCardProps) => {
   return (
     <div className="absolute z-50 invisible group-hover:visible left-0 bottom-full mb-8 w-72 text-left opacity-0 group-hover:opacity-100 transition-all duration-200">
       <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 relative">
-        {/* Arrow */}
+        
         <div className="absolute -bottom-2 left-6 w-4 h-4 bg-white border-b border-r border-gray-200 transform rotate-45"></div>
         
         <div className="space-y-3">

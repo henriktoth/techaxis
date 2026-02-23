@@ -395,7 +395,6 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             data,
         });
 
-        // If published and associated with a task, mark task as complete
         if (status === 'PUBLISHED' && article.taskId) {
             await prisma.task.update({
                 where: { id: article.taskId },
@@ -454,7 +453,6 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
             data,
         });
 
-        // If published and associated with a task, mark task as complete
         if (status === 'PUBLISHED' && article.taskId) {
             await prisma.task.update({
                 where: { id: article.taskId },
