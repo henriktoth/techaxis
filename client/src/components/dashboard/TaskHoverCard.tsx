@@ -15,7 +15,7 @@ const TaskHoverCard = ({ task }: TaskHoverCardProps) => {
   return (
     <div className="absolute z-50 invisible group-hover:visible left-0 bottom-full mb-8 w-72 text-left opacity-0 group-hover:opacity-100 transition-all duration-200">
       <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 relative">
-        
+
         <div className="absolute -bottom-2 left-6 w-4 h-4 bg-white border-b border-r border-gray-200 transform rotate-45"></div>
         
         <div className="space-y-3">
@@ -50,9 +50,16 @@ const TaskHoverCard = ({ task }: TaskHoverCardProps) => {
           </p>
 
           {task.dueDate && (
-            <div className="flex items-center gap-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
+            <div className={`flex items-center gap-2 pt-2 border-t border-gray-100 text-xs ${
+              !task.isCompleted && new Date(task.dueDate) < new Date(new Date().setHours(0, 0, 0, 0)) 
+              ? 'text-red-500 font-medium' 
+              : 'text-gray-500'
+            }`}>
               <Calendar size={14} />
               <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+              {!task.isCompleted && new Date(task.dueDate) < new Date(new Date().setHours(0, 0, 0, 0)) && (
+                <span className="ml-auto bg-red-50 text-red-600 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">Overdue</span>
+              )}
             </div>
           )}
         </div>

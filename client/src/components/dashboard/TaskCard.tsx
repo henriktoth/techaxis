@@ -53,10 +53,24 @@ const TaskCard = ({
                         <p className="text-gray-600 mt-1">{task.description}</p>
                         
                         <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500">
-                            {task.dueDate && (
-                                <div className="flex items-center gap-1">
+                            {task.dueDate ? (
+                                <div className={`flex items-center gap-1 ${
+                                    !isCompleted && new Date(task.dueDate) < new Date(new Date().setHours(0, 0, 0, 0)) 
+                                    ? 'text-red-600 font-medium' 
+                                    : ''
+                                }`}>
                                     <Calendar size={16} />
-                                    <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                                    <span>
+                                        Due: {new Date(task.dueDate).toLocaleDateString()}
+                                        {!isCompleted && new Date(task.dueDate) < new Date(new Date().setHours(0, 0, 0, 0)) && (
+                                            <span className="ml-1 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">Overdue</span>
+                                        )}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-1 text-gray-400">
+                                    <Calendar size={16} />
+                                    <span>No Due Date</span>
                                 </div>
                             )}
                             {task.assignedTo ? (
