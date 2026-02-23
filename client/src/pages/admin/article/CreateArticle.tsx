@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { Article, Category, User } from '../../../types';
+import type { Article, Category, User, Task } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import ArticleForm from '../../../components/dashboard/ArticleForm';
 
 const CreateArticle = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const taskIdParam = searchParams.get('taskId');
     
     const [formData, setFormData] = useState({
         title: '',
@@ -16,17 +18,19 @@ const CreateArticle = () => {
         thumbnail: '',
         categoryId: 0,
         status: 'DRAFT' as Article['status'],
-        isFeatured: false
+        isFeatured: false,
+        taskId: taskIdParam ? Number(taskIdParam) : null as number | null
     });
     
     const [categories, setCategories] = useState<Category[]>([]);
+    const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
     const [user, setUser] = useState<User | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
-    //FETCH: User details + categories (calls: GET /api/auth/me, GET /api/categories)
+    //FETCH: User details + categories + tasks (calls: GET /api/auth/me, GET /api/categories, GET /api/tasks)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -40,13 +44,22 @@ const CreateArticle = () => {
                   headers: { Authorization: `Bearer ${token}` }
                 };
 
-                const [userRes, categoriesRes] = await Promise.all([
+                const [userRes, categoriesRes, tasksRes] = await Promise.all([
                     axios.get('http://localhost:8000/api/auth/me', config),
-                    axios.get('http://localhost:8000/api/categories', config)
+                    axios.get('http://localhost:8000/api/categories', config),
+                    axios.get('http://localhost:8000/api/tasks', config)
                 ]);
 
                 setUser(userRes.data);
                 setCategories(categoriesRes.data);
+                
+                // Filter tasks:
+                // 1. Must not have an article already linked
+                // 2. Must not be completed
+                // 3. OR if it is the task passed in URL (taskIdParam), keep it (assuming the user intends to use it, though UI should prevent this)
+                const tasks = tasksRes.data as Task[];
+                const filteredTasks = tasks.filter(t => (!t.article && !t.isCompleted) || t.id === Number(taskIdParam));
+                setAvailableTasks(filteredTasks);
 
             } catch (err) {
                 console.error('Error fetching data:', err);
@@ -66,7 +79,7 @@ const CreateArticle = () => {
         };
 
         fetchData();
-    }, [navigate]);
+    }, [navigate, taskIdParam]);
 
     //HANDLER: Form submit (calls: POST /api/articles)
     const handleSubmit = async (e: React.FormEvent) => {
@@ -88,6 +101,7 @@ const CreateArticle = () => {
                 categoryId: Number(formData.categoryId),
                 status: formData.status,
                 ...(user?.role === 'ADMIN' && { isFeatured: formData.isFeatured }),
+                ...(formData.taskId && { taskId: formData.taskId }),
             };
 
             await axios.post('http://localhost:8000/api/articles', payload, {
@@ -95,7 +109,11 @@ const CreateArticle = () => {
             });
 
             toast.success('Article created successfully');
-            navigate('/admin/dashboard');
+            if(formData.taskId) {
+                navigate('/admin/tasks');
+            } else {
+                navigate('/admin/dashboard');
+            }
         } catch (err) {
             console.error('Error creating article:', err);
             const message = axios.isAxiosError(err) ? err.response?.data?.message : 'Failed to create article.';
@@ -141,6 +159,7 @@ const CreateArticle = () => {
                             formData={formData}
                             setFormData={setFormData}
                             categories={categories}
+                            tasks={availableTasks}
                             user={user}
                             slug={undefined}
                             saving={saving}

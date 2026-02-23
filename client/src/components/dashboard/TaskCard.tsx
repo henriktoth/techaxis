@@ -1,4 +1,4 @@
-import { Check, Calendar, User as UserIcon, Edit, Trash2 } from 'lucide-react';
+import { Check, Calendar, User as UserIcon, Edit, Trash2, PenTool } from 'lucide-react';
 import type { Task, User } from '../../types';
 
 interface TaskCardProps {
@@ -11,6 +11,7 @@ interface TaskCardProps {
     onDelete: (id: number) => void;
     onTake: (id: number) => void;
     onDrop: (id: number) => void;
+    onWriteArticle: (id: number) => void;
 }
 
 const TaskCard = ({
@@ -22,7 +23,8 @@ const TaskCard = ({
     onEdit,
     onDelete,
     onTake,
-    onDrop
+    onDrop,
+    onWriteArticle
 }: TaskCardProps) => {
     const canToggle = currentUser?.role === 'ADMIN' || (currentUser?.role === 'WRITER' && task.assignedToId === currentUser?.id && !task.isCompleted);
 
@@ -109,7 +111,23 @@ const TaskCard = ({
                     </div>
                 )}
                 {currentUser?.role === 'WRITER' && task.assignedToId === currentUser.id && (
-                     <div className="flex flex-col justify-center h-full">
+                     <div className="flex flex-col justify-center gap-2 h-full">
+                         {!isCompleted && !task.article && (
+                            <button
+                                onClick={() => onWriteArticle(task.id)}
+                                className="px-4 py-2 rounded-lg font-medium text-sm transition-colors whitespace-nowrap bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 flex items-center gap-2 justify-center"
+                                title="Write article for this task"
+                            >
+                                <PenTool size={16} />
+                                Write Article
+                            </button>
+                         )}
+                         {task.article && (
+                            <div className="px-4 py-2 rounded-lg font-medium text-sm text-green-600 bg-green-50 border border-green-200 flex items-center gap-2 justify-center whitespace-nowrap">
+                                <Check size={16} />
+                                Article Created
+                            </div>
+                         )}
                          <button
                              onClick={() => onDrop(task.id)}
                              disabled={isCompleted}

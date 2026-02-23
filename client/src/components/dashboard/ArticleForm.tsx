@@ -1,4 +1,4 @@
-import type { Article, Category, User } from '../../types';
+import type { Article, Category, User, Task } from '../../types';
 
 interface ArticleFormProps {
   formData: {
@@ -9,17 +9,11 @@ interface ArticleFormProps {
     categoryId: number;
     status: Article['status'];
     isFeatured: boolean;
+    taskId?: number | null;
   };
-  setFormData: React.Dispatch<React.SetStateAction<{
-    title: string;
-    summary: string;
-    content: string;
-    thumbnail: string;
-    categoryId: number;
-    status: Article['status'];
-    isFeatured: boolean;
-  }>>;
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
   categories: Category[];
+  tasks?: Task[];
   user: User | null;
   slug?: string;
   saving: boolean;
@@ -31,6 +25,7 @@ const ArticleForm = ({
   formData,
   setFormData,
   categories,
+  tasks,
   user,
   slug,
   saving,
@@ -108,6 +103,33 @@ const ArticleForm = ({
           ))}
         </select>
       </div>
+
+      {tasks && (
+        <div>
+            <label htmlFor="task" className="block text-sm font-medium text-gray-700">
+                Task (Optional)
+            </label>
+            <select
+                id="task"
+                value={formData.taskId || ''}
+                onChange={(e) => {
+                    const value = e.target.value ? Number(e.target.value) : null;
+                    setFormData(prev => ({ ...prev, taskId: value }));
+                }}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+            >
+                <option value="">No task selected</option>
+                {tasks.map((task) => (
+                    <option key={task.id} value={task.id}>
+                        {task.title}
+                    </option>
+                ))}
+            </select>
+             <p className="mt-1 text-xs text-gray-500">
+                Associating this article with a task will mark the task as completed when the article is published.
+            </p>
+        </div>
+      )}
 
       <div>
         <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700">

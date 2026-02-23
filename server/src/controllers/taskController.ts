@@ -24,6 +24,9 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
                 include: {
                     assignedTo: {
                         select: { name: true, email: true }
+                    },
+                    article: {
+                        select: { id: true, slug: true }
                     }
                 }
             });
@@ -38,6 +41,9 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
                 include: {
                     assignedTo: {
                         select: { name: true, email: true }
+                    },
+                    article: {
+                        select: { id: true, slug: true }
                     }
                 }
             });

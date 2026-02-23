@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Article, User } from '../../types';
 import AuthorHoverCard from './AuthorHoverCard';
+import TaskHoverCard from './TaskHoverCard';
 
 interface ArticleTableProps {
   articles: Article[];
@@ -12,6 +13,19 @@ interface ArticleTableProps {
   onDelete: (id: number) => void;
   searchQuery: string;
 }
+
+const TaskBadge = ({ article }: { article: Article }) => {
+  if (!article.task) return <span className="text-gray-400">-</span>;
+
+  return (
+    <div className="relative group cursor-help inline-block">
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+        Task #{article.task.id}
+      </span>
+      <TaskHoverCard task={article.task} />
+    </div>
+  );
+};
 
 const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, authors, onDelete, searchQuery }: ArticleTableProps) => {
   return (
@@ -34,6 +48,12 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 {sortField === 'status' && (
                   <span className="text-gray-400">{sortDirection === 'asc' ? '↓' : '↑'}</span>
                 )}
+              </div>
+            </th>
+
+            <th className="px-6 py-4">
+              <div className="flex items-center gap-1">
+                Task
               </div>
             </th>
 
@@ -64,7 +84,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
         <tbody className="divide-y divide-gray-100">
           {articles.length === 0 ? (
             <tr>
-              <td colSpan={user?.role === 'ADMIN' ? 7 : 6} className="px-6 py-8 text-center text-gray-500">
+              <td colSpan={user?.role === 'ADMIN' ? 9 : 7} className="px-6 py-8 text-center text-gray-500">
                 {searchQuery ? 'No articles found matching your search.' : 'No articles found. Start writing!'}
               </td>
             </tr>
@@ -89,6 +109,10 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                     }`}>
                     {article.status}
                   </span>
+                </td>
+
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  <TaskBadge article={article} />
                 </td>
 
                 <td className="px-6 py-4">

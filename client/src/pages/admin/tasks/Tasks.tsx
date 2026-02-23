@@ -249,6 +249,7 @@ const Tasks = () => {
                                     onDelete={handleDeleteTask}
                                     onTake={handleTakeTask}
                                     onDrop={handleDropTask}
+                                    onWriteArticle={(id) => navigate(`/admin/article/create?taskId=${id}`)}
                                 />
                             );
                         })}
@@ -285,6 +286,7 @@ const Tasks = () => {
                                         onDelete={handleDeleteTask}
                                         onTake={handleTakeTask}
                                         onDrop={handleDropTask}
+                                        onWriteArticle={(id) => navigate(`/admin/article/create?taskId=${id}`)}
                                     />
                                 );
                             })}

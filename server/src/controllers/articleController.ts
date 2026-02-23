@@ -77,13 +77,38 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
         }
 
         if (user.role === 'ADMIN') {
-            const articles = await prisma.article.findMany();
+            const articles = await prisma.article.findMany({
+                include: {
+                    task: {
+                      select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        priority: true,
+                        dueDate: true,
+                        isCompleted: true,
+                      }
+                    }
+                }
+            });
             return res.status(200).json(articles);
         }
 
         if (user.role === 'WRITER') {
             const articles = await prisma.article.findMany({
                 where: { authorId: user.userId },
+                include: {
+                    task: {
+                      select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        priority: true,
+                        dueDate: true,
+                        isCompleted: true,
+                      }
+                    }
+                }
             });
             return res.status(200).json(articles);
         }
@@ -154,7 +179,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             return res.status(401).json({ message: 'Authentication required' });
         }
 
-        const { title, summary, content, thumbnail, categoryId, status, isFeatured } = req.body;
+        const { title, summary, content, thumbnail, categoryId, status, isFeatured, taskId } = req.body;
 
         if (!title || !summary || !content) {
             return res.status(400).json({ message: 'Title, summary, and content are required' });
@@ -214,8 +239,16 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
                 slug: uniqueSlug,
                 authorId: user.userId,
                 categoryId: resolvedCategoryId,
+                taskId: taskId ? Number(taskId) : null,
             },
         });
+
+        if (taskId && articleStatus === 'PUBLISHED') {
+            await prisma.task.update({
+                where: { id: Number(taskId) },
+                data: { isCompleted: true }
+            });
+        }
 
         res.status(201).json(newArticle);
     } catch (error) {
@@ -362,6 +395,14 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             data,
         });
 
+        // If published and associated with a task, mark task as complete
+        if (status === 'PUBLISHED' && article.taskId) {
+            await prisma.task.update({
+                where: { id: article.taskId },
+                data: { isCompleted: true }
+            });
+        }
+
         res.status(200).json(updatedArticle);
     } catch (error) {
         next(error);
@@ -412,6 +453,14 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
             where: { id },
             data,
         });
+
+        // If published and associated with a task, mark task as complete
+        if (status === 'PUBLISHED' && article.taskId) {
+            await prisma.task.update({
+                where: { id: article.taskId },
+                data: { isCompleted: true }
+            });
+        }
 
         res.status(200).json(updatedArticle);
     } catch (error) {

@@ -10,6 +10,10 @@ export interface Task {
     name: string;
     email: string;
   };
+  article?: {
+    id: number;
+    slug: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +32,14 @@ export interface Article {
   updatedAt?: string;
   categoryId: number;
   authorId?: number;
+  task?: {
+    id: number;
+    title: string;
+    description: string;
+    priority: number;
+    dueDate: string | null;
+    isCompleted: boolean;
+  };
 }
 
 export interface Category {
