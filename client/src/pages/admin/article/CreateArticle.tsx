@@ -53,10 +53,6 @@ const CreateArticle = () => {
                 setUser(userRes.data);
                 setCategories(categoriesRes.data);
                 
-                // Filter tasks:
-                // 1. Must not have an article already linked
-                // 2. Must not be completed
-                // 3. OR if it is the task passed in URL (taskIdParam), keep it (assuming the user intends to use it, though UI should prevent this)
                 const tasks = tasksRes.data as Task[];
                 const filteredTasks = tasks.filter(t => (!t.article && !t.isCompleted) || t.id === Number(taskIdParam));
                 setAvailableTasks(filteredTasks);

@@ -112,11 +112,12 @@ const ArticleForm = ({
             <select
                 id="task"
                 value={formData.taskId || ''}
+                disabled={formData.status === 'PUBLISHED'}
                 onChange={(e) => {
                     const value = e.target.value ? Number(e.target.value) : null;
                     setFormData(prev => ({ ...prev, taskId: value }));
                 }}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:text-gray-500"
             >
                 <option value="">No task selected</option>
                 {tasks.map((task) => (

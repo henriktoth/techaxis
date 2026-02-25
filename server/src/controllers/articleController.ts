@@ -353,7 +353,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const { title, summary, content, thumbnail, categoryId, status, isFeatured } = req.body;
+        const { title, summary, content, thumbnail, categoryId, status, isFeatured, taskId } = req.body;
         const data: Prisma.ArticleUpdateInput = {};
 
         if (title) {
@@ -377,6 +377,10 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             };
         }
         if (isFeatured !== undefined) data.isFeatured = isFeatured;
+        
+        if (taskId !== undefined) { 
+             data.task = taskId ? { connect: { id: Number(taskId) } } : { disconnect: true };
+        }
 
         if (status) {
             if (user.role === 'WRITER' && !['DRAFT', 'REVIEW'].includes(status)) {

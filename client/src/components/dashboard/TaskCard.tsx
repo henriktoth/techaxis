@@ -1,4 +1,5 @@
-import { Check, Calendar, User as UserIcon, Edit, Trash2, PenTool } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Calendar, User as UserIcon, Edit, Trash2, PenTool, X } from 'lucide-react';
 import type { Task, User } from '../../types';
 
 interface TaskCardProps {
@@ -26,31 +27,38 @@ const TaskCard = ({
     onDrop,
     onWriteArticle
 }: TaskCardProps) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const canToggle = currentUser?.role === 'ADMIN' || (currentUser?.role === 'WRITER' && task.assignedToId === currentUser?.id && !task.isCompleted);
 
     return (
-        <div className={`bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-opacity duration-200 ${isCompleted ? 'opacity-75' : ''}`}>
-            <div className="flex justify-between items-start">
-                <div className="flex items-start gap-4">
-                    <button
-                        onClick={() => canToggle && onToggleStatus(task.id)}
-                        disabled={!canToggle}
-                        className={`mt-1 h-6 w-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                            isCompleted
-                                ? 'bg-green-500 border-green-500 text-white'
-                                : canToggle 
-                                    ? 'border-gray-300 hover:border-blue-500 cursor-pointer'
-                                    : 'border-gray-200 bg-gray-100 cursor-not-allowed'
-                        }`}
-                        title={!canToggle ? "You can only complete tasks assigned to you" : "Toggle status"}
-                    >
-                        {isCompleted && <Check size={14} />}
-                    </button>
-                    <div>
+        <>
+            <div 
+                onClick={() => setIsModalOpen(true)}
+                className={`bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-200 ${isCompleted ? 'opacity-75' : ''} cursor-pointer hover:shadow-md hover:border-blue-300 hover:bg-gray-50 relative`}
+            >
+                <div className="flex justify-between items-start">
+                    <div className="flex items-start gap-4">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                canToggle && onToggleStatus(task.id);
+                            }}
+                            disabled={!canToggle}
+                            className={`mt-1 h-6 w-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                                isCompleted
+                                    ? 'bg-green-500 border-green-500 text-white'
+                                    : canToggle 
+                                        ? 'border-gray-300 hover:border-blue-500 cursor-pointer hover:bg-white'
+                                        : 'border-gray-200 bg-gray-100 cursor-not-allowed'
+                            }`}
+                            title={!canToggle ? "You can only complete tasks assigned to you" : "Toggle status"}
+                        >
+                            {isCompleted && <Check size={14} />}
+                        </button>
+                        <div>
                         <h3 className={`font-semibold text-lg ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                             {task.title}
                         </h3>
-                        <p className="text-gray-600 mt-1">{task.description}</p>
                         
                         <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500">
                             {task.dueDate ? (
@@ -98,7 +106,10 @@ const TaskCard = ({
                     <div className="flex flex-col gap-2">
                         <button
                             disabled={hasUnsavedChanges}
-                            onClick={() => onEdit(task.id)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(task.id);
+                            }}
                             className={`text-gray-400 size-5 transition-colors ${hasUnsavedChanges ? 'opacity-50 cursor-not-allowed' : 'hover:text-blue-500'}`}
                             title={hasUnsavedChanges ? "Save changes before editing" : "Edit"}
                         >
@@ -106,7 +117,10 @@ const TaskCard = ({
                         </button>
                         <button
                             disabled={hasUnsavedChanges}
-                            onClick={() => onDelete(task.id)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete(task.id);
+                            }}
                             className={`text-gray-400 size-5 transition-colors ${hasUnsavedChanges ? 'opacity-50 cursor-not-allowed' : 'hover:text-red-500'}`}
                             title={hasUnsavedChanges ? "Save changes before deleting" : "Delete"}
                         >
@@ -117,7 +131,10 @@ const TaskCard = ({
                 {currentUser?.role === 'WRITER' && !task.assignedToId && (
                     <div className="flex flex-col justify-center h-full">
                         <button
-                            onClick={() => onTake(task.id)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onTake(task.id);
+                            }}
                             className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm transition-colors whitespace-nowrap shadow-sm"
                         >
                             Take Task
@@ -128,7 +145,10 @@ const TaskCard = ({
                      <div className="flex flex-col justify-center gap-2 h-full">
                          {!isCompleted && !task.article && (
                             <button
-                                onClick={() => onWriteArticle(task.id)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onWriteArticle(task.id);
+                                }}
                                 className="px-4 py-2 rounded-lg font-medium text-sm transition-colors whitespace-nowrap bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 flex items-center gap-2 justify-center"
                                 title="Write article for this task"
                             >
@@ -143,7 +163,10 @@ const TaskCard = ({
                             </div>
                          )}
                          <button
-                             onClick={() => onDrop(task.id)}
+                             onClick={(e) => {
+                                 e.stopPropagation();
+                                 onDrop(task.id);
+                             }}
                              disabled={isCompleted}
                              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors whitespace-nowrap border ${
                                 isCompleted 
@@ -158,6 +181,118 @@ const TaskCard = ({
                  )}
             </div>
         </div>
+
+        {isModalOpen && (
+            <div 
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsModalOpen(false);
+                }}
+            >
+                <div 
+                    className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="flex justify-between items-start p-6 border-b border-gray-100 shrink-0">
+                        <h2 className="text-xl font-bold text-gray-900 pr-8">{task.title}</h2>
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsModalOpen(false);
+                            }}
+                            className="text-gray-400 hover:text-gray-500 transition-colors p-1 rounded-full hover:bg-gray-100"
+                        >
+                            <X size={24} />
+                        </button>
+                    </div>
+                    
+                    <div className="p-6 space-y-6 overflow-y-auto">
+                        <div>
+                            <h3 className="text-sm font-medium text-gray-500 mb-2">Description</h3>
+                            <p className="text-gray-700 whitespace-pre-wrap">{task.description}</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 mb-1">Status</h3>
+                                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
+                                    isCompleted ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                    {isCompleted ? 'Completed' : 'In Progress'}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 mb-1">Priority</h3>
+                                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
+                                    task.priority === 2 ? 'bg-red-100 text-red-800' :
+                                    task.priority === 1 ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-green-100 text-green-800'
+                                }`}>
+                                    {task.priority === 2 ? 'High' : task.priority === 1 ? 'Medium' : 'Low'}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 mb-1">Due Date</h3>
+                                <div className="flex items-center text-gray-900">
+                                    <Calendar size={16} className="mr-2 text-gray-400" />
+                                    {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 mb-1">Assigned To</h3>
+                                <div className="flex items-center text-gray-900">
+                                    <UserIcon size={16} className="mr-2 text-gray-400" />
+                                    {task.assignedTo ? task.assignedTo.name : 'Unassigned'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsModalOpen(false);
+                            }}
+                            className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                        >
+                            Close
+                        </button>
+                        {canToggle && !isCompleted && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleStatus(task.id);
+                                    setIsModalOpen(false);
+                                }}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center gap-2"
+                            >
+                                <Check size={16} />
+                                Mark as Ready
+                            </button>
+                        )}
+                        {canToggle && isCompleted && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleStatus(task.id);
+                                    setIsModalOpen(false);
+                                }}
+                                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium transition-colors flex items-center gap-2"
+                            >
+                                <Check size={16} />
+                                Mark as Incomplete
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 };
 

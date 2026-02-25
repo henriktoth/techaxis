@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { Article, Category, User } from '../../../types';
+import type { Article, Category, User, Task } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import ArticleForm from '../../../components/dashboard/ArticleForm';
 
@@ -17,10 +17,12 @@ const EditArticle = () => {
         thumbnail: '',
         categoryId: 0,
         status: 'DRAFT' as Article['status'],
-        isFeatured: false
+        isFeatured: false,
+        taskId: null as number | null
     });
     
     const [categories, setCategories] = useState<Category[]>([]);
+    const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [originalArticle, setOriginalArticle] = useState<Article | null>(null);
     
@@ -46,15 +48,25 @@ const EditArticle = () => {
                 const currentUser = userRes.data;
                 setUser(currentUser);
 
-                const [categoriesRes, articleRes] = await Promise.all([
+                const [categoriesRes, articleRes, tasksRes] = await Promise.all([
                     axios.get('http://localhost:8000/api/categories', config),
-                    axios.get(`http://localhost:8000/api/articles/me/${id}`, config)
+                    axios.get(`http://localhost:8000/api/articles/me/${id}`, config),
+                    axios.get('http://localhost:8000/api/tasks', config)
                 ]);
 
                 setCategories(categoriesRes.data);
                 
                 const article = articleRes.data;
+                const tasks = tasksRes.data as Task[];
+                
                 setOriginalArticle(article);
+
+                const currentTaskId = article.task?.id;
+                const filteredTasks = tasks.filter(t => 
+                    (!t.article && !t.isCompleted) || (t.id === currentTaskId)
+                );
+                
+                setAvailableTasks(filteredTasks);
                 
                 setFormData({
                     title: article.title,
@@ -63,7 +75,8 @@ const EditArticle = () => {
                     thumbnail: article.thumbnail || '',
                     categoryId: article.categoryId,
                     status: article.status,
-                    isFeatured: article.isFeatured
+                    isFeatured: article.isFeatured,
+                    taskId: currentTaskId || null
                 });
 
             } catch (err) {
@@ -111,6 +124,7 @@ const EditArticle = () => {
                 thumbnail: formData.thumbnail || null,
                 categoryId: Number(formData.categoryId),
                 status: formData.status,
+                taskId: formData.taskId ? Number(formData.taskId) : null,
                 ...(user?.role === 'ADMIN' && { isFeatured: formData.isFeatured }),
             };
 
@@ -184,6 +198,7 @@ const EditArticle = () => {
                             formData={formData}
                             setFormData={setFormData}
                             categories={categories}
+                            tasks={availableTasks}
                             user={user}
                             slug={originalArticle?.slug}
                             saving={saving}
