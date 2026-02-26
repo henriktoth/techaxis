@@ -19,6 +19,7 @@ interface ArticleFormProps {
   saving: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
+  isRestricted?: boolean;
 }
 
 const ArticleForm = ({
@@ -31,6 +32,7 @@ const ArticleForm = ({
   saving,
   onSubmit,
   onCancel,
+  isRestricted = false,
 }: ArticleFormProps) => {
   const isWriter = user?.role === 'WRITER';
   const canEditFeatured = user?.role === 'ADMIN';
@@ -56,9 +58,10 @@ const ArticleForm = ({
           type="text"
           id="title"
           required
+          disabled={isRestricted}
           value={formData.title}
           onChange={(e) => handleChange('title', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:text-gray-500"
         />
       </div>
 
@@ -79,9 +82,10 @@ const ArticleForm = ({
         <textarea
           id="summary"
           rows={3}
+          disabled={isRestricted}
           value={formData.summary}
           onChange={(e) => handleChange('summary', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:text-gray-500"
         />
       </div>
 
@@ -91,9 +95,10 @@ const ArticleForm = ({
         </label>
         <select
           id="category"
+          disabled={isRestricted}
           value={formData.categoryId}
           onChange={(e) => handleChange('categoryId', Number(e.target.value))}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:text-gray-500"
         >
           <option value={0} disabled>Select a category</option>
           {categories.map((cat) => (
@@ -112,7 +117,7 @@ const ArticleForm = ({
             <select
                 id="task"
                 value={formData.taskId || ''}
-                disabled={formData.status === 'PUBLISHED'}
+                disabled={isRestricted || formData.status === 'PUBLISHED'}
                 onChange={(e) => {
                     const value = e.target.value ? Number(e.target.value) : null;
                     setFormData(prev => ({ ...prev, taskId: value }));
@@ -139,9 +144,10 @@ const ArticleForm = ({
         <input
           type="text"
           id="thumbnail"
+          disabled={isRestricted}
           value={formData.thumbnail}
           onChange={(e) => handleChange('thumbnail', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border placeholder-gray-400"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border placeholder-gray-400 disabled:bg-gray-100 disabled:text-gray-500"
           placeholder="https://example.com/image.jpg"
         />
       </div>
@@ -154,9 +160,10 @@ const ArticleForm = ({
           id="content"
           rows={15}
           required
+          disabled={isRestricted}
           value={formData.content}
           onChange={(e) => handleChange('content', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border font-mono"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border font-mono disabled:bg-gray-100 disabled:text-gray-500"
         />
       </div>
 
@@ -183,9 +190,10 @@ const ArticleForm = ({
             <input
               id="isFeatured"
               type="checkbox"
+              disabled={isRestricted}
               checked={formData.isFeatured}
               onChange={(e) => handleChange('isFeatured', e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:bg-gray-100 disabled:text-gray-500"
             />
             <label htmlFor="isFeatured" className="ml-2 block text-sm text-gray-900">
               Featured Article

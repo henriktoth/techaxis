@@ -28,6 +28,19 @@ const TaskBadge = ({ article }: { article: Article }) => {
 };
 
 const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, authors, onDelete, searchQuery }: ArticleTableProps) => {
+
+    const canEdit = (article: Article) => {
+        if (!user) return false;
+        if (user.role === 'ADMIN') return true; // Admins can edit anything now, but form will be restricted
+        return article.authorId === user.id && article.status !== 'PUBLISHED';
+    }
+
+    const canDelete = (article: Article) => {
+        if (!user) return false;
+        if (user.role === 'ADMIN') return true;
+        return article.authorId === user.id && article.status !== 'PUBLISHED';
+    }
+
   return (
     <div className="overflow-x-auto lg:overflow-visible pb-4">
       <table className="w-full text-left text-sm text-gray-600 min-w-200">
@@ -123,8 +136,13 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                   <td className="px-6 py-4 relative group">
                     {article.authorId && authors[article.authorId] ? (
                       <>
-                        <button className="text-gray-900 font-medium hover:text-blue-600 focus:outline-none cursor-pointer border-b border-dotted border-gray-400">
-                          {authors[article.authorId].name} <span className="text-gray-500 font-normal text-xs">({authors[article.authorId].role})</span>
+                        <button className="text-left focus:outline-none cursor-pointer group-hover:bg-gray-50 rounded p-1 -ml-1 transition-colors">
+                          <div className="text-gray-900 font-medium hover:text-blue-600">
+                            {authors[article.authorId].name}
+                          </div>
+                          <div className="text-gray-500 font-normal text-xs">
+                            {authors[article.authorId].role}
+                          </div>
                         </button>
                         <AuthorHoverCard author={authors[article.authorId]} />
                       </>
@@ -184,7 +202,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                     type="button"
                     title="Edit Article"
                     className={`p-2 rounded-md transition-colors inline-block ${
-                      (user?.role === 'ADMIN' || article.status !== 'PUBLISHED')
+                      canEdit(article)
                         ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer'
                         : 'bg-gray-50 text-gray-300 cursor-not-allowed pointer-events-none'
                     }`}
@@ -199,10 +217,10 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 <td className="px-2 py-4 text-center w-20">
                   <button
                     onClick={() => onDelete(article.id)}
-                    disabled={!(user?.role === 'ADMIN' || article.status !== 'PUBLISHED')}
+                    disabled={!canDelete(article)}
                     title="Delete Article"
                     className={`p-2 rounded-md transition-colors ${
-                      (user?.role === 'ADMIN' || article.status !== 'PUBLISHED')
+                      canDelete(article)
                         ? 'bg-red-50 text-red-600 hover:bg-red-100 cursor-pointer'
                         : 'bg-gray-50 text-gray-300 cursor-not-allowed'
                     }`}

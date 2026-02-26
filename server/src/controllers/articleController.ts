@@ -335,12 +335,9 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         }
 
         if (user.role === 'ADMIN') {
-            const isOwner = article.authorId === user.userId;
-            const isAllowedStatus = ['PUBLISHED', 'REVIEW'].includes(article.status);
-
-            if (!isOwner && !isAllowedStatus) {
-                return res.status(403).json({ message: 'Admins can only edit their own articles or articles in PUBLISHED/REVIEW status.' });
-            }
+             // Admin can edit ANY article.
+             // (The frontend will handle "content restriction" for drafts that are not theirs, 
+             // but the backend should technically allow the update so the status change works)
         } else if (user.role === 'WRITER') {
             if (article.authorId !== user.userId) {
                 return res.status(403).json({ message: 'Access denied' });
