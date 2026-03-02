@@ -79,13 +79,20 @@ const ReviewArticle = () => {
     }, [id, navigate]);
 
     const handleReview = async (status: 'PUBLISHED' | 'REJECTED') => {
-        if (!window.confirm(`Are you sure you want to ${status === 'PUBLISHED' ? 'publish' : 'reject'} this article?`)) return;
+        let rejectionReason = null;
+        
+        if (status === 'REJECTED') {
+            rejectionReason = window.prompt("Please provide a reason for rejection:");
+            if (rejectionReason === null) return; // User cancelled prompt
+        } else {
+            if (!window.confirm(`Are you sure you want to publish this article?`)) return;
+        }
 
         setProcessing(true);
         const token = localStorage.getItem('token');
         
         try {
-            await axios.patch(`http://localhost:8000/api/articles/${id}/review`, { status }, {
+            await axios.patch(`http://localhost:8000/api/articles/${id}/review`, { status, rejectionReason }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success(`Article ${status === 'PUBLISHED' ? 'published' : 'rejected'} successfully`);

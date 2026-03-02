@@ -48,6 +48,7 @@ model Article {
   content    String        @db.Text
   thumbnail  String?
   status     ArticleStatus @default(DRAFT)
+  rejectionReason String?
   isFeatured Boolean       @default(false)
 
   createdAt   DateTime  @default(now())

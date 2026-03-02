@@ -26,6 +26,7 @@ export interface Article {
   content: string;
   thumbnail: string | null;
   status: 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'REJECTED';
+  rejectionReason?: string | null;
   isFeatured: boolean;
   publishedAt: string | null;
   createdAt?: string;
