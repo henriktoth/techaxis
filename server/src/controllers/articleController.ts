@@ -422,7 +422,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
-    const { status, rejectionReason } = req.body;
+g    const { status, rejectionReason } = req.body;
     
     if (!status || (status !== 'PUBLISHED' && status !== 'REJECTED')) {
         return res.status(400).json({ message: 'Status must be either PUBLISHED or REJECTED' });

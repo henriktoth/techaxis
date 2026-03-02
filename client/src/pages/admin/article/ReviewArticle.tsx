@@ -83,7 +83,7 @@ const ReviewArticle = () => {
         
         if (status === 'REJECTED') {
             rejectionReason = window.prompt("Please provide a reason for rejection:");
-            if (rejectionReason === null) return; // User cancelled prompt
+            if (rejectionReason === null) return;
         } else {
             if (!window.confirm(`Are you sure you want to publish this article?`)) return;
         }

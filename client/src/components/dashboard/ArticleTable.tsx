@@ -31,7 +31,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
 
     const canEdit = (article: Article) => {
         if (!user) return false;
-        if (user.role === 'ADMIN') return true; // Admins can edit anything now, but form will be restricted
+        if (user.role === 'ADMIN') return true; 
         return article.authorId === user.id && article.status !== 'PUBLISHED';
     }
 
