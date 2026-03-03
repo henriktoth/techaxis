@@ -303,10 +303,6 @@ export const toggleTaskStatus = async (req: Request, res: Response, next: NextFu
     }
 };
 
-/**
- * Assign a task to the current user (Writer takes a task).
- * - Only works if the task is currently unassigned.
- */
 export const takeTask = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     if (isNaN(id)) {
@@ -344,10 +340,6 @@ export const takeTask = async (req: Request, res: Response, next: NextFunction) 
     }
 };
 
-/**
- * Unassign a task from the current user (Writer drops a task).
- * - Only works if the task is currently assigned to the user.
- */
 export const dropTask = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     if (isNaN(id)) {

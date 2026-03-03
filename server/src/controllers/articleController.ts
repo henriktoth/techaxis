@@ -138,6 +138,14 @@ export const getArticleForUserById = async (req: Request, res: Response, next: N
 
         const article = await prisma.article.findUnique({
             where: { id },
+             include: {
+                task: {
+                    select: {
+                        id: true,
+                        title: true
+                    }
+                }
+            }
         });
 
         if (!article) {
@@ -334,11 +342,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        if (user.role === 'ADMIN') {
-             // Admin can edit ANY article.
-             // (The frontend will handle "content restriction" for drafts that are not theirs, 
-             // but the backend should technically allow the update so the status change works)
-        } else if (user.role === 'WRITER') {
+        if (user.role === 'WRITER') {
             if (article.authorId !== user.userId) {
                 return res.status(403).json({ message: 'Access denied' });
             }
@@ -422,7 +426,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
-g    const { status, rejectionReason } = req.body;
+    const { status, rejectionReason } = req.body;
     
     if (!status || (status !== 'PUBLISHED' && status !== 'REJECTED')) {
         return res.status(400).json({ message: 'Status must be either PUBLISHED or REJECTED' });
