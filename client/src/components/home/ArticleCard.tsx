@@ -15,7 +15,7 @@ const ArticleCard = ({ article }: ArticleCardProps) => {
         
         {article.thumbnail ? (
           <img
-            src={article.thumbnail}
+            src={article.thumbnail.startsWith('/') ? `http://localhost:8000${article.thumbnail}` : article.thumbnail}
             alt={article.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />

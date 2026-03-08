@@ -20,7 +20,7 @@ const HeroArticle = ({ article }: HeroArticleProps) => {
           <div className="absolute inset-0 bg-indigo-500/10 mix-blend-overlay z-10"></div>
           {article.thumbnail ? (
             <img
-              src={article.thumbnail}
+              src={article.thumbnail.startsWith('/') ? `http://localhost:8000${article.thumbnail}` : article.thumbnail}
               alt={article.title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />

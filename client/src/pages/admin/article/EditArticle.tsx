@@ -25,6 +25,8 @@ const EditArticle = () => {
     const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [originalArticle, setOriginalArticle] = useState<Article | null>(null);
+    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [removeThumbnail, setRemoveThumbnail] = useState(false);
     
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -117,19 +119,24 @@ const EditArticle = () => {
         }
 
         try {
-            const payload = {
-                title: formData.title,
-                summary: formData.summary,
-                content: formData.content,
-                thumbnail: formData.thumbnail || null,
-                categoryId: Number(formData.categoryId),
-                status: formData.status,
-                taskId: formData.taskId ? Number(formData.taskId) : null,
-                ...(user?.role === 'ADMIN' && { isFeatured: formData.isFeatured }),
-            };
+            const payload = new FormData();
+            payload.append('title', formData.title);
+            payload.append('summary', formData.summary);
+            payload.append('content', formData.content);
+            payload.append('categoryId', String(formData.categoryId));
+            payload.append('status', formData.status);
+            payload.append('taskId', formData.taskId ? String(formData.taskId) : '');
+            if (user?.role === 'ADMIN') {
+                payload.append('isFeatured', String(formData.isFeatured));
+            }
+            if (thumbnailFile) {
+                payload.append('thumbnail', thumbnailFile);
+            } else if (removeThumbnail) {
+                payload.append('removeThumbnail', 'true');
+            }
 
             await axios.put(`http://localhost:8000/api/articles/${id}`, payload, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
             });
 
             toast.success('Article updated successfully');
@@ -216,6 +223,10 @@ const EditArticle = () => {
                         <ArticleForm 
                             formData={formData}
                             setFormData={setFormData}
+                            thumbnailFile={thumbnailFile}
+                            setThumbnailFile={setThumbnailFile}
+                            removeThumbnail={removeThumbnail}
+                            setRemoveThumbnail={setRemoveThumbnail}
                             categories={categories}
                             tasks={availableTasks}
                             user={user}

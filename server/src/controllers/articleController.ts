@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/db.config';
 import { Prisma } from '../generated/prisma/client';
 import slugify from 'slugify';
+import { deleteThumbnailFile } from '../config/upload.config';
 
 /**
     * List all published articles (public).
@@ -187,7 +188,8 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             return res.status(401).json({ message: 'Authentication required' });
         }
 
-        const { title, summary, content, thumbnail, categoryId, status, isFeatured, taskId } = req.body;
+        const { title, summary, content, categoryId, status, isFeatured, taskId } = req.body;
+        const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
         if (!title || !summary || !content) {
             return res.status(400).json({ message: 'Title, summary, and content are required' });
@@ -242,7 +244,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
                 content,
                 thumbnail,
                 status: articleStatus,
-                isFeatured: isFeatured === true,
+                isFeatured: isFeatured === true || isFeatured === 'true',
                 publishedAt,
                 slug: uniqueSlug,
                 authorId: user.userId,
@@ -285,7 +287,7 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
 
         const article = await prisma.article.findUnique({
              where: { id },
-             select: { id: true, authorId: true, status: true }
+             select: { id: true, authorId: true, status: true, thumbnail: true }
         });
 
         if (!article) {
@@ -301,6 +303,10 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
              }
         } else if (user.role !== 'ADMIN') {
              return res.status(403).json({ message: 'Access denied' });
+        }
+
+        if (article.thumbnail) {
+            deleteThumbnailFile(article.thumbnail);
         }
 
         const deletedArticle = await prisma.article.delete({
@@ -354,8 +360,20 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const { title, summary, content, thumbnail, categoryId, status, isFeatured, taskId } = req.body;
+        const { title, summary, content, categoryId, status, isFeatured, taskId, removeThumbnail } = req.body;
         const data: Prisma.ArticleUpdateInput = {};
+
+        if (req.file) {
+            if (article.thumbnail) {
+                deleteThumbnailFile(article.thumbnail);
+            }
+            data.thumbnail = `/uploads/thumbnails/${req.file.filename}`;
+        } else if (removeThumbnail === 'true') {
+            if (article.thumbnail) {
+                deleteThumbnailFile(article.thumbnail);
+            }
+            data.thumbnail = null;
+        }
 
         if (title) {
             data.title = title;
@@ -371,13 +389,12 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         }
         if (summary) data.summary = summary;
         if (content) data.content = content;
-        if (thumbnail !== undefined) data.thumbnail = thumbnail;
         if (categoryId) {
             data.category = {
                 connect: { id: Number(categoryId) }
             };
         }
-        if (isFeatured !== undefined) data.isFeatured = isFeatured;
+        if (isFeatured !== undefined) data.isFeatured = isFeatured === true || isFeatured === 'true';
         
         if (taskId !== undefined) { 
              data.task = taskId ? { connect: { id: Number(taskId) } } : { disconnect: true };

@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { getPublishedArticles, getPublishedArticleById, getArticlesForUser, getArticleForUserById, addArticle, deleteArticle, updateArticle, reviewArticle } from '../controllers/articleController';
 import { authenticate } from '../middleware/authenticate';
+import { uploadThumbnail } from '../config/upload.config';
 
 const router = Router();
 
-router.post('/', authenticate, addArticle);
-router.put('/:id', authenticate, updateArticle);
+router.post('/', authenticate, uploadThumbnail.single('thumbnail'), addArticle);
+router.put('/:id', authenticate, uploadThumbnail.single('thumbnail'), updateArticle);
 router.delete('/:id', authenticate, deleteArticle);
 router.patch('/:id/review', authenticate, reviewArticle);
 
