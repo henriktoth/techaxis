@@ -17,6 +17,8 @@ const ReviewArticle = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [processing, setProcessing] = useState(false);
+    const [showSchedulePanel, setShowSchedulePanel] = useState(false);
+    const [scheduledAt, setScheduledAt] = useState('');
 
     //FETCH: Article details + user details + categories (calls: GET /api/articles/:id, GET /api/auth/me, GET /api/categories)
     useEffect(() => {
@@ -91,24 +93,33 @@ const ReviewArticle = () => {
         }
     }, [id, navigate]);
 
-    const handleReview = async (status: 'PUBLISHED' | 'REJECTED') => {
+    const handleReview = async (status: 'PUBLISHED' | 'REJECTED', scheduleDate?: string) => {
         let rejectionReason = null;
         
         if (status === 'REJECTED') {
             rejectionReason = window.prompt("Please provide a reason for rejection:");
             if (rejectionReason === null) return;
-        } else {
-            if (!window.confirm(`Are you sure you want to publish this article?`)) return;
+        } else if (!scheduleDate) {
+            if (!window.confirm(`Are you sure you want to publish this article right now?`)) return;
         }
 
         setProcessing(true);
         const token = localStorage.getItem('token');
         
         try {
-            await axios.patch(`http://localhost:8000/api/articles/${id}/review`, { status, rejectionReason }, {
+            const payload: { status: string; rejectionReason?: string | null; scheduledAt?: string } = { status, rejectionReason };
+            if (scheduleDate) {
+                payload.scheduledAt = new Date(scheduleDate).toISOString();
+            }
+
+            await axios.patch(`http://localhost:8000/api/articles/${id}/review`, payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success(`Article ${status === 'PUBLISHED' ? 'published' : 'rejected'} successfully`);
+            toast.success(
+                scheduleDate
+                    ? `Article scheduled for ${new Date(scheduleDate).toLocaleString()}`
+                    : `Article ${status === 'PUBLISHED' ? 'published' : 'rejected'} successfully`
+            );
             navigate('/admin/dashboard');
         } catch (err) {
             console.error('Error reviewing article:', err);
@@ -181,6 +192,7 @@ const ReviewArticle = () => {
                                     ${article.status === 'PUBLISHED' ? 'bg-green-50 text-green-700 border-green-200' :
                                       article.status === 'DRAFT' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 
                                       article.status === 'REVIEW' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                      article.status === 'SCHEDULED' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                                       'bg-red-50 text-red-700 border-red-200'
                                     }`}>
                                     {article.status}
@@ -221,23 +233,76 @@ const ReviewArticle = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="pt-6 border-t border-gray-100 flex justify-end gap-3 sticky bottom-0 bg-white/80 backdrop-blur-sm p-4 -mx-6 -mb-6 rounded-b-xl border-x-0">
-                            <button
-                                type="button"
-                                onClick={() => handleReview('REJECTED')}
-                                disabled={processing}
-                                className="px-6 py-2.5 rounded-lg text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
-                            >
-                                {processing ? 'Processing...' : 'Reject Article'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleReview('PUBLISHED')}
-                                disabled={processing || article.status === 'PUBLISHED'}
-                                className="px-6 py-2.5 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md"
-                            >
-                                {processing ? 'Processing...' : article.status === 'PUBLISHED' ? 'Already Published' : 'Publish Article'}
-                            </button>
+                        <div className="pt-6 border-t border-gray-100 sticky bottom-0 bg-white/80 backdrop-blur-sm p-4 -mx-6 -mb-6 rounded-b-xl border-x-0 space-y-4">
+                            {showSchedulePanel && (
+                                <div className="flex items-end gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                    <div className="flex-1">
+                                        <label htmlFor="scheduledAt" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Schedule publish date & time
+                                        </label>
+                                        <input
+                                            type="datetime-local"
+                                            id="scheduledAt"
+                                            value={scheduledAt}
+                                            min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                                            onChange={(e) => setScheduledAt(e.target.value)}
+                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!scheduledAt) {
+                                                toast.error('Please select a date and time');
+                                                return;
+                                            }
+                                            if (new Date(scheduledAt) <= new Date()) {
+                                                toast.error('Scheduled time must be in the future');
+                                                return;
+                                            }
+                                            handleReview('PUBLISHED', scheduledAt);
+                                        }}
+                                        disabled={processing || !scheduledAt}
+                                        className="px-6 py-2.5 rounded-lg shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        {processing ? 'Scheduling...' : 'Confirm Schedule'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowSchedulePanel(false); setScheduledAt(''); }}
+                                        className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
+                            
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => handleReview('REJECTED')}
+                                    disabled={processing}
+                                    className="px-6 py-2.5 rounded-lg text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
+                                >
+                                    {processing ? 'Processing...' : 'Reject Article'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSchedulePanel(!showSchedulePanel)}
+                                    disabled={processing || article.status === 'PUBLISHED'}
+                                    className="px-6 py-2.5 rounded-lg text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Schedule Publish
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleReview('PUBLISHED')}
+                                    disabled={processing || article.status === 'PUBLISHED'}
+                                    className="px-6 py-2.5 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md"
+                                >
+                                    {processing ? 'Processing...' : article.status === 'PUBLISHED' ? 'Already Published' : 'Publish Now'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

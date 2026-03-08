@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import routes from './routes/routes';
+import { startScheduledPublisher } from './utils/scheduledPublisher';
 
 dotenv.config();
 
@@ -29,4 +30,5 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
 // Start server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+    startScheduledPublisher();
 });

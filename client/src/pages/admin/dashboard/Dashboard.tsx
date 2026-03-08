@@ -150,11 +150,12 @@ const Dashboard = () => {
     return 0;
   });
   
-  // CONSTANTS: total articles, published count, draft count, review count
+  // CONSTANTS: total articles, published count, draft count, review count, scheduled count
   const totalArticles = articles.length;
   const publishedCount = articles.filter(a => a.status === 'PUBLISHED').length;
   const draftCount = articles.filter(a => a.status === 'DRAFT').length;
   const reviewCount = articles.filter(a => a.status === 'REVIEW').length;
+  const scheduledCount = articles.filter(a => a.status === 'SCHEDULED').length;
 
   if (isLoading) {
     return (
@@ -188,6 +189,7 @@ const Dashboard = () => {
               publishedCount={publishedCount} 
               draftCount={draftCount}
               reviewCount={reviewCount}
+              scheduledCount={scheduledCount}
           />
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 relative">

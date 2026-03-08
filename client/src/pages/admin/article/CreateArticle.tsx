@@ -19,7 +19,8 @@ const CreateArticle = () => {
         categoryId: 0,
         status: 'DRAFT' as Article['status'],
         isFeatured: false,
-        taskId: taskIdParam ? Number(taskIdParam) : null as number | null
+        taskId: taskIdParam ? Number(taskIdParam) : null as number | null,
+        scheduledAt: ''
     });
     
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -105,6 +106,9 @@ const CreateArticle = () => {
             }
             if (thumbnailFile) {
                 payload.append('thumbnail', thumbnailFile);
+            }
+            if (formData.scheduledAt) {
+                payload.append('scheduledAt', new Date(formData.scheduledAt).toISOString());
             }
 
             await axios.post('http://localhost:8000/api/articles', payload, {

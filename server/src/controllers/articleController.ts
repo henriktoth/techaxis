@@ -222,8 +222,19 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
         }
 
         let publishedAt: Date | undefined;
+        let scheduledAt: Date | null = null;
         if (articleStatus === 'PUBLISHED') {
-            publishedAt = new Date();
+            if (req.body.scheduledAt) {
+                const scheduledDate = new Date(req.body.scheduledAt);
+                if (scheduledDate > new Date()) {
+                    articleStatus = 'SCHEDULED';
+                    scheduledAt = scheduledDate;
+                } else {
+                    publishedAt = new Date();
+                }
+            } else {
+                publishedAt = new Date();
+            }
         }
 
         let resolvedCategoryId: number | undefined;
@@ -250,6 +261,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
                 status: articleStatus,
                 isFeatured: isFeatured === true || isFeatured === 'true',
                 publishedAt,
+                scheduledAt,
                 slug: uniqueSlug,
                 authorId: user.userId,
                 categoryId: resolvedCategoryId,
@@ -257,7 +269,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             },
         });
 
-        if (taskId && articleStatus === 'PUBLISHED') {
+        if (taskId && newArticle.status === 'PUBLISHED') {
             await prisma.task.update({
                 where: { id: Number(taskId) },
                 data: { isCompleted: true }
@@ -302,7 +314,7 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
              if (article.authorId !== user.userId) {
                   return res.status(403).json({ message: 'Access denied' });
              }
-             if (article.status === 'PUBLISHED') {
+             if (article.status === 'PUBLISHED' || article.status === 'SCHEDULED') {
                   return res.status(403).json({ message: 'Writers can only delete non published articles' });
              }
         } else if (user.role !== 'ADMIN') {
@@ -368,7 +380,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const { title, summary, content, categoryId, status, isFeatured, taskId, removeThumbnail } = req.body;
+        const { title, summary, content, categoryId, status, isFeatured, taskId, removeThumbnail, scheduledAt } = req.body;
         const data: Prisma.ArticleUpdateInput = {};
 
         if (req.file) {
@@ -417,10 +429,26 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
                 return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
             }
             
-            data.status = status;
-            
-            if (status === 'PUBLISHED' && article.publishedAt === null) {
-                data.publishedAt = new Date();
+            if (status === 'PUBLISHED' && scheduledAt) {
+                const scheduledDate = new Date(scheduledAt);
+                if (scheduledDate > new Date()) {
+                    data.status = 'SCHEDULED';
+                    data.scheduledAt = scheduledDate;
+                } else {
+                    data.status = 'PUBLISHED';
+                    data.scheduledAt = null;
+                    if (article.publishedAt === null) {
+                        data.publishedAt = new Date();
+                    }
+                }
+            } else {
+                data.status = status;
+                if (status === 'PUBLISHED') {
+                    data.scheduledAt = null;
+                    if (article.publishedAt === null) {
+                        data.publishedAt = new Date();
+                    }
+                }
             }
         }
 
@@ -429,7 +457,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             data,
         });
 
-        if (status === 'PUBLISHED' && article.taskId) {
+        if (updatedArticle.status === 'PUBLISHED' && article.taskId) {
             await prisma.task.update({
                 where: { id: article.taskId },
                 data: { isCompleted: true }
@@ -455,7 +483,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
-    const { status, rejectionReason } = req.body;
+    const { status, rejectionReason, scheduledAt } = req.body;
     
     if (!status || (status !== 'PUBLISHED' && status !== 'REJECTED')) {
         return res.status(400).json({ message: 'Status must be either PUBLISHED or REJECTED' });
@@ -487,9 +515,22 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
         const data: Prisma.ArticleUpdateInput = { status };
         
         if (status === 'PUBLISHED') {
-            data.publishedAt = new Date();
+            if (scheduledAt) {
+                const scheduledDate = new Date(scheduledAt);
+                if (scheduledDate > new Date()) {
+                    data.status = 'SCHEDULED';
+                    data.scheduledAt = scheduledDate;
+                } else {
+                    data.publishedAt = new Date();
+                    data.scheduledAt = null;
+                }
+            } else {
+                data.publishedAt = new Date();
+                data.scheduledAt = null;
+            }
         } else if (status === 'REJECTED' && rejectionReason) {
              data.rejectionReason = rejectionReason;
+             data.scheduledAt = null;
         }
 
         const updatedArticle = await prisma.article.update({
@@ -497,7 +538,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
             data,
         });
 
-        if (status === 'PUBLISHED' && article.taskId) {
+        if (updatedArticle.status === 'PUBLISHED' && article.taskId) {
             await prisma.task.update({
                 where: { id: article.taskId },
                 data: { isCompleted: true }

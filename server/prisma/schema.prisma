@@ -17,6 +17,7 @@ enum ArticleStatus {
   DRAFT
   REVIEW
   PUBLISHED
+  SCHEDULED
   REJECTED
 }
 
@@ -50,6 +51,7 @@ model Article {
   status          ArticleStatus @default(DRAFT)
   rejectionReason String?
   isFeatured      Boolean       @default(false)
+  scheduledAt     DateTime?
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

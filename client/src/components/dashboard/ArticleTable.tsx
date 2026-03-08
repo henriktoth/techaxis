@@ -35,13 +35,13 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
             if (article.authorId !== user.id && article.status === 'DRAFT') return false;
             return true;
         }
-        return article.authorId === user.id && article.status !== 'PUBLISHED';
+        return article.authorId === user.id && article.status !== 'PUBLISHED' && article.status !== 'SCHEDULED';
     }
 
     const canDelete = (article: Article) => {
         if (!user) return false;
         if (user.role === 'ADMIN') return true;
-        return article.authorId === user.id && article.status !== 'PUBLISHED';
+        return article.authorId === user.id && article.status !== 'PUBLISHED' && article.status !== 'SCHEDULED';
     }
 
   return (
@@ -120,11 +120,17 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                       article.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' :
                       article.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
                       article.status === 'REVIEW' ? 'bg-blue-100 text-blue-800' :
+                      article.status === 'SCHEDULED' ? 'bg-orange-100 text-orange-800' :
                       article.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                     {article.status}
                   </span>
+                  {article.status === 'SCHEDULED' && article.scheduledAt && (
+                    <div className="text-xs text-orange-600 mt-0.5">
+                      {new Date(article.scheduledAt).toLocaleString()}
+                    </div>
+                  )}
                 </td>
 
                 <td className="px-6 py-4 text-sm text-gray-500">

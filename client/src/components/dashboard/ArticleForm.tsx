@@ -11,6 +11,7 @@ interface ArticleFormProps {
     status: Article['status'];
     isFeatured: boolean;
     taskId?: number | null;
+    scheduledAt?: string;
   };
   setFormData: React.Dispatch<React.SetStateAction<any>>;
   thumbnailFile: File | null;
@@ -242,7 +243,13 @@ const ArticleForm = ({
           <select
             id="status"
             value={formData.status}
-            onChange={(e) => handleChange('status', e.target.value as Article['status'])}
+            onChange={(e) => {
+              const newStatus = e.target.value as Article['status'];
+              handleChange('status', newStatus);
+              if (newStatus !== 'PUBLISHED') {
+                setFormData((prev: typeof formData) => ({ ...prev, scheduledAt: '' }));
+              }
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
           >
             <option value="DRAFT">Draft</option>
@@ -268,6 +275,25 @@ const ArticleForm = ({
           </div>
         )}
       </div>
+
+      {isAdmin && formData.status === 'PUBLISHED' && (
+        <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+          <label htmlFor="scheduledAt" className="block text-sm font-medium text-gray-700 mb-1">
+            Schedule publish (optional)
+          </label>
+          <input
+            type="datetime-local"
+            id="scheduledAt"
+            value={formData.scheduledAt || ''}
+            min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+            onChange={(e) => setFormData((prev: typeof formData) => ({ ...prev, scheduledAt: e.target.value }))}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Leave empty to publish immediately, or pick a future date to schedule.
+          </p>
+        </div>
+      )}
 
       <div className="pt-5 border-t border-gray-200 flex justify-end gap-3">
         <button

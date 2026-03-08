@@ -18,7 +18,8 @@ const EditArticle = () => {
         categoryId: 0,
         status: 'DRAFT' as Article['status'],
         isFeatured: false,
-        taskId: null as number | null
+        taskId: null as number | null,
+        scheduledAt: ''
     });
     
     const [categories, setCategories] = useState<Category[]>([]);
@@ -78,7 +79,8 @@ const EditArticle = () => {
                     categoryId: article.categoryId,
                     status: article.status,
                     isFeatured: article.isFeatured,
-                    taskId: currentTaskId || null
+                    taskId: currentTaskId || null,
+                    scheduledAt: article.scheduledAt ? new Date(article.scheduledAt).toISOString().slice(0, 16) : ''
                 });
 
             } catch (err) {
@@ -133,6 +135,9 @@ const EditArticle = () => {
                 payload.append('thumbnail', thumbnailFile);
             } else if (removeThumbnail) {
                 payload.append('removeThumbnail', 'true');
+            }
+            if (formData.scheduledAt) {
+                payload.append('scheduledAt', new Date(formData.scheduledAt).toISOString());
             }
 
             await axios.put(`http://localhost:8000/api/articles/${id}`, payload, {
