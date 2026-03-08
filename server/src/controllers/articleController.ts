@@ -356,6 +356,10 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             if (!['DRAFT', 'REVIEW', 'REJECTED'].includes(article.status)) {
                 return res.status(403).json({ message: 'Writers can only edit articles in DRAFT, REVIEW or REJECTED status' });
             }
+        } else if (user.role === 'ADMIN') {
+            if (article.authorId !== user.userId && article.status === 'DRAFT') {
+                return res.status(403).json({ message: 'Admins cannot edit other users\' draft articles' });
+            }
         } else {
             return res.status(403).json({ message: 'Access denied' });
         }
@@ -462,6 +466,10 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
 
         if (!article) {
             return res.status(404).json({ message: 'Article not found' });
+        }
+
+        if (article.status === 'DRAFT') {
+            return res.status(403).json({ message: 'Cannot review articles that are still in draft' });
         }
 
         const data: Prisma.ArticleUpdateInput = { status };

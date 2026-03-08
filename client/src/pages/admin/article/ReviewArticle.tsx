@@ -44,6 +44,13 @@ const ReviewArticle = () => {
 
                 const articleRes = await axios.get(`http://localhost:8000/api/articles/me/${id}`, config);
                 const articleData = articleRes.data;
+
+                if (articleData.status === 'DRAFT') {
+                    setError('Cannot review articles that are still in draft.');
+                    setIsLoading(false);
+                    return;
+                }
+
                 setArticle(articleData);
 
                 const [authorRes, categoryRes] = await Promise.all([
