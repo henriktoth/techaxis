@@ -25,6 +25,7 @@ interface ArticleFormProps {
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   isRestricted?: boolean;
+  isOwnArticle?: boolean;
 }
 
 const ArticleForm = ({
@@ -42,8 +43,10 @@ const ArticleForm = ({
   onSubmit,
   onCancel,
   isRestricted = false,
+  isOwnArticle = false,
 }: ArticleFormProps) => {
   const isWriter = user?.role === 'WRITER';
+  const isAdmin = user?.role === 'ADMIN';
   const canEditFeatured = user?.role === 'ADMIN';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -243,7 +246,7 @@ const ArticleForm = ({
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
           >
             <option value="DRAFT">Draft</option>
-            <option value="REVIEW" disabled={isWriter && formData.status === 'PUBLISHED'}>Review</option>
+            <option value="REVIEW" disabled={(isWriter && formData.status === 'PUBLISHED') || (isAdmin && isOwnArticle)}>Review</option>
             <option value="PUBLISHED" disabled={isWriter}>Published</option>
             <option value="REJECTED" disabled={isWriter}>Rejected</option>
           </select>

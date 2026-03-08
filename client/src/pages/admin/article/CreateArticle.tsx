@@ -172,6 +172,7 @@ const CreateArticle = () => {
                             saving={saving}
                             onSubmit={handleSubmit}
                             onCancel={() => navigate('/admin/dashboard')}
+                            isOwnArticle={true}
                         />
                     </main>
                 </div>

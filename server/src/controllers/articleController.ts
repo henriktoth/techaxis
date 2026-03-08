@@ -204,7 +204,11 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             if (articleStatus !== 'DRAFT' && articleStatus !== 'REVIEW') {
                 return res.status(400).json({ message: 'Writers can only create articles with DRAFT or REVIEW status' });
             }
-        } else if(user.role != 'ADMIN') {
+        } else if (user.role === 'ADMIN') {
+            if (articleStatus === 'REVIEW') {
+                return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
+            }
+        } else {
             return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -408,6 +412,10 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             if (user.role === 'WRITER' && !['DRAFT', 'REVIEW'].includes(status)) {
                 return res.status(400).json({ message: 'Writers can only set status to DRAFT or REVIEW' });
             }
+
+            if (user.role === 'ADMIN' && status === 'REVIEW' && article.authorId === user.userId) {
+                return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
+            }
             
             data.status = status;
             
@@ -470,6 +478,10 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
 
         if (article.status === 'DRAFT') {
             return res.status(403).json({ message: 'Cannot review articles that are still in draft' });
+        }
+
+        if (article.authorId === user.userId) {
+            return res.status(403).json({ message: 'Admins cannot review their own articles' });
         }
 
         const data: Prisma.ArticleUpdateInput = { status };

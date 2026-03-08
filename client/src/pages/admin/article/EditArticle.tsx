@@ -235,6 +235,7 @@ const EditArticle = () => {
                             onSubmit={handleSubmit}
                             onCancel={() => navigate('/admin/dashboard')}
                             isRestricted={user?.role === 'ADMIN' && originalArticle?.status === 'DRAFT' && originalArticle?.authorId !== user?.id}
+                            isOwnArticle={originalArticle?.authorId === user?.id}
                         />
                     </main>
                 </div>

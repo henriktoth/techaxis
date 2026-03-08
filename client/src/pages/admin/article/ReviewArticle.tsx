@@ -51,6 +51,12 @@ const ReviewArticle = () => {
                     return;
                 }
 
+                if (articleData.authorId === user.id) {
+                    setError('You cannot review your own articles.');
+                    setIsLoading(false);
+                    return;
+                }
+
                 setArticle(articleData);
 
                 const [authorRes, categoryRes] = await Promise.all([

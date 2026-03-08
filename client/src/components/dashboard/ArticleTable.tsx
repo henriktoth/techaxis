@@ -182,9 +182,9 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 {/* Review Action (Admin Only) */}
                 {user?.role === 'ADMIN' && (
                   <td className="px-2 py-4 text-center w-20">
-                    {article.status === 'DRAFT' ? (
+                    {article.status === 'DRAFT' || article.authorId === user?.id ? (
                       <span
-                        title="Cannot review draft articles"
+                        title={article.authorId === user?.id ? "Cannot review your own articles" : "Cannot review draft articles"}
                         className="p-2 rounded-md inline-block bg-gray-50 text-gray-300 cursor-not-allowed"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
