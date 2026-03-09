@@ -34,6 +34,10 @@ export interface Article {
   updatedAt?: string;
   categoryId: number;
   authorId?: number;
+  author?: {
+    id: number;
+    name: string;
+  };
   task?: {
     id: number;
     title: string;

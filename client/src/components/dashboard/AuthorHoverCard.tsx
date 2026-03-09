@@ -8,7 +8,7 @@ const AuthorHoverCard = ({ author }: AuthorHoverCardProps) => {
   return (
     <div className="absolute z-100 hidden group-hover:block left-0 bottom-full mb-2 w-64 text-left">
       <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 relative">
-        {/* Arrow */}
+        
         <div className="absolute -bottom-2 left-8 w-4 h-4 bg-white border-b border-r border-gray-200 transform rotate-45"></div>
         
         <div className="flex items-start space-x-3">

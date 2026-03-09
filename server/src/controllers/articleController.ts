@@ -22,6 +22,9 @@ export const getPublishedArticles = async (req: Request, res: Response, next: Ne
 
         const articles = await prisma.article.findMany({
             where: whereClause,
+            include: {
+                author: { select: { id: true, name: true } },
+            },
             orderBy: [
                 { isFeatured: 'desc' },
                 { publishedAt: 'desc' },
@@ -48,10 +51,12 @@ export const getPublishedArticleById = async (req: Request, res: Response, next:
         if (!isNaN(id)) {
             article = await prisma.article.findUnique({
                 where: { id },
+                include: { author: { select: { id: true, name: true } } },
             });
         } else {
             article = await prisma.article.findUnique({
                 where: { slug: param },
+                include: { author: { select: { id: true, name: true } } },
             });
         }
 

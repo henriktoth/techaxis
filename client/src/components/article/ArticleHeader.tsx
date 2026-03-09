@@ -18,6 +18,12 @@ const ArticleHeader = ({ article, categoryName }: ArticleHeaderProps) => {
       </h1>
 
       <div className="flex items-center justify-center space-x-4 text-slate-400 text-sm">
+        {article.author && (
+          <>
+            <span className="font-medium text-slate-300">{article.author.name}</span>
+            <span className="text-slate-600">•</span>
+          </>
+        )}
         <span>
           {new Date(article.publishedAt || Date.now()).toLocaleDateString(
             undefined,
