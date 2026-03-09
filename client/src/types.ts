@@ -59,3 +59,13 @@ export interface User {
   email: string;
   role: 'ADMIN' | 'WRITER' | 'USER';
 }
+
+export interface Notification {
+  id: number;
+  type: 'TASK_ASSIGNED' | 'ARTICLE_REVIEW';
+  message: string;
+  relatedId: number | null;
+  isRead: boolean;
+  userId: number;
+  createdAt: string;
+}

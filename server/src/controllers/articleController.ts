@@ -281,6 +281,20 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             });
         }
 
+        // Notify all admins when an article is submitted for review
+        if (newArticle.status === 'REVIEW') {
+            const author = await prisma.user.findUnique({ where: { id: user.userId }, select: { name: true } });
+            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+            await prisma.notification.createMany({
+                data: admins.map((admin) => ({
+                    type: 'ARTICLE_REVIEW' as const,
+                    message: `${author?.name ?? 'A writer'} submitted "${newArticle.title}" for review`,
+                    relatedId: newArticle.id,
+                    userId: admin.id,
+                })),
+            });
+        }
+
         res.status(201).json(newArticle);
     } catch (error) {
         next(error);
@@ -466,6 +480,20 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             await prisma.task.update({
                 where: { id: article.taskId },
                 data: { isCompleted: true }
+            });
+        }
+
+        // Notify all admins when an article is submitted for review
+        if (updatedArticle.status === 'REVIEW' && article.status !== 'REVIEW') {
+            const author = await prisma.user.findUnique({ where: { id: updatedArticle.authorId }, select: { name: true } });
+            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+            await prisma.notification.createMany({
+                data: admins.map((admin) => ({
+                    type: 'ARTICLE_REVIEW' as const,
+                    message: `${author?.name ?? 'A writer'} submitted "${updatedArticle.title}" for review`,
+                    relatedId: updatedArticle.id,
+                    userId: admin.id,
+                })),
             });
         }
 

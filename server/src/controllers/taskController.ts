@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '../generated/prisma'; // Or your centralized prisma import
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/db.config';
 
 /**
  * Get all tasks.
@@ -156,6 +154,18 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
             },
         });
 
+        // Notify the assigned user
+        if (newTask.assignedToId) {
+            await prisma.notification.create({
+                data: {
+                    type: 'TASK_ASSIGNED',
+                    message: `You have been assigned a new task: "${newTask.title}"`,
+                    relatedId: newTask.id,
+                    userId: newTask.assignedToId,
+                },
+            });
+        }
+
         res.status(201).json(newTask);
     } catch (error) {
         next(error);
@@ -220,6 +230,18 @@ export const updateTask = async (req: Request, res: Response, next: NextFunction
                 assignedToId: newAssigneeId
             },
         });
+
+        // Notify the newly assigned user (only if assignee changed)
+        if (updatedTask.assignedToId && updatedTask.assignedToId !== existingTask.assignedToId) {
+            await prisma.notification.create({
+                data: {
+                    type: 'TASK_ASSIGNED',
+                    message: `You have been assigned a new task: "${updatedTask.title}"`,
+                    relatedId: updatedTask.id,
+                    userId: updatedTask.assignedToId,
+                },
+            });
+        }
 
         res.status(200).json(updatedTask);
     } catch (error) {

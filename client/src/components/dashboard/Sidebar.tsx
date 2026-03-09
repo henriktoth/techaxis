@@ -10,6 +10,7 @@ import {
     User as UserIcon
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 interface SidebarProps {
   user: User | null;
@@ -71,6 +72,7 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
       </nav>
 
       <div className="mt-auto flex flex-col gap-4 px-3 w-full pb-4 items-center">
+        <NotificationBell />
         <a 
             href="/" 
             target="_blank" 
