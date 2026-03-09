@@ -17,10 +17,11 @@ const ReviewArticle = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [processing, setProcessing] = useState(false);
-    const [showSchedulePanel, setShowSchedulePanel] = useState(false);
     const [scheduledAt, setScheduledAt] = useState('');
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState('');
+    const [showPublishModal, setShowPublishModal] = useState(false);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
 
     //FETCH: Article details + user details + categories (calls: GET /api/articles/:id, GET /api/auth/me, GET /api/categories)
     useEffect(() => {
@@ -95,14 +96,7 @@ const ReviewArticle = () => {
         }
     }, [id, navigate]);
 
-    const handleReview = async (status: 'PUBLISHED' | 'REJECTED', scheduleDate?: string) => {
-        if (status === 'REJECTED' && !rejectionReason.trim()) {
-            setShowRejectModal(true);
-            return;
-        } else if (status !== 'REJECTED' && !scheduleDate) {
-            if (!window.confirm(`Are you sure you want to publish this article right now?`)) return;
-        }
-
+    const executeReview = async (status: 'PUBLISHED' | 'REJECTED', scheduleDate?: string) => {
         setProcessing(true);
         const token = localStorage.getItem('token');
         
@@ -121,6 +115,8 @@ const ReviewArticle = () => {
                     : `Article ${status === 'PUBLISHED' ? 'published' : 'rejected'} successfully`
             );
             setShowRejectModal(false);
+            setShowPublishModal(false);
+            setShowScheduleModal(false);
             setRejectionReason('');
             navigate('/admin/dashboard');
         } catch (err) {
@@ -237,49 +233,6 @@ const ReviewArticle = () => {
 
                         {/* Actions */}
                         <div className="pt-6 border-t border-gray-100 sticky bottom-0 bg-white/80 backdrop-blur-sm p-4 -mx-6 -mb-6 rounded-b-xl border-x-0 space-y-4">
-                            {showSchedulePanel && (
-                                <div className="flex items-end gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                                    <div className="flex-1">
-                                        <label htmlFor="scheduledAt" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Schedule publish date & time
-                                        </label>
-                                        <input
-                                            type="datetime-local"
-                                            id="scheduledAt"
-                                            value={scheduledAt}
-                                            min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
-                                            onChange={(e) => setScheduledAt(e.target.value)}
-                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border"
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            if (!scheduledAt) {
-                                                toast.error('Please select a date and time');
-                                                return;
-                                            }
-                                            if (new Date(scheduledAt) <= new Date()) {
-                                                toast.error('Scheduled time must be in the future');
-                                                return;
-                                            }
-                                            handleReview('PUBLISHED', scheduledAt);
-                                        }}
-                                        disabled={processing || !scheduledAt}
-                                        className="px-6 py-2.5 rounded-lg shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                    >
-                                        {processing ? 'Scheduling...' : 'Confirm Schedule'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setShowSchedulePanel(false); setScheduledAt(''); }}
-                                        className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            )}
-                            
                             <div className="flex justify-end gap-3">
                                 <button
                                     type="button"
@@ -291,7 +244,7 @@ const ReviewArticle = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setShowSchedulePanel(!showSchedulePanel)}
+                                    onClick={() => setShowScheduleModal(true)}
                                     disabled={processing || article.status === 'PUBLISHED'}
                                     className="px-6 py-2.5 rounded-lg text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
@@ -299,7 +252,7 @@ const ReviewArticle = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => handleReview('PUBLISHED')}
+                                    onClick={() => setShowPublishModal(true)}
                                     disabled={processing || article.status === 'PUBLISHED'}
                                     className="px-6 py-2.5 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md"
                                 >
@@ -311,6 +264,81 @@ const ReviewArticle = () => {
                 </div>
             </div>
         </DashboardLayout>
+
+        {/* Publish Now Modal */}
+        {showPublishModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black/50" onClick={() => setShowPublishModal(false)} />
+                <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Publish Article</h3>
+                    <p className="text-sm text-gray-500 mb-4">Are you sure you want to publish this article right now? It will be immediately visible to all readers.</p>
+                    <div className="flex justify-end gap-3 mt-4">
+                        <button
+                            type="button"
+                            onClick={() => setShowPublishModal(false)}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            disabled={processing}
+                            onClick={() => executeReview('PUBLISHED')}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {processing ? 'Publishing...' : 'Publish Now'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* Schedule Publish Modal */}
+        {showScheduleModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black/50" onClick={() => { setShowScheduleModal(false); setScheduledAt(''); }} />
+                <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Schedule Publication</h3>
+                    <p className="text-sm text-gray-500 mb-4">Select a future date and time to automatically publish this article.</p>
+                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg mb-4">
+                        <label htmlFor="scheduledAt" className="block text-sm font-medium text-gray-700 mb-1">
+                            Publish date & time
+                        </label>
+                        <input
+                            type="datetime-local"
+                            id="scheduledAt"
+                            value={scheduledAt}
+                            min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                            onChange={(e) => setScheduledAt(e.target.value)}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border"
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={() => { setShowScheduleModal(false); setScheduledAt(''); }}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            disabled={processing || !scheduledAt}
+                            onClick={() => {
+                                if (new Date(scheduledAt) <= new Date()) {
+                                    toast.error('Scheduled time must be in the future');
+                                    return;
+                                }
+                                executeReview('PUBLISHED', scheduledAt);
+                            }}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {processing ? 'Scheduling...' : 'Confirm Schedule'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         {/* Rejection Modal */}
         {showRejectModal && (
@@ -338,7 +366,7 @@ const ReviewArticle = () => {
                         <button
                             type="button"
                             disabled={!rejectionReason.trim() || processing}
-                            onClick={() => handleReview('REJECTED')}
+                            onClick={() => executeReview('REJECTED')}
                             className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             {processing ? 'Rejecting...' : 'Reject Article'}

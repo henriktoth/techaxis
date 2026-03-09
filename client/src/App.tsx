@@ -8,6 +8,7 @@ import Dashboard from "./pages/admin/dashboard/Dashboard";
 import EditArticle from "./pages/admin/article/EditArticle";
 import CreateArticle from "./pages/admin/article/CreateArticle";
 import ReviewArticle from "./pages/admin/article/ReviewArticle";
+import PreviewArticle from "./pages/admin/article/PreviewArticle";
 import Users from "./pages/admin/users/Users";
 import CreateUser from "./pages/admin/users/CreateUser";
 import EditUser from "./pages/admin/users/EditUser";
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
   { path: "/admin/article/create", element: <CreateArticle /> },
   { path: "/admin/article/edit/:id", element: <EditArticle /> },
   { path: "/admin/article/review/:id", element: <ReviewArticle /> },
+  { path: "/admin/article/preview/:id", element: <PreviewArticle /> },
   
   { path: "/admin/users", element: <Users /> },
   { path: "/admin/users/create", element: <CreateUser /> },
