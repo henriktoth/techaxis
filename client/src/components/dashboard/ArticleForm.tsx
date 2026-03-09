@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import type { Article, Category, User, Task } from '../../types';
 
 interface ArticleFormProps {
@@ -10,8 +11,13 @@ interface ArticleFormProps {
     status: Article['status'];
     isFeatured: boolean;
     taskId?: number | null;
+    scheduledAt?: string;
   };
   setFormData: React.Dispatch<React.SetStateAction<any>>;
+  thumbnailFile: File | null;
+  setThumbnailFile: React.Dispatch<React.SetStateAction<File | null>>;
+  removeThumbnail: boolean;
+  setRemoveThumbnail: React.Dispatch<React.SetStateAction<boolean>>;
   categories: Category[];
   tasks?: Task[];
   user: User | null;
@@ -20,11 +26,16 @@ interface ArticleFormProps {
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   isRestricted?: boolean;
+  isOwnArticle?: boolean;
 }
 
 const ArticleForm = ({
   formData,
   setFormData,
+  thumbnailFile,
+  setThumbnailFile,
+  removeThumbnail,
+  setRemoveThumbnail,
   categories,
   tasks,
   user,
@@ -33,9 +44,13 @@ const ArticleForm = ({
   onSubmit,
   onCancel,
   isRestricted = false,
+  isOwnArticle = false,
 }: ArticleFormProps) => {
   const isWriter = user?.role === 'WRITER';
+  const isAdmin = user?.role === 'ADMIN';
   const canEditFeatured = user?.role === 'ADMIN';
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const generatedSlug = formData.title
     .toLowerCase()
@@ -138,18 +153,71 @@ const ArticleForm = ({
       )}
 
       <div>
-        <label htmlFor="thumbnail" className="block text-sm font-medium text-gray-700">
-          Thumbnail URL
+        <label className="block text-sm font-medium text-gray-700">
+          Thumbnail
         </label>
-        <input
-          type="text"
-          id="thumbnail"
-          disabled={isRestricted}
-          value={formData.thumbnail}
-          onChange={(e) => handleChange('thumbnail', e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border placeholder-gray-400 disabled:bg-gray-100 disabled:text-gray-500"
-          placeholder="https://example.com/image.jpg"
-        />
+
+        {/* Show current/preview thumbnail */}
+        {(previewUrl || (formData.thumbnail && !removeThumbnail)) && (
+          <div className="mt-2 relative inline-block">
+            <img
+              src={previewUrl || `http://localhost:8000${formData.thumbnail}`}
+              alt="Thumbnail preview"
+              className="h-32 w-auto rounded-md border border-gray-300 object-cover"
+            />
+            {!isRestricted && (
+              <button
+                type="button"
+                onClick={() => {
+                  setThumbnailFile(null);
+                  setPreviewUrl(null);
+                  setRemoveThumbnail(true);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* File input shown when no thumbnail or after removal */}
+        {!previewUrl && (removeThumbnail || !formData.thumbnail) && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            disabled={isRestricted}
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setThumbnailFile(file);
+              setRemoveThumbnail(false);
+              if (file) {
+                setPreviewUrl(URL.createObjectURL(file));
+              }
+            }}
+            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+          />
+        )}
+
+        {/* Replace button when existing thumbnail is shown */}
+        {!previewUrl && formData.thumbnail && !removeThumbnail && !isRestricted && (
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={(e) => {
+              const file = e.target.files?.[0] || null;
+              setThumbnailFile(file);
+              setRemoveThumbnail(false);
+              if (file) {
+                setPreviewUrl(URL.createObjectURL(file));
+              }
+            }}
+            className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+        )}
       </div>
 
       <div>
@@ -175,11 +243,17 @@ const ArticleForm = ({
           <select
             id="status"
             value={formData.status}
-            onChange={(e) => handleChange('status', e.target.value as Article['status'])}
+            onChange={(e) => {
+              const newStatus = e.target.value as Article['status'];
+              handleChange('status', newStatus);
+              if (newStatus !== 'PUBLISHED') {
+                setFormData((prev: typeof formData) => ({ ...prev, scheduledAt: '' }));
+              }
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
           >
             <option value="DRAFT">Draft</option>
-            <option value="REVIEW" disabled={isWriter && formData.status === 'PUBLISHED'}>Review</option>
+            <option value="REVIEW" disabled={(isWriter && formData.status === 'PUBLISHED') || (isAdmin && isOwnArticle)}>Review</option>
             <option value="PUBLISHED" disabled={isWriter}>Published</option>
             <option value="REJECTED" disabled={isWriter}>Rejected</option>
           </select>
@@ -201,6 +275,25 @@ const ArticleForm = ({
           </div>
         )}
       </div>
+
+      {isAdmin && formData.status === 'PUBLISHED' && (
+        <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+          <label htmlFor="scheduledAt" className="block text-sm font-medium text-gray-700 mb-1">
+            Schedule publish (optional)
+          </label>
+          <input
+            type="datetime-local"
+            id="scheduledAt"
+            value={formData.scheduledAt || ''}
+            min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+            onChange={(e) => setFormData((prev: typeof formData) => ({ ...prev, scheduledAt: e.target.value }))}
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Leave empty to publish immediately, or pick a future date to schedule.
+          </p>
+        </div>
+      )}
 
       <div className="pt-5 border-t border-gray-200 flex justify-end gap-3">
         <button

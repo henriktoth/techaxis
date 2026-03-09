@@ -31,14 +31,17 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
 
     const canEdit = (article: Article) => {
         if (!user) return false;
-        if (user.role === 'ADMIN') return true; 
-        return article.authorId === user.id && article.status !== 'PUBLISHED';
+        if (user.role === 'ADMIN') {
+            if (article.authorId !== user.id && article.status === 'DRAFT') return false;
+            return true;
+        }
+        return article.authorId === user.id && article.status !== 'PUBLISHED' && article.status !== 'SCHEDULED';
     }
 
     const canDelete = (article: Article) => {
         if (!user) return false;
         if (user.role === 'ADMIN') return true;
-        return article.authorId === user.id && article.status !== 'PUBLISHED';
+        return article.authorId === user.id && article.status !== 'PUBLISHED' && article.status !== 'SCHEDULED';
     }
 
   return (
@@ -117,11 +120,17 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                       article.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' :
                       article.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
                       article.status === 'REVIEW' ? 'bg-blue-100 text-blue-800' :
+                      article.status === 'SCHEDULED' ? 'bg-orange-100 text-orange-800' :
                       article.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                     {article.status}
                   </span>
+                  {article.status === 'SCHEDULED' && article.scheduledAt && (
+                    <div className="text-xs text-orange-600 mt-0.5">
+                      {new Date(article.scheduledAt).toLocaleString()}
+                    </div>
+                  )}
                 </td>
 
                 <td className="px-6 py-4 text-sm text-gray-500">
@@ -179,6 +188,16 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 {/* Review Action (Admin Only) */}
                 {user?.role === 'ADMIN' && (
                   <td className="px-2 py-4 text-center w-20">
+                    {article.status === 'DRAFT' || article.authorId === user?.id ? (
+                      <span
+                        title={article.authorId === user?.id ? "Cannot review your own articles" : "Cannot review draft articles"}
+                        className="p-2 rounded-md inline-block bg-gray-50 text-gray-300 cursor-not-allowed"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+                        </svg>
+                      </span>
+                    ) : (
                     <Link
                       to={`/admin/article/review/${article.id}`}
                       title={article.status === 'PUBLISHED' ? "Re-review Article" : "Review Article"}
@@ -192,6 +211,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
                       </svg>
                     </Link>
+                    )}
                   </td>
                 )}
 

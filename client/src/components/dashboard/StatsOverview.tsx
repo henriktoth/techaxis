@@ -3,11 +3,12 @@ interface StatsOverviewProps {
   publishedCount: number;
   draftCount: number;
   reviewCount: number;
+  scheduledCount: number;
 }
 
-const StatsOverview = ({ totalArticles, publishedCount, draftCount, reviewCount }: StatsOverviewProps) => {
+const StatsOverview = ({ totalArticles, publishedCount, draftCount, reviewCount, scheduledCount }: StatsOverviewProps) => {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6 mb-8">
       <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 className="text-gray-500 text-xs sm:text-sm font-medium uppercase tracking-wider">Total</h3>
         <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{totalArticles}</p>
@@ -15,6 +16,10 @@ const StatsOverview = ({ totalArticles, publishedCount, draftCount, reviewCount 
       <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-200">
         <h3 className="text-gray-500 text-xs sm:text-sm font-medium uppercase tracking-wider">Published</h3>
         <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{publishedCount}</p>
+      </div>
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-orange-200">
+        <h3 className="text-gray-500 text-xs sm:text-sm font-medium uppercase tracking-wider">Scheduled</h3>
+        <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1 sm:mt-2">{scheduledCount}</p>
       </div>
       <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-200">
         <h3 className="text-gray-500 text-xs sm:text-sm font-medium uppercase tracking-wider">In Review</h3>

@@ -34,6 +34,8 @@ CREATE TABLE "Article" (
     "content" TEXT NOT NULL,
     "thumbnail" TEXT,
     "status" "ArticleStatus" NOT NULL DEFAULT 'DRAFT',
+    "rejectionReason" TEXT,
+    "isFeatured" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "publishedAt" TIMESTAMP(3),

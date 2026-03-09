@@ -9,7 +9,7 @@ const ArticleImage = ({ article }: ArticleImageProps) => {
     <div className="mb-12 rounded-2xl overflow-hidden shadow-2xl border border-white/5 bg-[#111827]">
       {article.thumbnail ? (
         <img
-          src={article.thumbnail}
+          src={article.thumbnail.startsWith('/') ? `http://localhost:8000${article.thumbnail}` : article.thumbnail}
           alt={article.title}
           className="w-full h-auto object-cover max-h-150"
         />

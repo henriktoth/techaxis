@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/db.config';
 import { Prisma } from '../generated/prisma/client';
 import slugify from 'slugify';
+import { deleteThumbnailFile } from '../config/upload.config';
 
 /**
     * List all published articles (public).
@@ -187,7 +188,8 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             return res.status(401).json({ message: 'Authentication required' });
         }
 
-        const { title, summary, content, thumbnail, categoryId, status, isFeatured, taskId } = req.body;
+        const { title, summary, content, categoryId, status, isFeatured, taskId } = req.body;
+        const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
         if (!title || !summary || !content) {
             return res.status(400).json({ message: 'Title, summary, and content are required' });
@@ -202,7 +204,11 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             if (articleStatus !== 'DRAFT' && articleStatus !== 'REVIEW') {
                 return res.status(400).json({ message: 'Writers can only create articles with DRAFT or REVIEW status' });
             }
-        } else if(user.role != 'ADMIN') {
+        } else if (user.role === 'ADMIN') {
+            if (articleStatus === 'REVIEW') {
+                return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
+            }
+        } else {
             return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -216,8 +222,19 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
         }
 
         let publishedAt: Date | undefined;
+        let scheduledAt: Date | null = null;
         if (articleStatus === 'PUBLISHED') {
-            publishedAt = new Date();
+            if (req.body.scheduledAt) {
+                const scheduledDate = new Date(req.body.scheduledAt);
+                if (scheduledDate > new Date()) {
+                    articleStatus = 'SCHEDULED';
+                    scheduledAt = scheduledDate;
+                } else {
+                    publishedAt = new Date();
+                }
+            } else {
+                publishedAt = new Date();
+            }
         }
 
         let resolvedCategoryId: number | undefined;
@@ -242,8 +259,9 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
                 content,
                 thumbnail,
                 status: articleStatus,
-                isFeatured: isFeatured === true,
+                isFeatured: isFeatured === true || isFeatured === 'true',
                 publishedAt,
+                scheduledAt,
                 slug: uniqueSlug,
                 authorId: user.userId,
                 categoryId: resolvedCategoryId,
@@ -251,7 +269,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             },
         });
 
-        if (taskId && articleStatus === 'PUBLISHED') {
+        if (taskId && newArticle.status === 'PUBLISHED') {
             await prisma.task.update({
                 where: { id: Number(taskId) },
                 data: { isCompleted: true }
@@ -285,7 +303,7 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
 
         const article = await prisma.article.findUnique({
              where: { id },
-             select: { id: true, authorId: true, status: true }
+             select: { id: true, authorId: true, status: true, thumbnail: true }
         });
 
         if (!article) {
@@ -296,11 +314,15 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
              if (article.authorId !== user.userId) {
                   return res.status(403).json({ message: 'Access denied' });
              }
-             if (article.status === 'PUBLISHED') {
+             if (article.status === 'PUBLISHED' || article.status === 'SCHEDULED') {
                   return res.status(403).json({ message: 'Writers can only delete non published articles' });
              }
         } else if (user.role !== 'ADMIN') {
              return res.status(403).json({ message: 'Access denied' });
+        }
+
+        if (article.thumbnail) {
+            deleteThumbnailFile(article.thumbnail);
         }
 
         const deletedArticle = await prisma.article.delete({
@@ -350,12 +372,28 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             if (!['DRAFT', 'REVIEW', 'REJECTED'].includes(article.status)) {
                 return res.status(403).json({ message: 'Writers can only edit articles in DRAFT, REVIEW or REJECTED status' });
             }
+        } else if (user.role === 'ADMIN') {
+            if (article.authorId !== user.userId && article.status === 'DRAFT') {
+                return res.status(403).json({ message: 'Admins cannot edit other users\' draft articles' });
+            }
         } else {
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const { title, summary, content, thumbnail, categoryId, status, isFeatured, taskId } = req.body;
+        const { title, summary, content, categoryId, status, isFeatured, taskId, removeThumbnail, scheduledAt } = req.body;
         const data: Prisma.ArticleUpdateInput = {};
+
+        if (req.file) {
+            if (article.thumbnail) {
+                deleteThumbnailFile(article.thumbnail);
+            }
+            data.thumbnail = `/uploads/thumbnails/${req.file.filename}`;
+        } else if (removeThumbnail === 'true') {
+            if (article.thumbnail) {
+                deleteThumbnailFile(article.thumbnail);
+            }
+            data.thumbnail = null;
+        }
 
         if (title) {
             data.title = title;
@@ -371,13 +409,12 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         }
         if (summary) data.summary = summary;
         if (content) data.content = content;
-        if (thumbnail !== undefined) data.thumbnail = thumbnail;
         if (categoryId) {
             data.category = {
                 connect: { id: Number(categoryId) }
             };
         }
-        if (isFeatured !== undefined) data.isFeatured = isFeatured;
+        if (isFeatured !== undefined) data.isFeatured = isFeatured === true || isFeatured === 'true';
         
         if (taskId !== undefined) { 
              data.task = taskId ? { connect: { id: Number(taskId) } } : { disconnect: true };
@@ -387,11 +424,31 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             if (user.role === 'WRITER' && !['DRAFT', 'REVIEW'].includes(status)) {
                 return res.status(400).json({ message: 'Writers can only set status to DRAFT or REVIEW' });
             }
+
+            if (user.role === 'ADMIN' && status === 'REVIEW' && article.authorId === user.userId) {
+                return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
+            }
             
-            data.status = status;
-            
-            if (status === 'PUBLISHED' && article.publishedAt === null) {
-                data.publishedAt = new Date();
+            if (status === 'PUBLISHED' && scheduledAt) {
+                const scheduledDate = new Date(scheduledAt);
+                if (scheduledDate > new Date()) {
+                    data.status = 'SCHEDULED';
+                    data.scheduledAt = scheduledDate;
+                } else {
+                    data.status = 'PUBLISHED';
+                    data.scheduledAt = null;
+                    if (article.publishedAt === null) {
+                        data.publishedAt = new Date();
+                    }
+                }
+            } else {
+                data.status = status;
+                if (status === 'PUBLISHED') {
+                    data.scheduledAt = null;
+                    if (article.publishedAt === null) {
+                        data.publishedAt = new Date();
+                    }
+                }
             }
         }
 
@@ -400,7 +457,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             data,
         });
 
-        if (status === 'PUBLISHED' && article.taskId) {
+        if (updatedArticle.status === 'PUBLISHED' && article.taskId) {
             await prisma.task.update({
                 where: { id: article.taskId },
                 data: { isCompleted: true }
@@ -426,7 +483,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
-    const { status, rejectionReason } = req.body;
+    const { status, rejectionReason, scheduledAt } = req.body;
     
     if (!status || (status !== 'PUBLISHED' && status !== 'REJECTED')) {
         return res.status(400).json({ message: 'Status must be either PUBLISHED or REJECTED' });
@@ -447,12 +504,33 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(404).json({ message: 'Article not found' });
         }
 
+        if (article.status === 'DRAFT') {
+            return res.status(403).json({ message: 'Cannot review articles that are still in draft' });
+        }
+
+        if (article.authorId === user.userId) {
+            return res.status(403).json({ message: 'Admins cannot review their own articles' });
+        }
+
         const data: Prisma.ArticleUpdateInput = { status };
         
         if (status === 'PUBLISHED') {
-            data.publishedAt = new Date();
+            if (scheduledAt) {
+                const scheduledDate = new Date(scheduledAt);
+                if (scheduledDate > new Date()) {
+                    data.status = 'SCHEDULED';
+                    data.scheduledAt = scheduledDate;
+                } else {
+                    data.publishedAt = new Date();
+                    data.scheduledAt = null;
+                }
+            } else {
+                data.publishedAt = new Date();
+                data.scheduledAt = null;
+            }
         } else if (status === 'REJECTED' && rejectionReason) {
              data.rejectionReason = rejectionReason;
+             data.scheduledAt = null;
         }
 
         const updatedArticle = await prisma.article.update({
@@ -460,7 +538,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
             data,
         });
 
-        if (status === 'PUBLISHED' && article.taskId) {
+        if (updatedArticle.status === 'PUBLISHED' && article.taskId) {
             await prisma.task.update({
                 where: { id: article.taskId },
                 data: { isCompleted: true }

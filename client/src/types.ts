@@ -25,10 +25,11 @@ export interface Article {
   summary: string;
   content: string;
   thumbnail: string | null;
-  status: 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'REJECTED';
+  status: 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'SCHEDULED' | 'REJECTED';
   rejectionReason?: string | null;
   isFeatured: boolean;
   publishedAt: string | null;
+  scheduledAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
   categoryId: number;

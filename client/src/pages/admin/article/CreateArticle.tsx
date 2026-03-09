@@ -19,9 +19,12 @@ const CreateArticle = () => {
         categoryId: 0,
         status: 'DRAFT' as Article['status'],
         isFeatured: false,
-        taskId: taskIdParam ? Number(taskIdParam) : null as number | null
+        taskId: taskIdParam ? Number(taskIdParam) : null as number | null,
+        scheduledAt: ''
     });
     
+    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [removeThumbnail, setRemoveThumbnail] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
     const [user, setUser] = useState<User | null>(null);
@@ -89,19 +92,27 @@ const CreateArticle = () => {
         }
 
         try {
-            const payload = {
-                title: formData.title,
-                summary: formData.summary,
-                content: formData.content,
-                thumbnail: formData.thumbnail || null,
-                categoryId: Number(formData.categoryId),
-                status: formData.status,
-                ...(user?.role === 'ADMIN' && { isFeatured: formData.isFeatured }),
-                ...(formData.taskId && { taskId: formData.taskId }),
-            };
+            const payload = new FormData();
+            payload.append('title', formData.title);
+            payload.append('summary', formData.summary);
+            payload.append('content', formData.content);
+            payload.append('categoryId', String(formData.categoryId));
+            payload.append('status', formData.status);
+            if (user?.role === 'ADMIN') {
+                payload.append('isFeatured', String(formData.isFeatured));
+            }
+            if (formData.taskId) {
+                payload.append('taskId', String(formData.taskId));
+            }
+            if (thumbnailFile) {
+                payload.append('thumbnail', thumbnailFile);
+            }
+            if (formData.scheduledAt) {
+                payload.append('scheduledAt', new Date(formData.scheduledAt).toISOString());
+            }
 
             await axios.post('http://localhost:8000/api/articles', payload, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
             });
 
             toast.success('Article created successfully');
@@ -154,6 +165,10 @@ const CreateArticle = () => {
                         <ArticleForm 
                             formData={formData}
                             setFormData={setFormData}
+                            thumbnailFile={thumbnailFile}
+                            setThumbnailFile={setThumbnailFile}
+                            removeThumbnail={removeThumbnail}
+                            setRemoveThumbnail={setRemoveThumbnail}
                             categories={categories}
                             tasks={availableTasks}
                             user={user}
@@ -161,6 +176,7 @@ const CreateArticle = () => {
                             saving={saving}
                             onSubmit={handleSubmit}
                             onCancel={() => navigate('/admin/dashboard')}
+                            isOwnArticle={true}
                         />
                     </main>
                 </div>
