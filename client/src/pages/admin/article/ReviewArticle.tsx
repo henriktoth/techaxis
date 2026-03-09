@@ -19,6 +19,8 @@ const ReviewArticle = () => {
     const [processing, setProcessing] = useState(false);
     const [showSchedulePanel, setShowSchedulePanel] = useState(false);
     const [scheduledAt, setScheduledAt] = useState('');
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState('');
 
     //FETCH: Article details + user details + categories (calls: GET /api/articles/:id, GET /api/auth/me, GET /api/categories)
     useEffect(() => {
@@ -94,12 +96,10 @@ const ReviewArticle = () => {
     }, [id, navigate]);
 
     const handleReview = async (status: 'PUBLISHED' | 'REJECTED', scheduleDate?: string) => {
-        let rejectionReason = null;
-        
-        if (status === 'REJECTED') {
-            rejectionReason = window.prompt("Please provide a reason for rejection:");
-            if (rejectionReason === null) return;
-        } else if (!scheduleDate) {
+        if (status === 'REJECTED' && !rejectionReason.trim()) {
+            setShowRejectModal(true);
+            return;
+        } else if (status !== 'REJECTED' && !scheduleDate) {
             if (!window.confirm(`Are you sure you want to publish this article right now?`)) return;
         }
 
@@ -107,7 +107,7 @@ const ReviewArticle = () => {
         const token = localStorage.getItem('token');
         
         try {
-            const payload: { status: string; rejectionReason?: string | null; scheduledAt?: string } = { status, rejectionReason };
+            const payload: { status: string; rejectionReason?: string | null; scheduledAt?: string } = { status, rejectionReason: status === 'REJECTED' ? rejectionReason : null };
             if (scheduleDate) {
                 payload.scheduledAt = new Date(scheduleDate).toISOString();
             }
@@ -120,6 +120,8 @@ const ReviewArticle = () => {
                     ? `Article scheduled for ${new Date(scheduleDate).toLocaleString()}`
                     : `Article ${status === 'PUBLISHED' ? 'published' : 'rejected'} successfully`
             );
+            setShowRejectModal(false);
+            setRejectionReason('');
             navigate('/admin/dashboard');
         } catch (err) {
             console.error('Error reviewing article:', err);
@@ -157,6 +159,7 @@ const ReviewArticle = () => {
     }
 
     return (
+        <>
         <DashboardLayout user={currentUser} onLogout={() => {
             localStorage.removeItem('token');
             navigate('/admin/login');
@@ -280,7 +283,7 @@ const ReviewArticle = () => {
                             <div className="flex justify-end gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => handleReview('REJECTED')}
+                                    onClick={() => setShowRejectModal(true)}
                                     disabled={processing}
                                     className="px-6 py-2.5 rounded-lg text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
                                 >
@@ -308,6 +311,43 @@ const ReviewArticle = () => {
                 </div>
             </div>
         </DashboardLayout>
+
+        {/* Rejection Modal */}
+        {showRejectModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black/50" onClick={() => { setShowRejectModal(false); setRejectionReason(''); }} />
+                <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">Reject Article</h3>
+                    <p className="text-sm text-gray-500 mb-4">Please provide a reason for rejecting this article. The author will be able to see this feedback.</p>
+                    <textarea
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="Enter rejection reason..."
+                        rows={4}
+                        autoFocus
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                    />
+                    <div className="flex justify-end gap-3 mt-4">
+                        <button
+                            type="button"
+                            onClick={() => { setShowRejectModal(false); setRejectionReason(''); }}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            disabled={!rejectionReason.trim() || processing}
+                            onClick={() => handleReview('REJECTED')}
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {processing ? 'Rejecting...' : 'Reject Article'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 };
 

@@ -57,65 +57,88 @@ async function main() {
 
     console.log('Categories created');
 
-    const loremIpsumParagraph = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>";
-    const loremIpsumSummary = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+    const loremContent = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p><p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p><p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>";
+    const loremSummary = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
 
-    for (const categoryName of Object.keys(categories)) {
-        for (let i = 1; i <= 5; i++) {
-            const title = `${categoryName} Article ${i}`;
-            const slugBase = slugify(title, { lower: true, strict: true });
-            
-            const randomUser = users[Math.floor(Math.random() * users.length)];
-            const categoryId = categories[categoryName];
+    // Define articles per category (2-3 each)
+    const articlesData: {
+        title: string;
+        category: string;
+        status: ArticleStatus;
+        isFeatured: boolean;
+        authorIndex: number;
+    }[] = [
+        // Product Review — 3 articles
+        { title: 'Product Review Article One',   category: 'Product Review', status: ArticleStatus.PUBLISHED, isFeatured: true,  authorIndex: 1 },
+        { title: 'Product Review Article Two',   category: 'Product Review', status: ArticleStatus.PUBLISHED, isFeatured: false, authorIndex: 2 },
+        { title: 'Product Review Article Three', category: 'Product Review', status: ArticleStatus.DRAFT,     isFeatured: false, authorIndex: 1 },
 
+        // Hardware — 2 articles
+        { title: 'Hardware Article One', category: 'Hardware', status: ArticleStatus.PUBLISHED, isFeatured: false, authorIndex: 2 },
+        { title: 'Hardware Article Two', category: 'Hardware', status: ArticleStatus.PUBLISHED, isFeatured: false, authorIndex: 1 },
 
-            let status = Math.random() > 0.3 ? ArticleStatus.PUBLISHED : ArticleStatus.DRAFT;
-            const isFeatured = Math.random() > 0.85;
-            
-            if (isFeatured) {
-                status = ArticleStatus.PUBLISHED;
-            }
+        // Software — 3 articles
+        { title: 'Software Article One',   category: 'Software', status: ArticleStatus.PUBLISHED, isFeatured: true,  authorIndex: 1 },
+        { title: 'Software Article Two',   category: 'Software', status: ArticleStatus.PUBLISHED, isFeatured: false, authorIndex: 2 },
+        { title: 'Software Article Three', category: 'Software', status: ArticleStatus.DRAFT,     isFeatured: false, authorIndex: 2 },
 
-            const publishedAt = status === ArticleStatus.PUBLISHED ? new Date() : null;
-            
-            await prisma.article.create({
-                data: {
-                    title: title,
-                    slug: `${slugBase}-${i}`,
-                    summary: loremIpsumSummary,
-                    content: loremIpsumParagraph,
-                    status: status,
-                    isFeatured: isFeatured,
-                    thumbnail: `https://placehold.co/600x400?text=${encodeURIComponent(title)}`,
-                    publishedAt: publishedAt,
-                    authorId: randomUser.id,
-                    categoryId: categoryId,
-                }
-            });
-        }
+        // AI — 2 articles
+        { title: 'AI Article One', category: 'AI', status: ArticleStatus.PUBLISHED, isFeatured: false, authorIndex: 1 },
+        { title: 'AI Article Two', category: 'AI', status: ArticleStatus.REVIEW,    isFeatured: false, authorIndex: 2 },
+
+        // Other — 2 articles
+        { title: 'Other Article One', category: 'Other', status: ArticleStatus.PUBLISHED, isFeatured: false, authorIndex: 1 },
+        { title: 'Other Article Two', category: 'Other', status: ArticleStatus.DRAFT,     isFeatured: false, authorIndex: 2 },
+    ];
+
+    // Create a task for every article, then link them
+    const createdTasks = [];
+    for (let i = 0; i < articlesData.length; i++) {
+        const a = articlesData[i];
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 7 + i);
+
+        const isCompleted = a.status === ArticleStatus.PUBLISHED;
+
+        const task = await prisma.task.create({
+            data: {
+                title: `Write: ${a.title}`,
+                description: loremSummary,
+                priority: (i % 3) + 1,
+                isCompleted,
+                assignedToId: users[a.authorIndex].id,
+                dueDate,
+            },
+        });
+        createdTasks.push(task);
+    }
+
+    console.log('Tasks created');
+
+    // Create articles linked to their tasks
+    for (let i = 0; i < articlesData.length; i++) {
+        const a = articlesData[i];
+        const slug = slugify(a.title, { lower: true, strict: true });
+        const publishedAt = a.status === ArticleStatus.PUBLISHED ? new Date() : null;
+
+        await prisma.article.create({
+            data: {
+                title: a.title,
+                slug,
+                summary: loremSummary,
+                content: loremContent,
+                status: a.status,
+                isFeatured: a.isFeatured,
+                thumbnail: `https://placehold.co/600x400?text=${encodeURIComponent(a.title)}`,
+                publishedAt,
+                authorId: users[a.authorIndex].id,
+                categoryId: categories[a.category],
+                taskId: createdTasks[i].id,
+            },
+        });
     }
 
     console.log('Articles created');
-
-    for (let i = 1; i <= 10; i++) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 7);
-        
-        const assignedUser = users[Math.floor(Math.random() * users.length)];
-
-        await prisma.task.create({
-            data: {
-                title: `Task ${i}`,
-                description: loremIpsumSummary,
-                priority: Math.floor(Math.random() * 3) + 1,
-                isCompleted: Math.random() > 0.5,
-                assignedToId: assignedUser.id,
-                dueDate: tomorrow
-            }
-        });
-    }
-    
-    console.log('Tasks created');
     console.log('Seeding finished.');
 }
 

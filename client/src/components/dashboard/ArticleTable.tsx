@@ -115,17 +115,35 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 </td>
 
                 <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                    ${
-                      article.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' :
-                      article.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
-                      article.status === 'REVIEW' ? 'bg-blue-100 text-blue-800' :
-                      article.status === 'SCHEDULED' ? 'bg-orange-100 text-orange-800' :
-                      article.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                    {article.status}
-                  </span>
+                  <div className={`relative inline-block ${article.status === 'REJECTED' && article.rejectionReason ? 'group/status cursor-help' : ''}`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                      ${
+                        article.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' :
+                        article.status === 'DRAFT' ? 'bg-yellow-100 text-yellow-800' :
+                        article.status === 'REVIEW' ? 'bg-blue-100 text-blue-800' :
+                        article.status === 'SCHEDULED' ? 'bg-orange-100 text-orange-800' :
+                        article.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                      {article.status}
+                    </span>
+                    {article.status === 'REJECTED' && article.rejectionReason && (
+                      <div className="absolute z-50 invisible group-hover/status:visible left-0 bottom-full mb-3 w-72 text-left opacity-0 group-hover/status:opacity-100 transition-all duration-200">
+                        <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 relative">
+                          <div className="absolute -bottom-2 left-6 w-4 h-4 bg-white border-b border-r border-gray-200 transform rotate-45"></div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className="p-1.5 rounded-lg bg-red-100 text-red-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                              </div>
+                              <h4 className="text-sm font-bold text-gray-900">Rejection Reason</h4>
+                            </div>
+                            <p className="text-xs text-gray-600 leading-relaxed">{article.rejectionReason}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   {article.status === 'SCHEDULED' && article.scheduledAt && (
                     <div className="text-xs text-orange-600 mt-0.5">
                       {new Date(article.scheduledAt).toLocaleString()}
