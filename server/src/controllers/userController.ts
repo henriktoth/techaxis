@@ -14,6 +14,7 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
                 name: true,
                 email: true,
                 role: true,
+                isDisabled: true,
             },
         });
 
@@ -43,6 +44,7 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
                 name: true,
                 email: true,
                 role: true,
+                isDisabled: true,
             },
         });
 
@@ -111,6 +113,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             name: updatedUser.name,
             email: updatedUser.email,
             role: updatedUser.role,
+            isDisabled: updatedUser.isDisabled,
         });
     } catch (error) {
         next(error);
@@ -155,6 +158,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
                 name: true,
                 email: true,
                 role: true,
+                isDisabled: true,
             },
         });
 
@@ -191,6 +195,52 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
         });
 
         res.status(200).json(deletedUser);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Toggle user disabled status. (Admin only)
+ * @returns 200 with updated user or 404 if not found
+ * @param req.params.id User id
+ */
+export const toggleUserDisabled = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const userId = Number(id);
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+
+        const existingUser = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!existingUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (existingUser.role === 'ADMIN') {
+            return res.status(403).json({ message: 'Cannot disable an admin account' });
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                isDisabled: !existingUser.isDisabled,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                isDisabled: true,
+            },
+        });
+
+        res.status(200).json(updatedUser);
     } catch (error) {
         next(error);
     }

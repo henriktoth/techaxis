@@ -25,6 +25,10 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             return res.status(401).json({ message: 'Invalid email or password' })
         }
 
+        if (user.isDisabled) {
+            return res.status(403).json({ message: 'Your account has been disabled. Please contact an administrator.' });
+        }
+
         const isCorrectPassword = await bcrypt.compare(password, user.password_hash);
 
         if (!isCorrectPassword) {

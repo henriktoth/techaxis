@@ -21,11 +21,12 @@ enum ArticleStatus {
 }
 
 model User {
-  id            Int    @id @default(autoincrement())
-  email         String @unique
+  id            Int     @id @default(autoincrement())
+  email         String  @unique
   name          String
   password_hash String
-  role          Role   @default(WRITER)
+  role          Role    @default(WRITER)
+  isDisabled    Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
