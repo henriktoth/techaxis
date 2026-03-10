@@ -170,6 +170,8 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 
 /**
  * Delete user by id. (Admin only)
+ * Transfers all articles from the deleted user to the admin performing the deletion.
+ * Cannot delete admin accounts or yourself.
  * @returns 200 with deleted user or 404 if not found
  * @param req.params.id User id
  */
@@ -177,9 +179,15 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
     try {
         const { id } = req.params;
         const userId = Number(id);
+        const admin = (req as Request & { user?: { userId: number; role: string } }).user;
+        const adminId = admin?.userId;
 
         if (isNaN(userId)) {
             return res.status(400).json({ message: 'Invalid user ID' });
+        }
+
+        if (userId === adminId) {
+            return res.status(403).json({ message: 'You cannot delete your own account' });
         }
 
         const existingUser = await prisma.user.findUnique({
@@ -190,11 +198,32 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const deletedUser = await prisma.user.delete({
-            where: { id: userId },
+        if (existingUser.role === 'ADMIN') {
+            return res.status(403).json({ message: 'Cannot delete an admin account' });
+        }
+
+        // Transfer all articles to the admin performing the deletion, then delete the user
+        await prisma.$transaction(async (tx) => {
+            await tx.article.updateMany({
+                where: { authorId: userId },
+                data: { authorId: adminId! },
+            });
+
+            await tx.task.updateMany({
+                where: { assignedToId: userId },
+                data: { assignedToId: null },
+            });
+
+            await tx.notification.deleteMany({
+                where: { userId },
+            });
+
+            await tx.user.delete({
+                where: { id: userId },
+            });
         });
 
-        res.status(200).json(deletedUser);
+        res.status(200).json({ message: 'User deleted and articles transferred successfully' });
     } catch (error) {
         next(error);
     }

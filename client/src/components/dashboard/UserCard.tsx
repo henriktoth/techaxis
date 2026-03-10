@@ -1,4 +1,4 @@
-import { Edit, Trash2, Shield, PenTool } from 'lucide-react';
+import { Edit, Trash2, Shield, PenTool, Ban, CheckCircle } from 'lucide-react';
 import type { User } from '../../types';
 
 interface UserCardProps {
@@ -6,28 +6,34 @@ interface UserCardProps {
     currentUser: User | null;
     onEdit: (id: number) => void;
     onDelete: (id: number) => void;
+    onToggleDisabled?: (id: number) => void;
 }
 
 const UserCard = ({
     user,
     currentUser,
     onEdit,
-    onDelete
+    onDelete,
+    onToggleDisabled,
 }: UserCardProps) => {
 
     
     const canManage = currentUser?.role === 'ADMIN';
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transition-all duration-200 hover:shadow-md">
+        <div className={`bg-white p-6 rounded-xl shadow-sm border transition-all duration-200 hover:shadow-md ${
+            user.isDisabled ? 'border-red-300 bg-red-50/30 opacity-75' : 'border-gray-200'
+        }`}>
             <div className="flex justify-between items-start">
                 <div className="flex items-start gap-4">
                     <div className={`mt-1 h-10 w-10 rounded-full flex items-center justify-center ${
+                        user.isDisabled ? 'bg-red-100 text-red-600' :
                         user.role === 'ADMIN' ? 'bg-purple-100 text-purple-600' : 
                         user.role === 'WRITER' ? 'bg-blue-100 text-blue-600' : 
                         'bg-gray-100 text-gray-600'
                     }`}>
-                        {user.role === 'ADMIN' ? <Shield size={20} /> : 
+                        {user.isDisabled ? <Ban size={20} /> :
+                         user.role === 'ADMIN' ? <Shield size={20} /> : 
                          user.role === 'WRITER' ? <PenTool size={20} /> : 
                          <span className="font-bold text-sm">{user.name.charAt(0)}</span>}
                     </div>
@@ -45,12 +51,30 @@ const UserCard = ({
                             }`}>
                                 {user.role}
                             </span>
+                            {user.isDisabled && (
+                                <span className="px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-700">
+                                    DISABLED
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>
                 
                 {canManage && (
                     <div className="flex gap-2">
+                        {onToggleDisabled && user.role !== 'ADMIN' && (
+                            <button
+                                onClick={() => onToggleDisabled(user.id)}
+                                className={`p-2 rounded-lg transition-colors ${
+                                    user.isDisabled
+                                        ? 'text-gray-400 hover:text-green-500 hover:bg-green-50'
+                                        : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50'
+                                }`}
+                                title={user.isDisabled ? 'Enable Account' : 'Disable Account'}
+                            >
+                                {user.isDisabled ? <CheckCircle size={18} /> : <Ban size={18} />}
+                            </button>
+                        )}
                         <button
                             onClick={() => onEdit(user.id)}
                             className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"

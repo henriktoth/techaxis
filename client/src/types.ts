@@ -58,6 +58,7 @@ export interface User {
   name: string;
   email: string;
   role: 'ADMIN' | 'WRITER' | 'USER';
+  isDisabled?: boolean;
 }
 
 export interface Notification {

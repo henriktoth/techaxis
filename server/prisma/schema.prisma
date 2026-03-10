@@ -10,6 +10,7 @@ datasource db {
 enum Role {
   WRITER
   ADMIN
+  SUPERADMIN
 }
 
 enum ArticleStatus {

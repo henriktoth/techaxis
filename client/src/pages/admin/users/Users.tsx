@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserCard from '../../../components/dashboard/UserCard';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, AlertTriangle, Ban, CheckCircle } from 'lucide-react';
 
 const Users = () => {
     const navigate = useNavigate();
@@ -14,6 +14,11 @@ const Users = () => {
     
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Modal state
+    const [deleteModal, setDeleteModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
+    const [toggleModal, setToggleModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
+    const [processing, setProcessing] = useState(false);
 
     //FETCH: User details + all users (calls: GET /api/auth/me, GET /api/users)
     useEffect(() => {
@@ -63,19 +68,60 @@ const Users = () => {
     }, [navigate]);
 
     //HANDLER: Delete user (calls: DELETE /api/users/:id)
-    const handleDeleteUser = async (id: number) => {
-        if (!window.confirm('Are you sure you want to delete this user?')) return;
+    const handleDeleteUser = (id: number) => {
+        const user = users.find(u => u.id === id) || null;
+        setDeleteModal({ open: true, user });
+    };
 
+    const confirmDeleteUser = async () => {
+        if (!deleteModal.user) return;
+        setProcessing(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:8000/api/users/${id}`, {
+            await axios.delete(`http://localhost:8000/api/users/${deleteModal.user.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setUsers(users.filter(u => u.id !== id));
-            toast.success('User deleted successfully');
+            setUsers(users.filter(u => u.id !== deleteModal.user!.id));
+            toast.success('User deleted and articles transferred successfully');
         } catch (err) {
             console.error('Error deleting user:', err);
-            toast.error('Failed to delete user.');
+            if (axios.isAxiosError(err) && err.response?.data?.message) {
+                toast.error(err.response.data.message);
+            } else {
+                toast.error('Failed to delete user.');
+            }
+        } finally {
+            setProcessing(false);
+            setDeleteModal({ open: false, user: null });
+        }
+    };
+
+    //HANDLER: Toggle user disabled status (calls: PATCH /api/users/:id/toggle-disabled)
+    const handleToggleDisabled = (id: number) => {
+        const user = users.find(u => u.id === id) || null;
+        setToggleModal({ open: true, user });
+    };
+
+    const confirmToggleDisabled = async () => {
+        if (!toggleModal.user) return;
+        setProcessing(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.patch(`http://localhost:8000/api/users/${toggleModal.user.id}/toggle-disabled`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUsers(users.map(u => u.id === toggleModal.user!.id ? res.data : u));
+            toast.success(`User account ${res.data.isDisabled ? 'disabled' : 'enabled'} successfully`);
+        } catch (err) {
+            console.error('Error toggling user status:', err);
+            if (axios.isAxiosError(err) && err.response?.data?.message) {
+                toast.error(err.response.data.message);
+            } else {
+                toast.error('Failed to update user status.');
+            }
+        } finally {
+            setProcessing(false);
+            setToggleModal({ open: false, user: null });
         }
     };
 
@@ -126,6 +172,7 @@ const Users = () => {
                                     currentUser={currentUser}
                                     onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
                                     onDelete={handleDeleteUser}
+                                    onToggleDisabled={handleToggleDisabled}
                                 />
                             ))}
                             {admins.length === 0 && (
@@ -149,6 +196,7 @@ const Users = () => {
                                     currentUser={currentUser}
                                     onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
                                     onDelete={handleDeleteUser}
+                                    onToggleDisabled={handleToggleDisabled}
                                 />
                             ))}
                             {writers.length === 0 && (
@@ -173,6 +221,7 @@ const Users = () => {
                                         currentUser={currentUser}
                                         onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
                                         onDelete={handleDeleteUser}
+                                        onToggleDisabled={handleToggleDisabled}
                                     />
                                 ))}
                             </div>
@@ -180,6 +229,109 @@ const Users = () => {
                     )}
                 </div>
             </div>
+
+            {/* Delete User Modal */}
+            {deleteModal.open && deleteModal.user && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="fixed inset-0 bg-black/50" onClick={() => !processing && setDeleteModal({ open: false, user: null })} />
+                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                <AlertTriangle className="text-red-600" size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Delete User</h3>
+                                <p className="text-sm text-gray-500">This action is permanent</p>
+                            </div>
+                        </div>
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-800">
+                                You are about to permanently delete <span className="font-semibold">{deleteModal.user.name}</span> ({deleteModal.user.email}).
+                                This action <span className="font-semibold">cannot be undone</span>.
+                            </p>
+                            <p className="text-sm text-red-700 mt-2">
+                                All articles by this user will be transferred to your account.
+                            </p>
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                disabled={processing}
+                                onClick={() => setDeleteModal({ open: false, user: null })}
+                                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={processing}
+                                onClick={confirmDeleteUser}
+                                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                {processing ? 'Deleting...' : 'Delete Permanently'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toggle Disable Modal */}
+            {toggleModal.open && toggleModal.user && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="fixed inset-0 bg-black/50" onClick={() => !processing && setToggleModal({ open: false, user: null })} />
+                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                                toggleModal.user.isDisabled ? 'bg-green-100' : 'bg-orange-100'
+                            }`}>
+                                {toggleModal.user.isDisabled
+                                    ? <CheckCircle className="text-green-600" size={24} />
+                                    : <Ban className="text-orange-600" size={24} />
+                                }
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                    {toggleModal.user.isDisabled ? 'Enable' : 'Disable'} Account
+                                </h3>
+                                <p className="text-sm text-gray-500">
+                                    {toggleModal.user.name} ({toggleModal.user.email})
+                                </p>
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-4">
+                            {toggleModal.user.isDisabled
+                                ? 'This will re-enable the account. The user will be able to log in again and all their data remains intact.'
+                                : 'This will disable the account. The user will not be able to log in, but all their data (articles, tasks) will be preserved. You can re-enable the account at any time.'
+                            }
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                disabled={processing}
+                                onClick={() => setToggleModal({ open: false, user: null })}
+                                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={processing}
+                                onClick={confirmToggleDisabled}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                                    toggleModal.user.isDisabled
+                                        ? 'bg-green-600 hover:bg-green-700 focus:ring-green-600'
+                                        : 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-600'
+                                }`}
+                            >
+                                {processing
+                                    ? (toggleModal.user.isDisabled ? 'Enabling...' : 'Disabling...')
+                                    : (toggleModal.user.isDisabled ? 'Enable Account' : 'Disable Account')
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 };
