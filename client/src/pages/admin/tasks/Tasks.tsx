@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import type { Task, User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import TaskCard from '../../../components/dashboard/TaskCard';
-import { Plus, Save } from 'lucide-react';
+import { Plus, Save, Search } from 'lucide-react';
 
 import { useNavigate, useBlocker } from 'react-router-dom';
 
@@ -14,6 +14,7 @@ const Tasks = () => {
     const [loading, setLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [pendingChanges, setPendingChanges] = useState<Record<number, boolean>>({});
+    const [searchQuery, setSearchQuery] = useState('');
 
     const hasUnsavedChanges = Object.keys(pendingChanges).length > 0;
 
@@ -187,11 +188,12 @@ const Tasks = () => {
         }
     };
 
-    //CONSTANTS: Separate tasks into "My Tasks" and "Unassigned Tasks"
-    const myTasks = tasks.filter(task => {
-        return !!task.assignedToId;
-    });
-    const unassignedTasks = tasks.filter(task => !task.assignedToId);
+    //CONSTANTS: Filter by search, then separate into "My Tasks" and "Unassigned Tasks"
+    const filteredTasks = tasks.filter(task =>
+        task.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const myTasks = filteredTasks.filter(task => !!task.assignedToId);
+    const unassignedTasks = filteredTasks.filter(task => !task.assignedToId);
 
     if (loading) {
         return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
@@ -203,6 +205,17 @@ const Tasks = () => {
                 <div className="max-w-7xl mx-auto space-y-6">
                     <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
+                    <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search tasks..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
+                        />
+                    </div>
                     {currentUser?.role === 'ADMIN' && (
                         <button
                             onClick={() => navigate('/admin/tasks/create')}
@@ -212,6 +225,7 @@ const Tasks = () => {
                             Create Task
                         </button>
                     )}
+                    </div>
                 </div>
 
                 {hasUnsavedChanges && (

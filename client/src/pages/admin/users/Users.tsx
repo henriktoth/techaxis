@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserCard from '../../../components/dashboard/UserCard';
-import { UserPlus, AlertTriangle, Ban, CheckCircle } from 'lucide-react';
+import { UserPlus, AlertTriangle, Ban, CheckCircle, Search } from 'lucide-react';
 
 const Users = () => {
     const navigate = useNavigate();
@@ -19,6 +19,7 @@ const Users = () => {
     const [deleteModal, setDeleteModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
     const [toggleModal, setToggleModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
     const [processing, setProcessing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     //FETCH: User details + all users (calls: GET /api/auth/me, GET /api/users)
     useEffect(() => {
@@ -125,9 +126,12 @@ const Users = () => {
         }
     };
 
-    const admins = users.filter(u => u.role === 'ADMIN');
-    const writers = users.filter(u => u.role === 'WRITER');
-    const regularUsers = users.filter(u => u.role === 'USER');
+    const filteredUsers = users.filter(u =>
+        u.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const admins = filteredUsers.filter(u => u.role === 'ADMIN');
+    const writers = filteredUsers.filter(u => u.role === 'WRITER');
+    const regularUsers = filteredUsers.filter(u => u.role === 'USER');
 
     if (isLoading) {
         return (
@@ -144,13 +148,25 @@ const Users = () => {
                 <div className="max-w-7xl mx-auto space-y-6">
                     <div className="flex justify-between items-center mb-8">
                         <h1 className="text-3xl font-bold text-gray-900">Manage Users</h1>
-                        <button
-                            onClick={() => navigate('/admin/users/create')}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                        >
-                            <UserPlus size={20} />
-                            Add User
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search users..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
+                                />
+                            </div>
+                            <button
+                                onClick={() => navigate('/admin/users/create')}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                            >
+                                <UserPlus size={20} />
+                                Add User
+                            </button>
+                        </div>
                     </div>
 
                     {error && (
