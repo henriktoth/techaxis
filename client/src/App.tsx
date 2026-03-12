@@ -3,6 +3,9 @@ import { Toaster } from 'react-hot-toast';
 
 import Home from "./pages/public/home/Home";
 import ArticleDetails from "./pages/public/article/ArticleDetails";
+import Login from "./pages/public/auth/Login";
+import Register from "./pages/public/auth/Register";
+import Favorites from "./pages/public/favorites/Favorites";
 import AdminLogin from "./pages/admin/auth/AdminLogin";
 import Dashboard from "./pages/admin/dashboard/Dashboard";
 import EditArticle from "./pages/admin/article/EditArticle";
@@ -19,7 +22,10 @@ import EditTask from "./pages/admin/tasks/EditTask";
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
   { path: "/article/:slug", element: <ArticleDetails /> },
-  
+  { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
+  { path: "/favorites", element: <Favorites /> },
+
   { path: "/admin/login", element: <AdminLogin /> },
   
   { path: "/admin/dashboard", element: <Dashboard /> },
