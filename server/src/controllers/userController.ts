@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../config/db.config';
 import bcrypt from 'bcrypt';
+import { signToken } from '../utils/auth';
 
 /**
  * Get all users. (Admin only)
@@ -121,20 +122,31 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
- * Create a new user. (Admin only)
- * @returns 201 with created user or 400/409 on error
+ * Create a new user.
+ * - Public (no auth): creates a READER and returns a JWT token.
+ * - Admin (authenticated): creates user with the given role.
+ * @returns 201 with created user (+ token for readers) or 400/409 on error
  * @param req.body.name Name
  * @param req.body.email Email
  * @param req.body.password Password
- * @param req.body.role Role (WRITER | ADMIN)
+ * @param req.body.role Role (optional for public, required for admin)
  */
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const caller = (req as Request & { user?: { userId: number; role: string } }).user;
+        const isAdmin = caller?.role === 'ADMIN' || caller?.role === 'SUPERADMIN';
+
         const { name, email, password, role } = req.body;
 
-        if (!name || !email || !password || !role) {
-            return res.status(400).json({ message: 'All fields are required' });
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: 'Name, email and password are required' });
         }
+
+        if (isAdmin && !role) {
+            return res.status(400).json({ message: 'Role is required' });
+        }
+
+        const assignedRole = isAdmin ? role : 'READER';
 
         const existingUser = await prisma.user.findUnique({
             where: { email },
@@ -151,7 +163,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
                 name,
                 email,
                 password_hash,
-                role,
+                role: assignedRole,
             },
             select: {
                 id: true,
@@ -161,6 +173,11 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
                 isDisabled: true,
             },
         });
+
+        if (!isAdmin) {
+            const token = signToken({ userId: newUser.id, role: newUser.role });
+            return res.status(201).json({ ...newUser, token });
+        }
 
         res.status(201).json(newUser);
     } catch (error) {

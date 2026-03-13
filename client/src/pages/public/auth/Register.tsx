@@ -28,7 +28,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/register-reader', {
+      const response = await axios.post('http://localhost:8000/api/users/register', {
         name,
         email,
         password,
