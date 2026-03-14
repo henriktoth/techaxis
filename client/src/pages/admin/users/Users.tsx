@@ -128,12 +128,11 @@ const Users = () => {
     };
 
     const filteredUsers = users.filter(u =>
-        u.name.toLowerCase().includes(searchQuery.toLowerCase())
+        u.role !== 'READER' && u.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     const superadmins = filteredUsers.filter(u => u.role === 'SUPERADMIN');
     const admins = filteredUsers.filter(u => u.role === 'ADMIN');
     const writers = filteredUsers.filter(u => u.role === 'WRITER');
-    const readers = filteredUsers.filter(u => u.role === 'READER');
 
     if (isLoading) {
         return (
@@ -149,13 +148,13 @@ const Users = () => {
             <div className="p-8">
                 <div className="max-w-7xl mx-auto space-y-6">
                     <div className="flex justify-between items-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">Manage Users</h1>
+                        <h1 className="text-3xl font-bold text-gray-900">Staff</h1>
                         <div className="flex items-center gap-3">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="Search users..."
+                                    placeholder="Search staff..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
@@ -178,25 +177,28 @@ const Users = () => {
                     )}
 
                     {/* Super Admins Section */}
-                    {superadmins.length > 0 && (
-                        <div className="space-y-4">
-                            <h2 className="text-xl font-semibold text-gray-800">
-                                Super Admins
-                            </h2>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {superadmins.map(user => (
-                                    <UserCard
-                                        key={user.id}
-                                        user={user}
-                                        currentUser={currentUser}
-                                        onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
-                                        onDelete={handleDeleteUser}
-                                        onToggleDisabled={handleToggleDisabled}
-                                    />
-                                ))}
-                            </div>
+                    <div className="space-y-4">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                            Super Admins
+                        </h2>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {superadmins.map(user => (
+                                <UserCard
+                                    key={user.id}
+                                    user={user}
+                                    currentUser={currentUser}
+                                    onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
+                                    onDelete={handleDeleteUser}
+                                    onToggleDisabled={handleToggleDisabled}
+                                />
+                            ))}
+                            {superadmins.length === 0 && (
+                                <div className="col-span-full text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                    No super admin users found.
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
 
                     {/* Admins Section */}
                     <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
@@ -246,26 +248,6 @@ const Users = () => {
                         </div>
                     </div>
 
-                    {/* Readers Section (if any) */}
-                    {readers.length > 0 && (
-                        <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
-                            <h2 className="text-xl font-semibold text-gray-800">
-                                Readers
-                            </h2>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {readers.map(user => (
-                                    <UserCard
-                                        key={user.id}
-                                        user={user}
-                                        currentUser={currentUser}
-                                        onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
-                                        onDelete={handleDeleteUser}
-                                        onToggleDisabled={handleToggleDisabled}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 

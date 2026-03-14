@@ -67,7 +67,7 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
         <NavItem to="/admin/tasks" icon={ClipboardList} title="Tasks" />
         
         {(user?.role === 'ADMIN' || user?.role === 'SUPERADMIN') && (
-            <NavItem to="/admin/users" icon={Users} title="Users" />
+            <NavItem to="/admin/users" icon={Users} title="Staff" />
         )}
       </nav>
 
