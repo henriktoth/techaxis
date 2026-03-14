@@ -57,7 +57,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  role: 'ADMIN' | 'WRITER' | 'READER';
+  role: 'ADMIN' | 'WRITER' | 'READER' | 'SUPERADMIN';
   isDisabled?: boolean;
 }
 

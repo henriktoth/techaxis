@@ -26,7 +26,7 @@ const CreateUser = () => {
         const fetchUser = async () => {
             const token = localStorage.getItem('token');
             if (!token) {
-                navigate('/admin/login');
+                navigate('/login');
                 return;
             }
 
@@ -41,7 +41,7 @@ const CreateUser = () => {
             } catch (err) {
                  if (axios.isAxiosError(err) && err.response?.status === 401) {
                     localStorage.removeItem('token');
-                    navigate('/admin/login');
+                    navigate('/login');
                 } else {
                     navigate('/admin/dashboard');
                 }
@@ -79,7 +79,7 @@ const CreateUser = () => {
     return (
         <DashboardLayout user={currentUser} onLogout={() => {
             localStorage.removeItem('token');
-            navigate('/admin/login');
+            navigate('/login');
         }}>
             <div className="p-8 font-sans">
                  <div className="max-w-7xl mx-auto">

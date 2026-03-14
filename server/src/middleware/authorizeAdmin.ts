@@ -9,7 +9,7 @@ export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) 
     
     const user = (req as Request & { user?: { role: string } }).user;
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || !['ADMIN', 'SUPERADMIN'].includes(user.role)) {
         return res.status(403).json({ message: 'Access denied. Admin privileges required.' });
     }
 

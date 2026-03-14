@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import type { Article, Category } from "../../../types";
 
-import Navbar from "../../../components/shared/Navbar";
 import Footer from "../../../components/shared/Footer";
 import ArticleHeader from "../../../components/article/ArticleHeader";
 import ArticleImage from "../../../components/article/ArticleImage";
@@ -23,7 +22,7 @@ const PreviewArticle = () => {
     const fetchData = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        navigate("/admin/login");
+        navigate("/login");
         return;
       }
 
@@ -45,7 +44,7 @@ const PreviewArticle = () => {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 401) {
             localStorage.removeItem("token");
-            navigate("/admin/login");
+            navigate("/login");
           } else if (err.response?.status === 404) {
             setError("Article not found.");
           } else {
@@ -88,10 +87,19 @@ const PreviewArticle = () => {
     );
   }
 
+  const bannerColors = {
+    DRAFT: { bg: 'bg-yellow-500', text: 'text-yellow-950', btn: 'bg-yellow-800 text-yellow-100 hover:bg-yellow-900' },
+    REVIEW: { bg: 'bg-blue-500', text: 'text-blue-950', btn: 'bg-blue-800 text-blue-100 hover:bg-blue-900' },
+    REJECTED: { bg: 'bg-red-500', text: 'text-red-950', btn: 'bg-red-800 text-red-100 hover:bg-red-900' },
+    SCHEDULED: { bg: 'bg-orange-500', text: 'text-orange-950', btn: 'bg-orange-800 text-orange-100 hover:bg-orange-900' },
+  } as const;
+
+  const colors = bannerColors[article.status as keyof typeof bannerColors] ?? bannerColors.DRAFT;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#0B1120] text-gray-100 font-sans selection:bg-indigo-500/30">
       {/* Preview Banner */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-amber-950 text-center py-2 px-4 font-semibold text-sm shadow-lg flex items-center justify-center gap-3">
+      <div className={`fixed top-0 left-0 right-0 z-50 ${colors.bg} ${colors.text} text-center py-2 px-4 font-semibold text-sm shadow-lg flex items-center justify-center gap-3`}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -117,20 +125,13 @@ const PreviewArticle = () => {
         </span>
         <button
           onClick={() => navigate("/admin/dashboard")}
-          className="ml-4 px-3 py-1 bg-amber-800 text-amber-100 rounded-md text-xs font-medium hover:bg-amber-900 transition-colors"
+          className={`ml-4 px-3 py-1 rounded-md text-xs font-medium transition-colors ${colors.btn}`}
         >
           Back to Dashboard
         </button>
       </div>
 
-      <Navbar
-        categories={categories}
-        selectedCategoryId={null}
-        onSelectCategory={() => {}}
-        onSearch={() => {}}
-      />
-
-      <main className="grow pt-52 xl:pt-40 pb-12 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="grow pt-20 pb-12 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <ArticleHeader
           article={article}
           categoryName={

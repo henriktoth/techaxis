@@ -26,7 +26,7 @@ const Users = () => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
             if (!token) {
-                navigate('/admin/login');
+                navigate('/login');
                 return;
             }
 
@@ -51,7 +51,7 @@ const Users = () => {
                 if (axios.isAxiosError(err)) {
                      if (err.response?.status === 401) {
                         localStorage.removeItem('token');
-                        navigate('/admin/login');
+                        navigate('/login');
                     } else if (err.response?.status === 403) {
                          navigate('/admin/dashboard');
                     } else {
@@ -142,7 +142,7 @@ const Users = () => {
     return (
         <DashboardLayout user={currentUser} onLogout={() => {
             localStorage.removeItem('token');
-            navigate('/admin/login');
+            navigate('/login');
         }}>
             <div className="p-8">
                 <div className="max-w-7xl mx-auto space-y-6">

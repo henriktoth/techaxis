@@ -28,7 +28,7 @@ const ReviewArticle = () => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
             if (!token) {
-                navigate('/admin/login');
+                navigate('/login');
                 return;
             }
 
@@ -77,7 +77,7 @@ const ReviewArticle = () => {
                 if (axios.isAxiosError(err)) {
                     if (err.response?.status === 401) {
                         localStorage.removeItem('token');
-                        navigate('/admin/login');
+                        navigate('/login');
                     } else if (err.response?.status === 404) {
                         setError('Article not found.');
                     } else {
@@ -139,7 +139,7 @@ const ReviewArticle = () => {
         return (
             <DashboardLayout user={currentUser} onLogout={() => {
                 localStorage.removeItem('token');
-                navigate('/admin/login');
+                navigate('/login');
             }}>
                 <div className="flex flex-col items-center justify-center p-4">
                     <div className="text-red-500 mb-4">{error}</div>
@@ -158,7 +158,7 @@ const ReviewArticle = () => {
         <>
         <DashboardLayout user={currentUser} onLogout={() => {
             localStorage.removeItem('token');
-            navigate('/admin/login');
+            navigate('/login');
         }}>
             <div className="p-8 font-sans pt-24">
                 <div className="max-w-7xl mx-auto">

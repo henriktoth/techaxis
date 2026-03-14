@@ -28,7 +28,7 @@ const CreateTask = () => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
             if (!token) {
-                navigate('/admin/login');
+                navigate('/login');
                 return;
             }
 
@@ -51,7 +51,7 @@ const CreateTask = () => {
             } catch (err) {
                  if (axios.isAxiosError(err) && err.response?.status === 401) {
                     localStorage.removeItem('token');
-                    navigate('/admin/login');
+                    navigate('/login');
                 } else {
                     console.error(err);
                     toast.error('Failed to load data.');
@@ -92,7 +92,7 @@ const CreateTask = () => {
     return (
         <DashboardLayout user={currentUser} onLogout={() => {
             localStorage.removeItem('token');
-            navigate('/admin/login');
+            navigate('/login');
         }}>
             <div className="p-8 font-sans">
                  <div className="max-w-7xl mx-auto">

@@ -55,7 +55,7 @@ const Dashboard = () => {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        navigate('/admin/login');
+        navigate('/login');
         return;
       }
 
@@ -75,7 +75,7 @@ const Dashboard = () => {
         console.error('Error fetching dashboard data:', err);
         if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 404)) {
             localStorage.removeItem('token');
-            navigate('/admin/login');
+            navigate('/login');
         } else {
             setError('Failed to load dashboard data.');
         }
@@ -90,7 +90,7 @@ const Dashboard = () => {
   //HANDLER: Logout (deletes token, redirects to login)
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/admin/login');
+    navigate('/login');
   };
 
   //HANDLER: Delete article (calls: DELETE /api/articles/:id)

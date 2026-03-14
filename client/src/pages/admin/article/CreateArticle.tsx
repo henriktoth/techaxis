@@ -38,7 +38,7 @@ const CreateArticle = () => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
             if (!token) {
-                navigate('/admin/login');
+                navigate('/login');
                 return;
             }
 
@@ -65,7 +65,7 @@ const CreateArticle = () => {
                 if (axios.isAxiosError(err)) {
                     if (err.response?.status === 401) {
                         localStorage.removeItem('token');
-                        navigate('/admin/login');
+                        navigate('/login');
                     } else {
                         setError('Failed to load initial data.');
                     }
@@ -87,7 +87,7 @@ const CreateArticle = () => {
         
         const token = localStorage.getItem('token');
         if (!token) {
-            navigate('/admin/login');
+            navigate('/login');
             return;
         }
 
@@ -140,7 +140,7 @@ const CreateArticle = () => {
     return (
         <DashboardLayout user={user} onLogout={() => {
             localStorage.removeItem('token');
-            navigate('/admin/login');
+            navigate('/login');
         }}>
             <div className="p-8 font-sans">
                 <div className="max-w-7xl mx-auto">

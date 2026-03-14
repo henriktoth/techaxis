@@ -81,7 +81,7 @@ const Tasks = () => {
     //HANDLER: Logout (deletes token, redirects to login)
     const handleLogout = () => {
         localStorage.removeItem('token');
-        navigate('/admin/login');
+        navigate('/login');
     };
 
     //HANDLER: Delete task (calls: DELETE /api/tasks/:id)
