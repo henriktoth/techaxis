@@ -41,8 +41,13 @@ const UserCard = ({
                          <span className="font-bold text-sm">{user.name.charAt(0)}</span>}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-lg text-gray-900">
+                        <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
                             {user.name}
+                            {user.id === currentUser?.id && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                                    You
+                                </span>
+                            )}
                         </h3>
                         <p className="text-gray-600 mt-1">{user.email}</p>
                         

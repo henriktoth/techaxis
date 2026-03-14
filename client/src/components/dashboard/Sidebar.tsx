@@ -1,12 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import type { User } from '../../types';
-import { 
-    LayoutDashboard, 
-    Users, 
-    LogOut, 
+import {
+    LayoutDashboard,
+    Users,
+    LogOut,
     ExternalLink,
     ClipboardList,
+    BookUser,
     User as UserIcon
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -68,6 +69,9 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
         
         {(user?.role === 'ADMIN' || user?.role === 'SUPERADMIN') && (
             <NavItem to="/admin/users" icon={Users} title="Staff" />
+        )}
+        {(user?.role === 'ADMIN' || user?.role === 'SUPERADMIN') && (
+            <NavItem to="/admin/readers" icon={BookUser} title="Readers" />
         )}
       </nav>
 

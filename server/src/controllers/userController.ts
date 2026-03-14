@@ -283,6 +283,32 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
+ * Get all readers with favourite count. (Admin only)
+ * @returns 200 with readers list including _count.favorites
+ */
+export const getReaders = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const readers = await prisma.user.findMany({
+            where: { role: 'READER' },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                isDisabled: true,
+                _count: {
+                    select: { favorites: true },
+                },
+            },
+        });
+
+        res.status(200).json(readers);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
  * Toggle user disabled status. (Admin only)
  * @returns 200 with updated user or 404 if not found
  * @param req.params.id User id

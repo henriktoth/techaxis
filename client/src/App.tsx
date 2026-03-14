@@ -14,6 +14,7 @@ import PreviewArticle from "./pages/admin/article/PreviewArticle";
 import Users from "./pages/admin/users/Users";
 import CreateUser from "./pages/admin/users/CreateUser";
 import EditUser from "./pages/admin/users/EditUser";
+import Readers from "./pages/admin/readers/Readers";
 import Tasks from "./pages/admin/tasks/Tasks";
 import CreateTask from "./pages/admin/tasks/CreateTask";
 import EditTask from "./pages/admin/tasks/EditTask";
@@ -35,6 +36,8 @@ const router = createBrowserRouter([
   { path: "/admin/users", element: <Users /> },
   { path: "/admin/users/create", element: <CreateUser /> },
   { path: "/admin/users/edit/:id", element: <EditUser /> },
+
+  { path: "/admin/readers", element: <Readers /> },
   
   { path: "/admin/tasks", element: <Tasks /> },
   { path: "/admin/tasks/create", element: <CreateTask /> },

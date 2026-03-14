@@ -61,6 +61,10 @@ export interface User {
   isDisabled?: boolean;
 }
 
+export interface Reader extends User {
+  _count: { favorites: number };
+}
+
 export interface Notification {
   id: number;
   type: 'TASK_ASSIGNED' | 'ARTICLE_REVIEW';
