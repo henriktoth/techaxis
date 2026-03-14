@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import type { Article, Category, User, Task } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import ArticleForm from '../../../components/dashboard/ArticleForm';
+import { isAdminRole } from '../../../utils/roles';
 
 const CreateArticle = () => {
     const navigate = useNavigate();
@@ -98,7 +99,7 @@ const CreateArticle = () => {
             payload.append('content', formData.content);
             payload.append('categoryId', String(formData.categoryId));
             payload.append('status', formData.status);
-            if (user?.role === 'ADMIN') {
+            if (isAdminRole(user?.role)) {
                 payload.append('isFeatured', String(formData.isFeatured));
             }
             if (formData.taskId) {

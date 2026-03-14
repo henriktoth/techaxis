@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/db.config';
+import { isAdminRole } from '../utils/roles';
 
 /**
  * Get all tasks.
@@ -17,7 +18,7 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
 
         let tasks;
 
-        if (user.role === 'ADMIN') {
+        if (isAdminRole(user.role)) {
             tasks = await prisma.task.findMany({
                 include: {
                     assignedTo: {
@@ -88,7 +89,7 @@ export const getTaskById = async (req: Request, res: Response, next: NextFunctio
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        if (user.role === 'ADMIN') {
+        if (isAdminRole(user.role)) {
             return res.status(200).json(task);
         } 
         
@@ -308,7 +309,7 @@ export const toggleTaskStatus = async (req: Request, res: Response, next: NextFu
 
         const isAssignee = existingTask.assignedToId === user.userId;
         
-        if (user.role !== 'ADMIN' && !isAssignee) {
+        if (!isAdminRole(user.role) && !isAssignee) {
             return res.status(403).json({ message: 'Access denied. You can only update the status of tasks assigned to you.' });
         }
 

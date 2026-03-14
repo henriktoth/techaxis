@@ -6,6 +6,7 @@ import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserForm from '../../../components/dashboard/UserForm';
 import { ArrowLeft } from 'lucide-react';
+import { isAdminRole } from '../../../utils/roles';
 
 const CreateUser = () => {
     const navigate = useNavigate();
@@ -35,7 +36,7 @@ const CreateUser = () => {
                      headers: { Authorization: `Bearer ${token}` }
                 });
                 setCurrentUser(res.data);
-                 if (res.data.role !== 'ADMIN') {
+                 if (!isAdminRole(res.data.role)) {
                      navigate('/admin/dashboard');
                 }
             } catch (err) {
@@ -95,13 +96,14 @@ const CreateUser = () => {
                             </button>
                         </div>
 
-                        <UserForm 
+                        <UserForm
                             formData={formData}
                             setFormData={setFormData}
                             isEditing={false}
                             saving={saving}
                             onSubmit={handleSubmit}
                             onCancel={() => navigate('/admin/users')}
+                            currentUserRole={currentUser?.role}
                         />
                     </main>
                 </div>

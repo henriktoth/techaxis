@@ -6,6 +6,7 @@ import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserCard from '../../../components/dashboard/UserCard';
 import { UserPlus, AlertTriangle, Ban, CheckCircle, Search } from 'lucide-react';
+import { isAdminRole } from '../../../utils/roles';
 
 const Users = () => {
     const navigate = useNavigate();
@@ -38,7 +39,7 @@ const Users = () => {
                 const userRes = await axios.get('http://localhost:8000/api/auth/me', config);
                 setCurrentUser(userRes.data);
 
-                if (userRes.data.role !== 'ADMIN') {
+                if (!isAdminRole(userRes.data.role)) {
                      navigate('/admin/dashboard');
                      return;
                 }
@@ -129,9 +130,10 @@ const Users = () => {
     const filteredUsers = users.filter(u =>
         u.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+    const superadmins = filteredUsers.filter(u => u.role === 'SUPERADMIN');
     const admins = filteredUsers.filter(u => u.role === 'ADMIN');
     const writers = filteredUsers.filter(u => u.role === 'WRITER');
-    const regularUsers = filteredUsers.filter(u => u.role === 'USER');
+    const readers = filteredUsers.filter(u => u.role === 'READER');
 
     if (isLoading) {
         return (
@@ -175,8 +177,29 @@ const Users = () => {
                         </div>
                     )}
 
+                    {/* Super Admins Section */}
+                    {superadmins.length > 0 && (
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-semibold text-gray-800">
+                                Super Admins
+                            </h2>
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {superadmins.map(user => (
+                                    <UserCard
+                                        key={user.id}
+                                        user={user}
+                                        currentUser={currentUser}
+                                        onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
+                                        onDelete={handleDeleteUser}
+                                        onToggleDisabled={handleToggleDisabled}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Admins Section */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
                         <h2 className="text-xl font-semibold text-gray-800">
                             Admins
                         </h2>
@@ -223,14 +246,14 @@ const Users = () => {
                         </div>
                     </div>
 
-                    {/* Regular Users Section (if any) */}
-                    {regularUsers.length > 0 && (
+                    {/* Readers Section (if any) */}
+                    {readers.length > 0 && (
                         <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
                             <h2 className="text-xl font-semibold text-gray-800">
-                                Regular Users
+                                Readers
                             </h2>
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {regularUsers.map(user => (
+                                {readers.map(user => (
                                     <UserCard
                                         key={user.id}
                                         user={user}

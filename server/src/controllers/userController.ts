@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../config/db.config';
 import bcrypt from 'bcrypt';
 import { signToken } from '../utils/auth';
+import { isAdminRole, isHigherThan } from '../utils/roles';
 
 /**
  * Get all users. (Admin only)
@@ -84,6 +85,33 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             return res.status(404).json({ message: 'User not found' });
         }
 
+        const caller = (req as Request & { user?: { userId: number; role: string } }).user;
+
+        if (isAdminRole(existingUser.role) && !isHigherThan(caller!.role, existingUser.role) && caller!.userId !== userId) {
+            return res.status(403).json({ message: 'Only a superadmin can edit admin users' });
+        }
+
+        if (role && caller!.userId === userId) {
+            return res.status(403).json({ message: 'You cannot change your own role' });
+        }
+
+        if (role === 'SUPERADMIN') {
+            return res.status(403).json({ message: 'Cannot assign the superadmin role' });
+        }
+
+        if (role && isAdminRole(role) && caller!.role !== 'SUPERADMIN') {
+            return res.status(403).json({ message: 'Only a superadmin can assign admin roles' });
+        }
+
+        if (role && role !== existingUser.role) {
+            if (existingUser.role === 'READER') {
+                return res.status(403).json({ message: 'Cannot change a reader\'s role' });
+            }
+            if (role === 'READER') {
+                return res.status(403).json({ message: 'Cannot demote a user to reader' });
+            }
+        }
+
         if (email && email !== existingUser.email) {
             const emailTaken = await prisma.user.findUnique({
                 where: { email },
@@ -147,6 +175,14 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
         }
 
         const assignedRole = isAdmin ? role : 'READER';
+
+        if (assignedRole === 'SUPERADMIN') {
+            return res.status(403).json({ message: 'Cannot create a superadmin account' });
+        }
+
+        if (isAdmin && isAdminRole(assignedRole) && caller!.role !== 'SUPERADMIN') {
+            return res.status(403).json({ message: 'Only a superadmin can create admin users' });
+        }
 
         const existingUser = await prisma.user.findUnique({
             where: { email },
@@ -215,8 +251,8 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
             return res.status(404).json({ message: 'User not found' });
         }
 
-        if (existingUser.role === 'ADMIN') {
-            return res.status(403).json({ message: 'Cannot delete an admin account' });
+        if (!isHigherThan(admin!.role, existingUser.role)) {
+            return res.status(403).json({ message: `Cannot delete a ${existingUser.role.toLowerCase()} account` });
         }
 
         // Transfer all articles to the admin performing the deletion, then delete the user
@@ -268,8 +304,10 @@ export const toggleUserDisabled = async (req: Request, res: Response, next: Next
             return res.status(404).json({ message: 'User not found' });
         }
 
-        if (existingUser.role === 'ADMIN') {
-            return res.status(403).json({ message: 'Cannot disable an admin account' });
+        const caller = (req as Request & { user?: { userId: number; role: string } }).user;
+
+        if (!isHigherThan(caller!.role, existingUser.role)) {
+            return res.status(403).json({ message: `Cannot disable a ${existingUser.role.toLowerCase()} account` });
         }
 
         const updatedUser = await prisma.user.update({

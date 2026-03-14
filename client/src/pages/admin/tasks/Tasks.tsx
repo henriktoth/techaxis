@@ -5,6 +5,7 @@ import type { Task, User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import TaskCard from '../../../components/dashboard/TaskCard';
 import { Plus, Save, Search } from 'lucide-react';
+import { isAdminRole } from '../../../utils/roles';
 
 import { useNavigate, useBlocker } from 'react-router-dom';
 
@@ -216,7 +217,7 @@ const Tasks = () => {
                             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
                         />
                     </div>
-                    {currentUser?.role === 'ADMIN' && (
+                    {isAdminRole(currentUser?.role) && (
                         <button
                             onClick={() => navigate('/admin/tasks/create')}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
@@ -243,7 +244,7 @@ const Tasks = () => {
                 {/* My Tasks Section */}
                 <div className="space-y-4">
                     <h2 className="text-xl font-semibold text-gray-800">
-                        {currentUser?.role === 'ADMIN' ? 'All Assigned Tasks' : 'My Tasks'}
+                        {isAdminRole(currentUser?.role) ? 'All Assigned Tasks' : 'My Tasks'}
                     </h2>
                     <div className="grid gap-4">
                         {myTasks.map(task => {
@@ -276,11 +277,11 @@ const Tasks = () => {
                 </div>
 
                 {/* Unassigned Tasks Section */}
-                {(currentUser?.role === 'WRITER' || currentUser?.role === 'ADMIN') && (
+                {(currentUser?.role === 'WRITER' || isAdminRole(currentUser?.role)) && (
                     <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
 
                         <h2 className="text-xl font-semibold text-gray-800">
-                            {currentUser?.role === 'ADMIN' ? 'Unassigned Tasks' : 'Available Tasks'}
+                            {isAdminRole(currentUser?.role) ? 'Unassigned Tasks' : 'Available Tasks'}
                         </h2>
                         <div className="grid gap-4">
                             {unassignedTasks.map(task => {

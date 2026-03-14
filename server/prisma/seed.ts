@@ -22,7 +22,8 @@ async function main() {
     const usersData = [
         { name: 'Admin User', email: 'admin@techaxis.com', role: Role.ADMIN },
         { name: 'Writer One', email: 'writer@techaxis.com', role: Role.WRITER },
-        { name: 'Writer Two', email: 'writer2@techaxis.com', role: Role.WRITER }
+        { name: 'Writer Two', email: 'writer2@techaxis.com', role: Role.WRITER },
+        { name: 'Super Admin', email: 'superadmin@techaxis.com', role: Role.SUPERADMIN },
     ];
 
     const users = [];

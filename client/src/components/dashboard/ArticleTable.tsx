@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Article, User } from '../../types';
 import AuthorHoverCard from './AuthorHoverCard';
 import TaskHoverCard from './TaskHoverCard';
+import { isAdminRole } from '../../utils/roles';
 
 interface ArticleTableProps {
   articles: Article[];
@@ -31,7 +32,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
 
     const canEdit = (article: Article) => {
         if (!user) return false;
-        if (user.role === 'ADMIN') {
+        if (isAdminRole(user.role)) {
             if (article.authorId !== user.id && article.status === 'DRAFT') return false;
             return true;
         }
@@ -40,7 +41,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
 
     const canDelete = (article: Article) => {
         if (!user) return false;
-        if (user.role === 'ADMIN') return true;
+        if (isAdminRole(user.role)) return true;
         return article.authorId === user.id && article.status !== 'PUBLISHED' && article.status !== 'SCHEDULED';
     }
 
@@ -82,7 +83,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
               </div>
             </th>
 
-            {user?.role === 'ADMIN' && (
+            {isAdminRole(user?.role) && (
               <th className="px-6 py-4 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => onSort('author')}>
                 <div className="flex items-center gap-1">
                   Author
@@ -93,14 +94,14 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
               </th>
             )}
 
-            <th className="px-6 py-4 text-left" colSpan={user?.role === 'ADMIN' ? 4 : 3}>Actions</th>
+            <th className="px-6 py-4 text-left" colSpan={isAdminRole(user?.role) ? 4 : 3}>Actions</th>
           </tr>
         </thead>
 
         <tbody className="divide-y divide-gray-100">
           {articles.length === 0 ? (
             <tr>
-              <td colSpan={user?.role === 'ADMIN' ? 9 : 7} className="px-6 py-8 text-center text-gray-500">
+              <td colSpan={isAdminRole(user?.role) ? 9 : 7} className="px-6 py-8 text-center text-gray-500">
                 {searchQuery ? 'No articles found matching your search.' : 'No articles found. Start writing!'}
               </td>
             </tr>
@@ -159,7 +160,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                   {new Date(article.createdAt || article.publishedAt || Date.now()).toLocaleDateString()}
                 </td>
 
-                {user?.role === 'ADMIN' && (
+                {isAdminRole(user?.role) && (
                   <td className="px-6 py-4 relative group">
                     {article.authorId && authors[article.authorId] ? (
                       <>
@@ -209,7 +210,7 @@ const ArticleTable = ({ articles, sortField, sortDirection, onSort, user, author
                 </td>
 
                 {/* Review Action (Admin Only) */}
-                {user?.role === 'ADMIN' && (
+                {isAdminRole(user?.role) && (
                   <td className="px-2 py-4 text-center w-20">
                     {article.status === 'DRAFT' || article.authorId === user?.id ? (
                       <span

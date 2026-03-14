@@ -6,6 +6,7 @@ import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import TaskForm from '../../../components/dashboard/TaskForm';
 import { ArrowLeft } from 'lucide-react';
+import { isAdminRole } from '../../../utils/roles';
 
 const CreateTask = () => {
     const navigate = useNavigate();
@@ -45,7 +46,7 @@ const CreateTask = () => {
                 setUsers(usersRes.data);
                 setCurrentUser(meRes.data);
                 
-                 if (meRes.data.role !== 'ADMIN') {
+                 if (!isAdminRole(meRes.data.role)) {
                      navigate('/admin/dashboard');
                 }
             } catch (err) {

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { User } from '../../types';
+import { isAdminRole } from '../../utils/roles';
 
 interface DashboardHeaderProps {
   user: User | null;
@@ -16,7 +17,7 @@ const DashboardHeader = ({ user, onLogout }: DashboardHeaderProps) => {
         </p>
       </div>
       <div className="flex gap-3">
-        {user?.role === 'ADMIN' && (
+        {isAdminRole(user?.role) && (
           <Link 
             to="/admin/users"
             className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer border border-blue-200"

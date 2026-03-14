@@ -3,6 +3,7 @@ import { prisma } from '../config/db.config';
 import { Prisma } from '../generated/prisma/client';
 import slugify from 'slugify';
 import { deleteThumbnailFile } from '../config/upload.config';
+import { isAdminRole } from '../utils/roles';
 
 /**
     * List all published articles (public).
@@ -82,7 +83,7 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
             return res.status(401).json({ message: 'Authentication required' });
         }
 
-        if (user.role === 'ADMIN') {
+        if (isAdminRole(user.role)) {
             const articles = await prisma.article.findMany({
                 include: {
                     task: {
@@ -158,7 +159,7 @@ export const getArticleForUserById = async (req: Request, res: Response, next: N
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        if (user.role === 'ADMIN') {
+        if (isAdminRole(user.role)) {
             return res.status(200).json(article);
         }
 
@@ -209,7 +210,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             if (articleStatus !== 'DRAFT' && articleStatus !== 'REVIEW') {
                 return res.status(400).json({ message: 'Writers can only create articles with DRAFT or REVIEW status' });
             }
-        } else if (user.role === 'ADMIN') {
+        } else if (isAdminRole(user.role)) {
             if (articleStatus === 'REVIEW') {
                 return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
             }
@@ -284,7 +285,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
         // Notify all admins when an article is submitted for review
         if (newArticle.status === 'REVIEW') {
             const author = await prisma.user.findUnique({ where: { id: user.userId }, select: { name: true } });
-            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+            const admins = await prisma.user.findMany({ where: { role: { in: ['ADMIN', 'SUPERADMIN'] } } });
             await prisma.notification.createMany({
                 data: admins.map((admin) => ({
                     type: 'ARTICLE_REVIEW' as const,
@@ -336,7 +337,7 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
              if (article.status === 'PUBLISHED' || article.status === 'SCHEDULED') {
                   return res.status(403).json({ message: 'Writers can only delete non published articles' });
              }
-        } else if (user.role !== 'ADMIN') {
+        } else if (!isAdminRole(user.role)) {
              return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -391,7 +392,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             if (!['DRAFT', 'REVIEW', 'REJECTED'].includes(article.status)) {
                 return res.status(403).json({ message: 'Writers can only edit articles in DRAFT, REVIEW or REJECTED status' });
             }
-        } else if (user.role === 'ADMIN') {
+        } else if (isAdminRole(user.role)) {
             if (article.authorId !== user.userId && article.status === 'DRAFT') {
                 return res.status(403).json({ message: 'Admins cannot edit other users\' draft articles' });
             }
@@ -444,7 +445,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
                 return res.status(400).json({ message: 'Writers can only set status to DRAFT or REVIEW' });
             }
 
-            if (user.role === 'ADMIN' && status === 'REVIEW' && article.authorId === user.userId) {
+            if (isAdminRole(user.role) && status === 'REVIEW' && article.authorId === user.userId) {
                 return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
             }
             
@@ -486,7 +487,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         // Notify all admins when an article is submitted for review
         if (updatedArticle.status === 'REVIEW' && article.status !== 'REVIEW') {
             const author = await prisma.user.findUnique({ where: { id: updatedArticle.authorId }, select: { name: true } });
-            const admins = await prisma.user.findMany({ where: { role: 'ADMIN' } });
+            const admins = await prisma.user.findMany({ where: { role: { in: ['ADMIN', 'SUPERADMIN'] } } });
             await prisma.notification.createMany({
                 data: admins.map((admin) => ({
                     type: 'ARTICLE_REVIEW' as const,
@@ -525,7 +526,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
     try {
         const user = (req as Request & { user?: { userId: number; role: string } }).user;
         
-        if (!user || user.role !== 'ADMIN') {
+        if (!user || !isAdminRole(user.role)) {
             return res.status(403).json({ message: 'Access denied. Only Admins can review articles.' });
         }
 

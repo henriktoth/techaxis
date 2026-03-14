@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { Article, Category, User, Task } from '../../types';
+import { isAdminRole } from '../../utils/roles';
 
 interface ArticleFormProps {
   formData: {
@@ -47,8 +48,8 @@ const ArticleForm = ({
   isOwnArticle = false,
 }: ArticleFormProps) => {
   const isWriter = user?.role === 'WRITER';
-  const isAdmin = user?.role === 'ADMIN';
-  const canEditFeatured = user?.role === 'ADMIN';
+  const isAdmin = isAdminRole(user?.role);
+  const canEditFeatured = isAdminRole(user?.role);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 

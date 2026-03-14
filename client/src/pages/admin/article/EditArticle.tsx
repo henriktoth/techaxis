@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import type { Article, Category, User, Task } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import ArticleForm from '../../../components/dashboard/ArticleForm';
+import { isAdminRole } from '../../../utils/roles';
 
 const EditArticle = () => {
     const { id } = useParams<{ id: string }>();
@@ -128,7 +129,7 @@ const EditArticle = () => {
             payload.append('categoryId', String(formData.categoryId));
             payload.append('status', formData.status);
             payload.append('taskId', formData.taskId ? String(formData.taskId) : '');
-            if (user?.role === 'ADMIN') {
+            if (isAdminRole(user?.role)) {
                 payload.append('isFeatured', String(formData.isFeatured));
             }
             if (thumbnailFile) {
@@ -239,7 +240,7 @@ const EditArticle = () => {
                             saving={saving}
                             onSubmit={handleSubmit}
                             onCancel={() => navigate('/admin/dashboard')}
-                            isRestricted={user?.role === 'ADMIN' && originalArticle?.status === 'DRAFT' && originalArticle?.authorId !== user?.id}
+                            isRestricted={isAdminRole(user?.role) && originalArticle?.status === 'DRAFT' && originalArticle?.authorId !== user?.id}
                             isOwnArticle={originalArticle?.authorId === user?.id}
                         />
                     </main>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Check, Calendar, User as UserIcon, Edit, Trash2, PenTool, X } from 'lucide-react';
 import type { Task, User } from '../../types';
+import { isAdminRole } from '../../utils/roles';
 
 interface TaskCardProps {
     task: Task;
@@ -28,7 +29,7 @@ const TaskCard = ({
     onWriteArticle
 }: TaskCardProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const canToggle = currentUser?.role === 'ADMIN' || (currentUser?.role === 'WRITER' && task.assignedToId === currentUser?.id && !task.isCompleted);
+    const canToggle = isAdminRole(currentUser?.role) || (currentUser?.role === 'WRITER' && task.assignedToId === currentUser?.id && !task.isCompleted);
 
     return (
         <>
@@ -102,7 +103,7 @@ const TaskCard = ({
                         </div>
                     </div>
                 </div>
-                {currentUser?.role === 'ADMIN' && (
+                {isAdminRole(currentUser?.role) && (
                     <div className="flex flex-col gap-2">
                         <button
                             disabled={hasUnsavedChanges}

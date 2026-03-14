@@ -6,6 +6,7 @@ import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserForm from '../../../components/dashboard/UserForm';
 import { ArrowLeft } from 'lucide-react';
+import { isAdminRole, isSuperAdmin } from '../../../utils/roles';
 
 const EditUser = () => {
     const { id } = useParams<{ id: string }>();
@@ -36,7 +37,7 @@ const EditUser = () => {
                 
                 const meRes = await axios.get('http://localhost:8000/api/auth/me', config);
                 setCurrentUser(meRes.data);
-                if (meRes.data.role !== 'ADMIN') {
+                if (!isAdminRole(meRes.data.role)) {
                      navigate('/admin/dashboard');
                      return;
                 }
@@ -115,13 +116,19 @@ const EditUser = () => {
                             </button>
                         </div>
 
-                        <UserForm 
+                        <UserForm
                             formData={formData}
                             setFormData={setFormData}
                             isEditing={true}
                             saving={saving}
                             onSubmit={handleSubmit}
                             onCancel={() => navigate('/admin/users')}
+                            currentUserRole={currentUser?.role}
+                            canEditRole={
+                                currentUser?.id !== Number(id) &&
+                                formData.role !== 'READER' &&
+                                isSuperAdmin(currentUser?.role)
+                            }
                         />
                     </main>
                 </div>

@@ -1,5 +1,6 @@
 import { Edit, Trash2, Shield, PenTool, Ban, CheckCircle } from 'lucide-react';
 import type { User } from '../../types';
+import { isAdminRole, isSuperAdmin } from '../../utils/roles';
 
 interface UserCardProps {
     user: User;
@@ -18,7 +19,7 @@ const UserCard = ({
 }: UserCardProps) => {
 
     
-    const canManage = currentUser?.role === 'ADMIN';
+    const canManage = isAdminRole(currentUser?.role);
 
     return (
         <div className={`bg-white p-6 rounded-xl shadow-sm border transition-all duration-200 hover:shadow-md ${
@@ -28,13 +29,15 @@ const UserCard = ({
                 <div className="flex items-start gap-4">
                     <div className={`mt-1 h-10 w-10 rounded-full flex items-center justify-center ${
                         user.isDisabled ? 'bg-red-100 text-red-600' :
-                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-600' : 
-                        user.role === 'WRITER' ? 'bg-blue-100 text-blue-600' : 
+                        user.role === 'SUPERADMIN' ? 'bg-amber-100 text-amber-600' :
+                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-600' :
+                        user.role === 'WRITER' ? 'bg-blue-100 text-blue-600' :
                         'bg-gray-100 text-gray-600'
                     }`}>
                         {user.isDisabled ? <Ban size={20} /> :
-                         user.role === 'ADMIN' ? <Shield size={20} /> : 
-                         user.role === 'WRITER' ? <PenTool size={20} /> : 
+                         user.role === 'SUPERADMIN' ? <Shield size={20} /> :
+                         user.role === 'ADMIN' ? <Shield size={20} /> :
+                         user.role === 'WRITER' ? <PenTool size={20} /> :
                          <span className="font-bold text-sm">{user.name.charAt(0)}</span>}
                     </div>
                     <div>
@@ -45,8 +48,9 @@ const UserCard = ({
                         
                         <div className="flex flex-wrap gap-2 mt-3">
                             <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-                                user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 
-                                user.role === 'WRITER' ? 'bg-blue-100 text-blue-700' : 
+                                user.role === 'SUPERADMIN' ? 'bg-amber-100 text-amber-700' :
+                                user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
+                                user.role === 'WRITER' ? 'bg-blue-100 text-blue-700' :
                                 'bg-gray-100 text-gray-700'
                             }`}>
                                 {user.role}
@@ -62,7 +66,9 @@ const UserCard = ({
                 
                 {canManage && (
                     <div className="flex gap-2">
-                        {onToggleDisabled && user.role !== 'ADMIN' && (
+                        {onToggleDisabled && (
+                            isSuperAdmin(currentUser?.role) ? user.role !== 'SUPERADMIN' : !isAdminRole(user.role)
+                        ) && (
                             <button
                                 onClick={() => onToggleDisabled(user.id)}
                                 className={`p-2 rounded-lg transition-colors ${
@@ -75,20 +81,24 @@ const UserCard = ({
                                 {user.isDisabled ? <CheckCircle size={18} /> : <Ban size={18} />}
                             </button>
                         )}
-                        <button
-                            onClick={() => onEdit(user.id)}
-                            className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Edit User"
-                        >
-                            <Edit size={18} />
-                        </button>
-                        <button
-                            onClick={() => onDelete(user.id)}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete User"
-                        >
-                            <Trash2 size={18} />
-                        </button>
+                        {(user.id === currentUser?.id || (isSuperAdmin(currentUser?.role) ? user.role !== 'SUPERADMIN' : !isAdminRole(user.role))) && (
+                            <button
+                                onClick={() => onEdit(user.id)}
+                                className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit User"
+                            >
+                                <Edit size={18} />
+                            </button>
+                        )}
+                        {(isSuperAdmin(currentUser?.role) ? user.role !== 'SUPERADMIN' : !isAdminRole(user.role)) && (
+                            <button
+                                onClick={() => onDelete(user.id)}
+                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Delete User"
+                            >
+                                <Trash2 size={18} />
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

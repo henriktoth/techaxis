@@ -1,4 +1,5 @@
 import type { User } from '../../types';
+import { isSuperAdmin } from '../../utils/roles';
 
 interface UserFormProps {
   formData: {
@@ -17,6 +18,8 @@ interface UserFormProps {
   saving: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
+  currentUserRole?: User['role'];
+  canEditRole?: boolean;
 }
 
 const UserForm = ({
@@ -26,6 +29,8 @@ const UserForm = ({
   saving,
   onSubmit,
   onCancel,
+  currentUserRole,
+  canEditRole = true,
 }: UserFormProps) => {
 
   const handleChange = (field: string, value: string) => {
@@ -77,6 +82,7 @@ const UserForm = ({
         />
       </div>
 
+      {canEditRole && (
       <div>
         <label htmlFor="role" className="block text-sm font-medium text-gray-700">
           Role
@@ -87,11 +93,12 @@ const UserForm = ({
           onChange={(e) => handleChange('role', e.target.value)}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
         >
-          <option value="USER">User</option>
+          {!isEditing && <option value="READER">Reader</option>}
           <option value="WRITER">Writer</option>
-          <option value="ADMIN">Admin</option>
+          {isSuperAdmin(currentUserRole) && <option value="ADMIN">Admin</option>}
         </select>
       </div>
+      )}
 
       <div className="pt-5 border-t border-gray-200 flex justify-end gap-3">
         <button

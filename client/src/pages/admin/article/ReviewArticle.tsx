@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import type { Article, Category, User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
+import { isAdminRole } from '../../../utils/roles';
 
 const ReviewArticle = () => {
     const { id } = useParams<{ id: string }>();
@@ -41,7 +42,7 @@ const ReviewArticle = () => {
                 const user = userRes.data;
                 setCurrentUser(user);
 
-                if (user.role !== 'ADMIN') {
+                if (!isAdminRole(user.role)) {
                     setError('Access denied. Only admins can review articles.');
                     setIsLoading(false);
                     return;

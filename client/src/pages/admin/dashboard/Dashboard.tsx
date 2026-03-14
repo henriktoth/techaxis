@@ -7,6 +7,7 @@ import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import StatsOverview from '../../../components/dashboard/StatsOverview';
 import ArticleFilters from '../../../components/dashboard/ArticleFilters';
 import ArticleTable from '../../../components/dashboard/ArticleTable';
+import { isAdminRole } from '../../../utils/roles';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ const Dashboard = () => {
   //FETCH: Author details for articles (calls: GET /api/users/:id)
   useEffect(() => {
     const fetchAuthors = async () => {
-        if (user?.role !== 'ADMIN' || articles.length === 0) return;
+        if (!isAdminRole(user?.role) || articles.length === 0) return;
 
         const uniqueAuthorIds = Array.from(new Set(articles.map(a => a.authorId).filter((id): id is number => id !== undefined)));
         const token = localStorage.getItem('token');
@@ -196,7 +197,7 @@ const Dashboard = () => {
               <ArticleFilters 
                   searchQuery={searchQuery} 
                   setSearchQuery={setSearchQuery} 
-                  title={user?.role === 'ADMIN' ? 'All Articles' : 'My Articles'}
+                  title={isAdminRole(user?.role) ? 'All Articles' : 'My Articles'}
                   onNewArticle={() => navigate('/admin/article/create')}
               />
               
