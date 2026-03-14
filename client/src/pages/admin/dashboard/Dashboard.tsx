@@ -18,6 +18,10 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<keyof Article | 'author'>('publishedAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [taskFilter, setTaskFilter] = useState('');
+  const [authorFilter, setAuthorFilter] = useState('');
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,11 +129,37 @@ const Dashboard = () => {
     }
   };
 
-  //FUNCTION: Get sorted and filtered articles based on search query, sort field, and sort direction
-  const filteredArticles = articles.filter(article => 
-    article.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    article.slug.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) => {
+  //FUNCTION: Get sorted and filtered articles based on search query, filters, sort field, and sort direction
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.slug.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (statusFilter && article.status !== statusFilter) return false;
+
+    if (dateFilter) {
+      const articleDate = new Date(article.createdAt || article.publishedAt || 0);
+      const now = new Date();
+      if (dateFilter === 'today') {
+        if (articleDate.toDateString() !== now.toDateString()) return false;
+      } else if (dateFilter === 'week') {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        if (articleDate < weekAgo) return false;
+      } else if (dateFilter === 'month') {
+        if (articleDate.getMonth() !== now.getMonth() || articleDate.getFullYear() !== now.getFullYear()) return false;
+      } else if (dateFilter === 'year') {
+        if (articleDate.getFullYear() !== now.getFullYear()) return false;
+      }
+    }
+
+    if (taskFilter === 'with' && !article.task) return false;
+    if (taskFilter === 'without' && article.task) return false;
+
+    if (authorFilter && article.authorId !== Number(authorFilter)) return false;
+
+    return true;
+  }).sort((a, b) => {
     const modifier = sortDirection === 'asc' ? 1 : -1;
     
     if (sortField === 'title') {
@@ -194,11 +224,21 @@ const Dashboard = () => {
           />
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 relative">
-              <ArticleFilters 
-                  searchQuery={searchQuery} 
-                  setSearchQuery={setSearchQuery} 
+              <ArticleFilters
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
                   title={isAdminRole(user?.role) ? 'All Articles' : 'My Articles'}
                   onNewArticle={() => navigate('/admin/article/create')}
+                  statusFilter={statusFilter}
+                  setStatusFilter={setStatusFilter}
+                  dateFilter={dateFilter}
+                  setDateFilter={setDateFilter}
+                  taskFilter={taskFilter}
+                  setTaskFilter={setTaskFilter}
+                  authorFilter={authorFilter}
+                  setAuthorFilter={setAuthorFilter}
+                  authors={authors}
+                  user={user}
               />
               
               <ArticleTable 
