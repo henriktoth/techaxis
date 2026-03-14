@@ -5,13 +5,15 @@ import { toast } from 'react-hot-toast';
 import type { Article, Category, User, Task } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import ArticleForm from '../../../components/dashboard/ArticleForm';
+import ArticlePreviewModal from '../../../components/dashboard/ArticlePreviewModal';
 import { isAdminRole } from '../../../utils/roles';
+import { generateSlug } from '../../../utils/slug';
 
 const CreateArticle = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const taskIdParam = searchParams.get('taskId');
-    
+
     const [formData, setFormData] = useState({
         title: '',
         summary: '',
@@ -23,12 +25,14 @@ const CreateArticle = () => {
         taskId: taskIdParam ? Number(taskIdParam) : null as number | null,
         scheduledAt: ''
     });
-    
+
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
     const [removeThumbnail, setRemoveThumbnail] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
     const [user, setUser] = useState<User | null>(null);
+    const [showPreview, setShowPreview] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -56,7 +60,7 @@ const CreateArticle = () => {
 
                 setUser(userRes.data);
                 setCategories(categoriesRes.data);
-                
+
                 const tasks = tasksRes.data as Task[];
                 const filteredTasks = tasks.filter(t => (!t.article && !t.isCompleted) || t.id === Number(taskIdParam));
                 setAvailableTasks(filteredTasks);
@@ -85,7 +89,7 @@ const CreateArticle = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
-        
+
         const token = localStorage.getItem('token');
         if (!token) {
             navigate('/login');
@@ -145,43 +149,55 @@ const CreateArticle = () => {
         }}>
             <div className="p-8 font-sans">
                 <div className="max-w-7xl mx-auto">
-                    <main className="max-w-4xl mx-auto py-8">
-                        <div className="mb-6 flex items-center justify-between">
-                            <h1 className="text-2xl font-bold text-gray-900">Create New Article</h1>
-                            <button
-                                onClick={() => navigate('/admin/dashboard')}
-                                type="button"
-                                className="text-gray-600 hover:text-gray-900"
-                            >
-                                Cancel
-                            </button>
+                    {error && (
+                        <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
+                            {error}
                         </div>
+                    )}
 
-                        {error && (
-                            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-                                {error}
-                            </div>
-                        )}
-
-                        <ArticleForm 
-                            formData={formData}
-                            setFormData={setFormData}
-                            thumbnailFile={thumbnailFile}
-                            setThumbnailFile={setThumbnailFile}
-                            removeThumbnail={removeThumbnail}
-                            setRemoveThumbnail={setRemoveThumbnail}
-                            categories={categories}
-                            tasks={availableTasks}
-                            user={user}
-                            slug={undefined}
-                            saving={saving}
-                            onSubmit={handleSubmit}
-                            onCancel={() => navigate('/admin/dashboard')}
-                            isOwnArticle={true}
-                        />
-                    </main>
+                    <ArticleForm
+                        formData={formData}
+                        setFormData={setFormData}
+                        thumbnailFile={thumbnailFile}
+                        setThumbnailFile={setThumbnailFile}
+                        removeThumbnail={removeThumbnail}
+                        setRemoveThumbnail={setRemoveThumbnail}
+                        categories={categories}
+                        tasks={availableTasks}
+                        user={user}
+                        slug={undefined}
+                        saving={saving}
+                        onSubmit={handleSubmit}
+                        onCancel={() => navigate('/admin/dashboard')}
+                        isOwnArticle={true}
+                        pageTitle="Create New Article"
+                        onPreview={() => setShowPreview(true)}
+                        thumbnailPreviewUrl={thumbnailPreviewUrl}
+                        setThumbnailPreviewUrl={setThumbnailPreviewUrl}
+                    />
                 </div>
             </div>
+
+            {showPreview && (
+                <ArticlePreviewModal
+                    article={{
+                        id: 0,
+                        slug: generateSlug(formData.title),
+                        title: formData.title || 'Untitled Article',
+                        summary: formData.summary,
+                        content: formData.content,
+                        thumbnail: thumbnailPreviewUrl
+                            || (formData.thumbnail && !removeThumbnail ? formData.thumbnail : null),
+                        status: formData.status,
+                        isFeatured: formData.isFeatured,
+                        publishedAt: null,
+                        categoryId: formData.categoryId,
+                        author: user ? { id: user.id, name: user.name } : undefined,
+                    }}
+                    categoryName={categories.find(c => c.id === formData.categoryId)?.name}
+                    onClose={() => setShowPreview(false)}
+                />
+            )}
         </DashboardLayout>
     );
 };

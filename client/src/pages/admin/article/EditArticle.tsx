@@ -5,12 +5,14 @@ import { toast } from 'react-hot-toast';
 import type { Article, Category, User, Task } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import ArticleForm from '../../../components/dashboard/ArticleForm';
+import ArticlePreviewModal from '../../../components/dashboard/ArticlePreviewModal';
 import { isAdminRole } from '../../../utils/roles';
+import { generateSlug } from '../../../utils/slug';
 
 const EditArticle = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    
+
     const [formData, setFormData] = useState({
         title: '',
         summary: '',
@@ -22,14 +24,16 @@ const EditArticle = () => {
         taskId: null as number | null,
         scheduledAt: ''
     });
-    
+
     const [categories, setCategories] = useState<Category[]>([]);
     const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
     const [user, setUser] = useState<User | null>(null);
     const [originalArticle, setOriginalArticle] = useState<Article | null>(null);
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
     const [removeThumbnail, setRemoveThumbnail] = useState(false);
-    
+    const [showPreview, setShowPreview] = useState(false);
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
@@ -59,19 +63,19 @@ const EditArticle = () => {
                 ]);
 
                 setCategories(categoriesRes.data);
-                
+
                 const article = articleRes.data;
                 const tasks = tasksRes.data as Task[];
-                
+
                 setOriginalArticle(article);
 
                 const currentTaskId = article.task?.id;
-                const filteredTasks = tasks.filter(t => 
+                const filteredTasks = tasks.filter(t =>
                     (!t.article && !t.isCompleted) || (t.id === currentTaskId)
                 );
-                
+
                 setAvailableTasks(filteredTasks);
-                
+
                 setFormData({
                     title: article.title,
                     summary: article.summary || '',
@@ -114,7 +118,7 @@ const EditArticle = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
-        
+
         const token = localStorage.getItem('token');
         if (!token) {
             navigate('/login');
@@ -171,7 +175,7 @@ const EditArticle = () => {
             }}>
                 <div className="flex flex-col items-center justify-center p-4">
                     <div className="text-red-500 mb-4">{error}</div>
-                    <button 
+                    <button
                         onClick={() => navigate('/admin/dashboard')}
                         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                     >
@@ -189,63 +193,75 @@ const EditArticle = () => {
         }}>
             <div className="p-8 font-sans">
                 <div className="max-w-7xl mx-auto">
-                    <main className="max-w-4xl mx-auto py-8">
-                        <div className="mb-6 flex items-center justify-between">
-                            <h1 className="text-2xl font-bold text-gray-900">Edit Article</h1>
-                            <button
-                                onClick={() => navigate('/admin/dashboard')}
-                                type="button"
-                                className="text-gray-600 hover:text-gray-900"
-                            >
-                                Cancel
-                            </button>
+                    {error && (
+                        <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
+                            {error}
                         </div>
+                    )}
 
-                        {error && (
-                            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
-                                {error}
-                            </div>
-                        )}
-
-                        {originalArticle?.status === 'REJECTED' && originalArticle.rejectionReason && (
-                            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
-                                <div className="flex">
-                                    <div className="flex-shrink-0">
-                                        <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div className="ml-3">
-                                        <h3 className="text-sm font-medium text-red-800">Article Rejected</h3>
-                                        <div className="mt-2 text-sm text-red-700">
-                                            <p className="font-semibold">Reason from Admin:</p>
-                                            <p>{originalArticle.rejectionReason}</p>
-                                        </div>
+                    {originalArticle?.status === 'REJECTED' && originalArticle.rejectionReason && (
+                        <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-red-800">Article Rejected</h3>
+                                    <div className="mt-2 text-sm text-red-700">
+                                        <p className="font-semibold">Reason from Admin:</p>
+                                        <p>{originalArticle.rejectionReason}</p>
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        <ArticleForm 
-                            formData={formData}
-                            setFormData={setFormData}
-                            thumbnailFile={thumbnailFile}
-                            setThumbnailFile={setThumbnailFile}
-                            removeThumbnail={removeThumbnail}
-                            setRemoveThumbnail={setRemoveThumbnail}
-                            categories={categories}
-                            tasks={availableTasks}
-                            user={user}
-                            slug={originalArticle?.slug}
-                            saving={saving}
-                            onSubmit={handleSubmit}
-                            onCancel={() => navigate('/admin/dashboard')}
-                            isRestricted={isAdminRole(user?.role) && originalArticle?.status === 'DRAFT' && originalArticle?.authorId !== user?.id}
-                            isOwnArticle={originalArticle?.authorId === user?.id}
-                        />
-                    </main>
+                    <ArticleForm
+                        formData={formData}
+                        setFormData={setFormData}
+                        thumbnailFile={thumbnailFile}
+                        setThumbnailFile={setThumbnailFile}
+                        removeThumbnail={removeThumbnail}
+                        setRemoveThumbnail={setRemoveThumbnail}
+                        categories={categories}
+                        tasks={availableTasks}
+                        user={user}
+                        slug={originalArticle?.slug}
+                        saving={saving}
+                        onSubmit={handleSubmit}
+                        onCancel={() => navigate('/admin/dashboard')}
+                        isRestricted={isAdminRole(user?.role) && originalArticle?.status === 'DRAFT' && originalArticle?.authorId !== user?.id}
+                        isOwnArticle={originalArticle?.authorId === user?.id}
+                        pageTitle="Edit Article"
+                        onPreview={() => setShowPreview(true)}
+                        thumbnailPreviewUrl={thumbnailPreviewUrl}
+                        setThumbnailPreviewUrl={setThumbnailPreviewUrl}
+                    />
                 </div>
             </div>
+
+            {showPreview && (
+                <ArticlePreviewModal
+                    article={{
+                        id: originalArticle?.id || 0,
+                        slug: generateSlug(formData.title) || originalArticle?.slug || '',
+                        title: formData.title || 'Untitled Article',
+                        summary: formData.summary,
+                        content: formData.content,
+                        thumbnail: thumbnailPreviewUrl
+                            || (formData.thumbnail && !removeThumbnail ? formData.thumbnail : null),
+                        status: formData.status,
+                        isFeatured: formData.isFeatured,
+                        publishedAt: originalArticle?.publishedAt || null,
+                        categoryId: formData.categoryId,
+                        author: originalArticle?.author || (user ? { id: user.id, name: user.name } : undefined),
+                    }}
+                    categoryName={categories.find(c => c.id === formData.categoryId)?.name}
+                    onClose={() => setShowPreview(false)}
+                />
+            )}
         </DashboardLayout>
     );
 };
