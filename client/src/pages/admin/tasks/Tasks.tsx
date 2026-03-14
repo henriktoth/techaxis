@@ -4,8 +4,9 @@ import { toast } from 'react-hot-toast';
 import type { Task, User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import TaskCard from '../../../components/dashboard/TaskCard';
-import { Plus, Save, Search } from 'lucide-react';
+import { Plus, Save } from 'lucide-react';
 import { isAdminRole } from '../../../utils/roles';
+import TaskFilters from '../../../components/dashboard/TaskFilters';
 
 import { useNavigate, useBlocker } from 'react-router-dom';
 
@@ -16,6 +17,9 @@ const Tasks = () => {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [pendingChanges, setPendingChanges] = useState<Record<number, boolean>>({});
     const [searchQuery, setSearchQuery] = useState('');
+    const [priorityFilter, setPriorityFilter] = useState('');
+    const [dateFilter, setDateFilter] = useState('');
+    const [assigneeFilter, setAssigneeFilter] = useState('');
 
     const hasUnsavedChanges = Object.keys(pendingChanges).length > 0;
 
@@ -189,10 +193,42 @@ const Tasks = () => {
         }
     };
 
-    //CONSTANTS: Filter by search, then separate into "My Tasks" and "Unassigned Tasks"
-    const filteredTasks = tasks.filter(task =>
-        task.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    //CONSTANTS: Build assignees map from task data
+    const assignees: Record<number, { name: string; email: string }> = {};
+    tasks.forEach(task => {
+        if (task.assignedToId && task.assignedTo) {
+            assignees[task.assignedToId] = task.assignedTo;
+        }
+    });
+
+    //CONSTANTS: Filter by search, priority, date, assignee, then separate into "My Tasks" and "Unassigned Tasks"
+    const filteredTasks = tasks.filter(task => {
+        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
+        if (!matchesSearch) return false;
+
+        if (priorityFilter && task.priority !== Number(priorityFilter)) return false;
+
+        if (dateFilter) {
+            if (!task.dueDate) return false;
+            const taskDate = new Date(task.dueDate);
+            const now = new Date();
+            if (dateFilter === 'today') {
+                if (taskDate.toDateString() !== now.toDateString()) return false;
+            } else if (dateFilter === 'week') {
+                const weekAgo = new Date(now);
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                if (taskDate < weekAgo) return false;
+            } else if (dateFilter === 'month') {
+                if (taskDate.getMonth() !== now.getMonth() || taskDate.getFullYear() !== now.getFullYear()) return false;
+            } else if (dateFilter === 'year') {
+                if (taskDate.getFullYear() !== now.getFullYear()) return false;
+            }
+        }
+
+        if (assigneeFilter && task.assignedToId !== Number(assigneeFilter)) return false;
+
+        return true;
+    });
     const myTasks = filteredTasks.filter(task => !!task.assignedToId);
     const unassignedTasks = filteredTasks.filter(task => !task.assignedToId);
 
@@ -206,17 +242,6 @@ const Tasks = () => {
                 <div className="max-w-7xl mx-auto space-y-6">
                     <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
-                    <div className="flex items-center gap-3">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search tasks..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
-                        />
-                    </div>
                     {isAdminRole(currentUser?.role) && (
                         <button
                             onClick={() => navigate('/admin/tasks/create')}
@@ -227,7 +252,21 @@ const Tasks = () => {
                         </button>
                     )}
                     </div>
-                </div>
+
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+                        <TaskFilters
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            priorityFilter={priorityFilter}
+                            setPriorityFilter={setPriorityFilter}
+                            dateFilter={dateFilter}
+                            setDateFilter={setDateFilter}
+                            assigneeFilter={assigneeFilter}
+                            setAssigneeFilter={setAssigneeFilter}
+                            assignees={assignees}
+                            user={currentUser}
+                        />
+                    </div>
 
                 {hasUnsavedChanges && (
                     <div className="fixed bottom-8 right-8 z-50 animate-bounce">
