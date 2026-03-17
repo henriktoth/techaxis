@@ -109,8 +109,31 @@ const ArticleForm = ({
 
       {/* Two Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Column */}
+        {/* Main Column - Content Only */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Content */}
+          <section className={sectionClass}>
+            <h2 className={sectionTitleClass}>Content</h2>
+            <div>
+              <label htmlFor="content" className={labelClass}>
+                Article Body (HTML)
+              </label>
+              <textarea
+                id="content"
+                rows={40}
+                required
+                disabled={isRestricted}
+                value={formData.content}
+                onChange={(e) => handleChange('content', e.target.value)}
+                className={`${inputClass} font-mono`}
+                placeholder="Write your article content in HTML..."
+              />
+            </div>
+          </section>
+        </div>
+
+        {/* Sidebar Column - Everything Else */}
+        <div className="space-y-6">
           {/* Title & Slug */}
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Title</h2>
@@ -228,29 +251,6 @@ const ArticleForm = ({
             )}
           </section>
 
-          {/* Content */}
-          <section className={sectionClass}>
-            <h2 className={sectionTitleClass}>Content</h2>
-            <div>
-              <label htmlFor="content" className={labelClass}>
-                Article Body (HTML)
-              </label>
-              <textarea
-                id="content"
-                rows={20}
-                required
-                disabled={isRestricted}
-                value={formData.content}
-                onChange={(e) => handleChange('content', e.target.value)}
-                className={`${inputClass} font-mono`}
-                placeholder="Write your article content in HTML..."
-              />
-            </div>
-          </section>
-        </div>
-
-        {/* Sidebar Column */}
-        <div className="space-y-6">
           {/* Publishing */}
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Publishing</h2>
