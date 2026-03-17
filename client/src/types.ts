@@ -74,3 +74,17 @@ export interface Notification {
   userId: number;
   createdAt: string;
 }
+
+export interface Comment {
+  id: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  articleId: number;
+  authorId: number;
+  author: {
+    id: number;
+    name: string;
+    role: string;
+  };
+}

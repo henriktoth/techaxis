@@ -8,6 +8,7 @@ import Footer from "../../../components/shared/Footer";
 import ArticleHeader from "../../../components/article/ArticleHeader";
 import ArticleImage from "../../../components/article/ArticleImage";
 import ArticleContent from "../../../components/article/ArticleContent";
+import CommentSection from "../../../components/article/CommentSection";
 
 const ArticleDetails = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -174,6 +175,8 @@ const ArticleDetails = () => {
         </div>
 
         <ArticleContent article={article} />
+
+        <CommentSection articleId={article.id} user={user} />
 
       </main>
 
