@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/authenticate';
-import { createUser, deleteUser, getAllUsers, getReaders, getUserById, toggleUserDisabled, updateUser } from '../controllers/userController';
+import { createUser, deleteUser, getAllUsers, getReaders, getUserById, toggleUserDisabled, updateUser, updateProfile } from '../controllers/userController';
 import { authorizeAdmin } from '../middleware/authorizeAdmin';
 
 const router = Router();
 
 router.post('/register', createUser);
+router.patch('/profile', authenticate, updateProfile);
 router.get('/', authenticate, authorizeAdmin, getAllUsers);
 router.post('/', authenticate, authorizeAdmin, createUser);
 router.get('/readers', authenticate, authorizeAdmin, getReaders);

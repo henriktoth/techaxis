@@ -355,3 +355,67 @@ export const toggleUserDisabled = async (req: Request, res: Response, next: Next
         next(error);
     }
 };
+
+/**
+ * Update current user profile.
+ * @returns 200 with updated user
+ */
+export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const caller = (req as Request & { user?: { userId: number; role: string } }).user;
+        const userId = caller?.userId;
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const { name, email, password } = req.body;
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const data: any = {};
+        if (name) data.name = name;
+
+        if (email && email !== user.email) {
+            if (user.role === 'WRITER' || user.role === 'ADMIN') {
+                return res.status(403).json({ message: 'You are not allowed to update your email.' });
+            }
+
+            const exists = await prisma.user.findUnique({
+                where: { email },
+            });
+
+            if (exists) {
+                return res.status(409).json({ message: 'Email already in use' });
+            }
+
+            data.email = email;
+        }
+
+        if (password) {
+            data.password_hash = await bcrypt.hash(password, 10);
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                isDisabled: true,
+            },
+        });
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        next(error);
+    }
+};

@@ -5,6 +5,7 @@ import Home from "./pages/public/home/Home";
 import ArticleDetails from "./pages/public/article/ArticleDetails";
 import Login from "./pages/public/auth/Login";
 import Register from "./pages/public/auth/Register";
+import Profile from "./pages/public/profile/Profile";
 import Favorites from "./pages/public/favorites/Favorites";
 import Dashboard from "./pages/admin/dashboard/Dashboard";
 import EditArticle from "./pages/admin/article/EditArticle";
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
   { path: "/article/:slug", element: <ArticleDetails /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
+  { path: "/profile", element: <Profile /> },
   { path: "/favorites", element: <Favorites /> },
 
   { path: "/admin/dashboard", element: <Dashboard /> },
