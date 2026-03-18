@@ -26,8 +26,8 @@ const UserCard = ({
             user.isDisabled ? 'border-red-300 bg-red-50/30 opacity-75' : 'border-gray-200'
         }`}>
             <div className="flex justify-between items-start">
-                <div className="flex items-start gap-4">
-                    <div className={`mt-1 h-10 w-10 rounded-full flex items-center justify-center ${
+                <div className="flex items-start gap-4 min-w-0 flex-1">
+                    <div className={`mt-1 h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
                         user.isDisabled ? 'bg-red-100 text-red-600' :
                         user.role === 'SUPERADMIN' ? 'bg-amber-100 text-amber-600' :
                         user.role === 'ADMIN' ? 'bg-purple-100 text-purple-600' :
@@ -40,16 +40,16 @@ const UserCard = ({
                          user.role === 'WRITER' ? <PenTool size={20} /> :
                          <span className="font-bold text-sm">{user.name.charAt(0)}</span>}
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
-                            {user.name}
+                    <div className="min-w-0 pr-2">
+                        <h3 className="font-semibold text-lg text-gray-900 flex flex-wrap items-center gap-2">
+                            <span>{user.name}</span>
                             {user.id === currentUser?.id && (
-                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200 shrink-0">
                                     You
                                 </span>
                             )}
                         </h3>
-                        <p className="text-gray-600 mt-1">{user.email}</p>
+                        <p className="text-gray-600 mt-1 break-words">{user.email}</p>
                         
                         <div className="flex flex-wrap gap-2 mt-3">
                             <span className={`px-2 py-1 rounded-md text-xs font-medium ${

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/db.config';
+import { getPaginationParams, createPaginatedResponse } from '../utils/pagination';
 
 export const createComment = async (req: Request, res: Response) => {
   try {
@@ -37,26 +38,36 @@ export const createComment = async (req: Request, res: Response) => {
 export const getCommentsByArticle = async (req: Request, res: Response) => {
   try {
     const { articleId } = req.params;
+    const { page, limit, skip } = getPaginationParams(req);
 
-    const comments = await prisma.comment.findMany({
-      where: {
-        articleId: Number(articleId),
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
+    const [comments, total] = await Promise.all([
+      prisma.comment.findMany({
+        where: {
+          articleId: Number(articleId),
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              role: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.comment.count({
+        where: {
+          articleId: Number(articleId),
+        },
+      }),
+    ]);
 
-    res.json(comments);
+    res.json(createPaginatedResponse(comments, total, page, limit));
   } catch (error) {
     console.error('Error fetching comments:', error);
     res.status(500).json({ message: 'Error fetching comments' });

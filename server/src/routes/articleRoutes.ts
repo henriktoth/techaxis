@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getPublishedArticles, getPublishedArticleById, getArticlesForUser, getArticleForUserById, addArticle, deleteArticle, updateArticle, reviewArticle } from '../controllers/articleController';
+import { getPublishedArticles, getPublishedArticleById, getArticlesForUser, getArticleForUserById, addArticle, deleteArticle, updateArticle, reviewArticle, getArticleStats } from '../controllers/articleController';
 import { authenticate } from '../middleware/authenticate';
 import { uploadThumbnail } from '../config/upload.config';
 
@@ -12,6 +12,7 @@ router.patch('/:id/review', authenticate, reviewArticle);
 
 router.get('/', getPublishedArticles);
 
+router.get('/stats', authenticate, getArticleStats);
 router.get('/me', authenticate, getArticlesForUser);
 router.get('/me/:id', authenticate, getArticleForUserById);
 

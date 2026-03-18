@@ -4,6 +4,7 @@ import { Prisma } from '../generated/prisma/client';
 import slugify from 'slugify';
 import { deleteThumbnailFile } from '../config/upload.config';
 import { isAdminRole } from '../utils/roles';
+import { getPaginationParams, createPaginatedResponse } from '../utils/pagination';
 
 /**
     * List all published articles (public).
@@ -11,7 +12,9 @@ import { isAdminRole } from '../utils/roles';
  */
 export const getPublishedArticles = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { search } = req.query;
+        const { search, categoryId } = req.query;
+        const { page, limit, skip } = getPaginationParams(req);
+
         const whereClause: Prisma.ArticleWhereInput = { status: 'PUBLISHED' };
 
         if (search) {
@@ -20,18 +23,31 @@ export const getPublishedArticles = async (req: Request, res: Response, next: Ne
                 mode: 'insensitive',
             };
         }
+        
+        if (categoryId) {
+            const catId = Number(categoryId);
+            if (!isNaN(catId)) {
+                whereClause.categoryId = catId;
+            }
+        }
 
-        const articles = await prisma.article.findMany({
-            where: whereClause,
-            include: {
-                author: { select: { id: true, name: true } },
-            },
-            orderBy: [
-                { isFeatured: 'desc' },
-                { publishedAt: 'desc' },
-            ],
-        });
-        res.status(200).json(articles);
+        const [articles, total] = await Promise.all([
+            prisma.article.findMany({
+                where: whereClause,
+                include: {
+                    author: { select: { id: true, name: true } },
+                },
+                orderBy: [
+                    { isFeatured: 'desc' },
+                    { publishedAt: 'desc' },
+                ],
+                skip,
+                take: limit,
+            }),
+            prisma.article.count({ where: whereClause }),
+        ]);
+        
+        res.status(200).json(createPaginatedResponse(articles, total, page, limit));
     } catch (error) {
         next(error);
     }
@@ -83,44 +99,57 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
             return res.status(401).json({ message: 'Authentication required' });
         }
 
+        const { page, limit, skip } = getPaginationParams(req);
+        const { search, status, authorId } = req.query;
+
+        let whereClause: Prisma.ArticleWhereInput = {};
+
         if (isAdminRole(user.role)) {
-            const articles = await prisma.article.findMany({
-                include: {
-                    task: {
-                      select: {
-                        id: true,
-                        title: true,
-                        description: true,
-                        priority: true,
-                        dueDate: true,
-                        isCompleted: true,
-                      }
-                    }
-                }
-            });
-            return res.status(200).json(articles);
+            // Admin sees all
+            if (authorId) {
+                whereClause.authorId = Number(authorId);
+            }
+        } else if (user.role === 'WRITER') {
+            whereClause.authorId = user.userId;
+        } else {
+            return res.status(403).json({ message: 'Access denied' });
         }
 
-        if (user.role === 'WRITER') {
-            const articles = await prisma.article.findMany({
-                where: { authorId: user.userId },
-                include: {
-                    task: {
-                      select: {
-                        id: true,
-                        title: true,
-                        description: true,
-                        priority: true,
-                        dueDate: true,
-                        isCompleted: true,
-                      }
-                    }
-                }
-            });
-            return res.status(200).json(articles);
+        if (search) {
+            whereClause.OR = [
+                { title: { contains: String(search), mode: 'insensitive' } },
+                { slug: { contains: String(search), mode: 'insensitive' } }
+            ];
         }
 
-        res.status(403).json({ message: 'Access denied' });
+        if (status) {
+            whereClause.status = String(status).toUpperCase() as any;
+        }
+
+        const [articles, total] = await Promise.all([
+            prisma.article.findMany({
+                where: whereClause,
+                include: {
+                    task: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            priority: true,
+                            dueDate: true,
+                            isCompleted: true,
+                        }
+                    },
+                    author: { select: { id: true, name: true } },
+                },
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.article.count({ where: whereClause })
+        ]);
+
+        return res.status(200).json(createPaginatedResponse(articles, total, page, limit));
     } catch (error) {
         next(error);
     }
@@ -171,6 +200,32 @@ export const getArticleForUserById = async (req: Request, res: Response, next: N
         }
 
         res.status(403).json({ message: 'Access denied' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getArticleStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        if (!user) return res.status(401).json({ message: 'Authentication required' });
+
+        let whereClause: Prisma.ArticleWhereInput = {};
+        if (user.role === 'WRITER') {
+            whereClause = { authorId: user.userId };
+        } else if (!isAdminRole(user.role)) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+        
+        const [total, published, draft, review, scheduled] = await Promise.all([
+            prisma.article.count({ where: whereClause }),
+            prisma.article.count({ where: { ...whereClause, status: 'PUBLISHED' } }),
+            prisma.article.count({ where: { ...whereClause, status: 'DRAFT' } }),
+            prisma.article.count({ where: { ...whereClause, status: 'REVIEW' } }),
+            prisma.article.count({ where: { ...whereClause, status: 'SCHEDULED' } })
+        ]);
+
+        res.json({ total, published, draft, review, scheduled });
     } catch (error) {
         next(error);
     }

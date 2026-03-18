@@ -3,6 +3,8 @@ import { prisma } from '../config/db.config';
 import bcrypt from 'bcrypt';
 import { signToken } from '../utils/auth';
 import { isAdminRole, isHigherThan } from '../utils/roles';
+import { Prisma } from '../generated/prisma/client';
+import { getPaginationParams, createPaginatedResponse } from '../utils/pagination';
 
 /**
  * Get all users. (Admin only)
@@ -10,17 +12,42 @@ import { isAdminRole, isHigherThan } from '../utils/roles';
  */
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const users = await prisma.user.findMany({
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                isDisabled: true,
-            },
-        });
+        const { page, limit, skip } = getPaginationParams(req);
+        const { role, excludeRole, search } = req.query;
 
-        res.status(200).json(users);
+        const whereClause: Prisma.UserWhereInput = {};
+        
+        if (role) {
+            whereClause.role = String(role).toUpperCase() as Prisma.EnumRoleFilter;
+        } else if (excludeRole) {
+            whereClause.role = { not: String(excludeRole).toUpperCase() as Prisma.EnumRoleFilter };
+        }
+
+        if (search) {
+            whereClause.OR = [
+                { name: { contains: String(search), mode: 'insensitive' } },
+                { email: { contains: String(search), mode: 'insensitive' } }
+            ];
+        }
+
+        const [users, total] = await Promise.all([
+            prisma.user.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    isDisabled: true,
+                },
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+            }),
+            prisma.user.count({ where: whereClause }),
+        ]);
+
+        res.status(200).json(createPaginatedResponse(users, total, page, limit));
     } catch (error) {
         next(error);
     }
@@ -288,21 +315,40 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
  */
 export const getReaders = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const readers = await prisma.user.findMany({
-            where: { role: 'READER' },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                isDisabled: true,
-                _count: {
-                    select: { favorites: true },
-                },
-            },
-        });
+        const { page, limit, skip } = getPaginationParams(req);
+        const { search } = req.query;
 
-        res.status(200).json(readers);
+        const where: Prisma.UserWhereInput = {
+            role: 'READER',
+            ...(search ? {
+                OR: [
+                    { name: { contains: String(search) } },
+                    { email: { contains: String(search) } }
+                ]
+            } : {})
+        };
+
+        const [readers, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    isDisabled: true,
+                    _count: {
+                        select: { favorites: true },
+                    },
+                },
+                skip,
+                take: limit,
+                orderBy: { name: 'asc' },
+            }),
+            prisma.user.count({ where }),
+        ]);
+
+        res.status(200).json(createPaginatedResponse(readers, total, page, limit));
     } catch (error) {
         next(error);
     }

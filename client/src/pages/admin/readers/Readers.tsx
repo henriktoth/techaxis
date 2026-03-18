@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { User, Reader } from '../../../types';
+import type { User, Reader, PaginatedResult } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import ReadersTable from '../../../components/dashboard/ReadersTable';
+import Pagination from '../../../components/shared/Pagination';
 import { AlertTriangle, Ban, CheckCircle, Search } from 'lucide-react';
 import { isAdminRole } from '../../../utils/roles';
 
@@ -20,6 +21,10 @@ const Readers = () => {
     const [toggleModal, setToggleModal] = useState<{ open: boolean; reader: Reader | null }>({ open: false, reader: null });
     const [processing, setProcessing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     const [sortField, setSortField] = useState<'name' | 'email' | 'favorites'>('name');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -38,16 +43,27 @@ const Readers = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 };
 
-                const userRes = await axios.get('http://localhost:8000/api/auth/me', config);
-                setCurrentUser(userRes.data);
+                // Only fetch current user if not already set (re-fetching on every page/search change is redundant if we assume user doesn't change)
+                // However, to be safe and consistent with Users.tsx pattern:
+                if (!currentUser) {
+                    const userRes = await axios.get('http://localhost:8000/api/auth/me', config);
+                    setCurrentUser(userRes.data);
 
-                if (!isAdminRole(userRes.data.role)) {
-                    navigate('/admin/dashboard');
-                    return;
+                    if (!isAdminRole(userRes.data.role)) {
+                        navigate('/admin/dashboard');
+                        return;
+                    }
                 }
 
-                const readersRes = await axios.get('http://localhost:8000/api/users/readers', config);
-                setReaders(readersRes.data);
+                // Server-side pagination and search
+                let url = `http://localhost:8000/api/users/readers?page=${currentPage}&limit=${ITEMS_PER_PAGE}`;
+                if (searchQuery) {
+                    url += `&search=${searchQuery}`;
+                }
+
+                const readersRes = await axios.get<PaginatedResult<Reader>>(url, config);
+                setReaders(readersRes.data.data);
+                setTotalPages(readersRes.data.meta.totalPages);
 
             } catch (err) {
                 console.error('Error fetching data:', err);
@@ -68,8 +84,13 @@ const Readers = () => {
             }
         };
 
-        fetchData();
-    }, [navigate]);
+        const timeoutId = setTimeout(() => {
+            fetchData();
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+
+    }, [navigate, currentPage, searchQuery]); // Re-fetch on query change
 
     //HANDLER: Delete reader (calls: DELETE /api/users/:id)
     const handleDeleteReader = (id: number) => {
@@ -138,15 +159,13 @@ const Readers = () => {
         }
     };
 
-    const filteredAndSorted = readers
-        .filter(r => r.name.toLowerCase().includes(searchQuery.toLowerCase()))
-        .sort((a, b) => {
-            let cmp = 0;
-            if (sortField === 'name') cmp = a.name.localeCompare(b.name);
-            else if (sortField === 'email') cmp = a.email.localeCompare(b.email);
-            else if (sortField === 'favorites') cmp = a._count.favorites - b._count.favorites;
-            return sortDirection === 'asc' ? cmp : -cmp;
-        });
+    const sortedReaders = [...readers].sort((a, b) => {
+        let cmp = 0;
+        if (sortField === 'name') cmp = a.name.localeCompare(b.name);
+        else if (sortField === 'email') cmp = a.email.localeCompare(b.email);
+        else if (sortField === 'favorites') cmp = a._count.favorites - b._count.favorites;
+        return sortDirection === 'asc' ? cmp : -cmp;
+    });
 
     if (isLoading) {
         return (
@@ -169,7 +188,10 @@ const Readers = () => {
                                 type="text"
                                 placeholder="Search readers..."
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
                             />
                         </div>
@@ -181,9 +203,9 @@ const Readers = () => {
                         </div>
                     )}
 
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
                         <ReadersTable
-                            readers={filteredAndSorted}
+                            readers={sortedReaders}
                             sortField={sortField}
                             sortDirection={sortDirection}
                             onSort={handleSort}
@@ -192,6 +214,12 @@ const Readers = () => {
                             searchQuery={searchQuery}
                         />
                     </div>
+                
+                    <Pagination 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
                 </div>
             </div>
 

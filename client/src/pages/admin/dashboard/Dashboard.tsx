@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { Article, User } from '../../../types';
+import type { Article, User, PaginatedResult } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import StatsOverview from '../../../components/dashboard/StatsOverview';
 import ArticleFilters from '../../../components/dashboard/ArticleFilters';
 import ArticleTable from '../../../components/dashboard/ArticleTable';
 import { isAdminRole } from '../../../utils/roles';
+import Pagination from '../../../components/shared/Pagination';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -23,39 +24,16 @@ const Dashboard = () => {
   const [taskFilter, setTaskFilter] = useState('');
   const [authorFilter, setAuthorFilter] = useState('');
   
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  
+  const [stats, setStats] = useState({ total: 0, published: 0, draft: 0, review: 0, scheduled: 0 });
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  //FETCH: Author details for articles (calls: GET /api/users/:id)
-  useEffect(() => {
-    const fetchAuthors = async () => {
-        if (!isAdminRole(user?.role) || articles.length === 0) return;
-
-        const uniqueAuthorIds = Array.from(new Set(articles.map(a => a.authorId).filter((id): id is number => id !== undefined)));
-        const token = localStorage.getItem('token');
-        const newAuthors: Record<number, User> = {};
-
-        await Promise.all(uniqueAuthorIds.map(async (id) => {
-            if (authors[id]) return;
-            try {
-                const res = await axios.get(`http://localhost:8000/api/users/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                newAuthors[id] = res.data;
-            } catch (error) {
-                console.error(`Failed to fetch user ${id}`, error);
-            }
-        }));
-
-        if (Object.keys(newAuthors).length > 0) {
-            setAuthors(prev => ({ ...prev, ...newAuthors }));
-        }
-    };
-
-    fetchAuthors();
-  }, [user, articles, authors]);
-
-  //FETCH: Dashboard data (calls: GET /api/auth/me, GET /api/articles/me)
+  //FETCH: Dashboard data
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
@@ -63,19 +41,27 @@ const Dashboard = () => {
         navigate('/login');
         return;
       }
-
+      
       try {
-        const config = {
-          headers: { Authorization: `Bearer ${token}` }
-        };
-
-        const [userRes, articlesRes] = await Promise.all([
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        
+        // Fetch user and stats first
+        const [userRes, statsRes] = await Promise.all([
           axios.get('http://localhost:8000/api/auth/me', config),
-          axios.get('http://localhost:8000/api/articles/me', config)
+          axios.get('http://localhost:8000/api/articles/stats', config)
         ]);
-
+        
         setUser(userRes.data);
-        setArticles(articlesRes.data);
+        if (statsRes.data) {
+             setStats({
+                 total: statsRes.data.total || 0,
+                 published: statsRes.data.published || 0,
+                 draft: statsRes.data.draft || 0,
+                 review: statsRes.data.review || 0,
+                 scheduled: statsRes.data.scheduled || 0
+             });
+        }
+
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         if (axios.isAxiosError(err) && (err.response?.status === 401 || err.response?.status === 404)) {
@@ -88,9 +74,65 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     };
-
+    
     fetchData();
   }, [navigate]);
+
+  // FETCH: Articles with pagination and filters
+  useEffect(() => {
+    const fetchArticles = async () => {
+        const token = localStorage.getItem('token');
+        if (!token || !user) return;
+        
+        try {
+            let url = `http://localhost:8000/api/articles/me?page=${currentPage}&limit=${ITEMS_PER_PAGE}`;
+            if (searchQuery) url += `&search=${searchQuery}`;
+            if (statusFilter) url += `&status=${statusFilter}`;
+            if (authorFilter) url += `&authorId=${authorFilter}`;
+            
+            // Note: Date and Task filters not yet implemented on backend for simplicity or need custom implementation
+            
+            const res = await axios.get<PaginatedResult<Article>>(url, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            setArticles(res.data.data);
+            setTotalPages(res.data.meta.totalPages);
+            
+            // Only fetch authors for the current page articles
+            const uniqueAuthorIds = Array.from(new Set(res.data.data.map(a => a.authorId).filter((id): id is number => id !== undefined)));
+            const newAuthors: Record<number, User> = {};
+            await Promise.all(uniqueAuthorIds.map(async (id) => {
+                if (authors[id]) return;
+                try {
+                    const authorRes = await axios.get(`http://localhost:8000/api/users/${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    newAuthors[id] = authorRes.data;
+                } catch (e) { console.error(e); }
+            }));
+             if (Object.keys(newAuthors).length > 0) {
+                setAuthors(prev => ({ ...prev, ...newAuthors }));
+            }
+            
+        } catch (err) {
+            console.error(err);
+        }
+    };
+    
+    if (user) {
+        const debounceTimer = setTimeout(() => {
+            fetchArticles();
+        }, 300);
+        return () => clearTimeout(debounceTimer);
+    }
+  }, [user, currentPage, searchQuery, statusFilter, authorFilter]); // Removed dateFilter/taskFilter from dep for now as they don't trigger backend fetch
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, authorFilter]);
+
 
   //HANDLER: Logout (deletes token, redirects to login)
   const handleLogout = () => {
@@ -110,6 +152,7 @@ const Dashboard = () => {
         
         setArticles(articles.filter(a => a.id !== id));
         toast.success('Article deleted successfully');
+        // Ideally re-fetch or update count
     } catch (err) {
         let errorMessage = 'Failed to delete article';
         if (axios.isAxiosError(err) && err.response?.data?.message) {
@@ -121,6 +164,7 @@ const Dashboard = () => {
   };
 
   const handleSort = (field: keyof Article | 'author') => {
+      // Basic sorting on current page for now, server side sorting requires backend change
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -128,65 +172,19 @@ const Dashboard = () => {
       setSortDirection('asc');
     }
   };
-
-  //FUNCTION: Get sorted and filtered articles based on search query, filters, sort field, and sort direction
-  const filteredArticles = articles.filter(article => {
-    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.slug.toLowerCase().includes(searchQuery.toLowerCase());
-    if (!matchesSearch) return false;
-
-    if (statusFilter && article.status !== statusFilter) return false;
-
-    if (dateFilter) {
-      const articleDate = new Date(article.createdAt || article.publishedAt || 0);
-      const now = new Date();
-      if (dateFilter === 'today') {
-        if (articleDate.toDateString() !== now.toDateString()) return false;
-      } else if (dateFilter === 'week') {
-        const weekAgo = new Date(now);
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        if (articleDate < weekAgo) return false;
-      } else if (dateFilter === 'month') {
-        if (articleDate.getMonth() !== now.getMonth() || articleDate.getFullYear() !== now.getFullYear()) return false;
-      } else if (dateFilter === 'year') {
-        if (articleDate.getFullYear() !== now.getFullYear()) return false;
-      }
-    }
-
-    if (taskFilter === 'with' && !article.task) return false;
-    if (taskFilter === 'without' && article.task) return false;
-
-    if (authorFilter && article.authorId !== Number(authorFilter)) return false;
-
-    return true;
-  }).sort((a, b) => {
+  
+  // Client-side sort of CURRENT PAGE only (limitations of partial implementations)
+  const filteredArticles = [...articles].sort((a, b) => {
     const modifier = sortDirection === 'asc' ? 1 : -1;
-    
-    if (sortField === 'title') {
-      return a.title.localeCompare(b.title) * modifier;
-    }
-    if (sortField === 'status') {
-      return a.status.localeCompare(b.status) * modifier;
-    }
+    if (sortField === 'title') return a.title.localeCompare(b.title) * modifier;
+    if (sortField === 'status') return a.status.localeCompare(b.status) * modifier;
     if (sortField === 'publishedAt') {
       const dateA = new Date(a.createdAt || a.publishedAt || 0).getTime();
       const dateB = new Date(b.createdAt || b.publishedAt || 0).getTime();
       return (dateA - dateB) * modifier;
     }
-    if (sortField === 'author') {
-       const authorA = (a.authorId && authors[a.authorId]?.name) || '';
-       const authorB = (b.authorId && authors[b.authorId]?.name) || '';
-       return authorA.localeCompare(authorB) * modifier;
-    }
     return 0;
   });
-  
-  // CONSTANTS: total articles, published count, draft count, review count, scheduled count
-  const totalArticles = articles.length;
-  const publishedCount = articles.filter(a => a.status === 'PUBLISHED').length;
-  const draftCount = articles.filter(a => a.status === 'DRAFT').length;
-  const reviewCount = articles.filter(a => a.status === 'REVIEW').length;
-  const scheduledCount = articles.filter(a => a.status === 'SCHEDULED').length;
 
   if (isLoading) {
     return (
@@ -216,11 +214,11 @@ const Dashboard = () => {
           </div>
         
           <StatsOverview 
-              totalArticles={totalArticles} 
-              publishedCount={publishedCount} 
-              draftCount={draftCount}
-              reviewCount={reviewCount}
-              scheduledCount={scheduledCount}
+              totalArticles={stats.total} 
+              publishedCount={stats.published} 
+              draftCount={stats.draft}
+              reviewCount={stats.review}
+              scheduledCount={stats.scheduled}
           />
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 relative">
@@ -250,6 +248,12 @@ const Dashboard = () => {
                   authors={authors}
                   onDelete={handleDeleteArticle}
                   searchQuery={searchQuery}
+              />
+              
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
               />
           </div>
         </div>

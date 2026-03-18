@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import type { Article, Category, User } from "../../../types";
+import type { Article, Category, User, PaginatedResult } from "../../../types";
 
 import Navbar from "../../../components/shared/Navbar";
 import ArticleCard from "../../../components/home/ArticleCard";
@@ -8,6 +8,7 @@ import Footer from "../../../components/shared/Footer";
 import PageHeader from "../../../components/home/PageHeader";
 import HeroArticle from "../../../components/home/HeroArticle";
 import EmptyState from "../../../components/shared/EmptyState";
+import Pagination from "../../../components/shared/Pagination";
 
 const Home = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -16,6 +17,10 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const ITEMS_PER_PAGE = 9;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,16 +60,17 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  //FETCH: Articles (with search query) (calls: GET /api/articles?search=)
+  //FETCH: Articles (with search query and category)
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const url = searchQuery
-          ? `http://localhost:8000/api/articles?search=${searchQuery}`
-          : "http://localhost:8000/api/articles";
+        let url = `http://localhost:8000/api/articles?page=${currentPage}&limit=${ITEMS_PER_PAGE}`;
+        if (searchQuery) url += `&search=${searchQuery}`;
+        if (selectedCategoryId) url += `&categoryId=${selectedCategoryId}`;
 
-        const articlesRes = await axios.get<Article[]>(url);
-        setArticles(articlesRes.data);
+        const articlesRes = await axios.get<PaginatedResult<Article>>(url);
+        setArticles(articlesRes.data.data);
+        setTotalPages(articlesRes.data.meta.totalPages);
       } catch (err) {
         console.error(err);
         setError("Failed to load articles.");
@@ -78,7 +84,12 @@ const Home = () => {
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, currentPage, selectedCategoryId]);
+
+  // Reset page on search or category change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategoryId]);
 
   const handleSignOut = () => {
     localStorage.removeItem("token");
@@ -104,10 +115,9 @@ const Home = () => {
     }
   };
 
-  // CONSTANTS: filtered articles, hero article, remaining articles
-  const filteredArticles = selectedCategoryId
-    ? articles.filter((article) => article.categoryId === selectedCategoryId)
-    : articles;
+  // CONSTANTS: filtered articles is just articles (backend handles filtering)
+  const filteredArticles = articles;
+  
   const heroArticle = filteredArticles.find((a) => a.isFeatured);
   const remainingArticles = filteredArticles.filter((a) => a.id !== heroArticle?.id);
 
@@ -139,7 +149,7 @@ const Home = () => {
         onSignOut={handleSignOut}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-40 xl:pt-28">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-40 xl:pt-28 pb-12">
 
         <PageHeader
           selectedCategoryId={selectedCategoryId}
@@ -166,6 +176,12 @@ const Home = () => {
                 ))}
               </div>
             )}
+            
+            <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
           </>
         ) : (
           <EmptyState />

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/db.config';
 import { isAdminRole } from '../utils/roles';
+import { Prisma } from '../generated/prisma/client';
+import { getPaginationParams, createPaginatedResponse } from '../utils/pagination';
 
 /**
  * Get all tasks.
@@ -16,41 +18,58 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
             return res.status(401).json({ message: 'Authentication required' });
         }
 
-        let tasks;
+        const { page, limit, skip } = getPaginationParams(req);
+        const { search, priority, assignedToId } = req.query;
+        
+        let whereClause: Prisma.TaskWhereInput = {};
 
         if (isAdminRole(user.role)) {
-            tasks = await prisma.task.findMany({
-                include: {
-                    assignedTo: {
-                        select: { name: true, email: true }
-                    },
-                    article: {
-                        select: { id: true, slug: true }
-                    }
-                }
-            });
+            // Admin sees all
+             if (assignedToId) { // Admin filter by assignee
+                whereClause.assignedToId = Number(assignedToId);
+             }
         } else if (user.role === 'WRITER') {
-            tasks = await prisma.task.findMany({
-                where: {
-                    OR: [
-                        { assignedToId: user.userId },
-                        { assignedToId: null }
-                    ]
-                },
-                include: {
-                    assignedTo: {
-                        select: { name: true, email: true }
-                    },
-                    article: {
-                        select: { id: true, slug: true }
-                    }
-                }
-            });
+            whereClause = {
+                OR: [
+                    { assignedToId: user.userId },
+                    { assignedToId: null }
+                ]
+            };
+            // Writer cannot filter by assignee arbitrary
         } else {
             return res.status(403).json({ message: 'Access denied' });
         }
+        
+        if (search) {
+            whereClause.title = {
+                contains: String(search),
+                mode: 'insensitive'
+            };
+        }
+        
+        if (priority) {
+            whereClause.priority = Number(priority);
+        }
 
-        res.status(200).json(tasks);
+        const [tasks, total] = await Promise.all([
+            prisma.task.findMany({
+                where: whereClause,
+                include: {
+                    assignedTo: {
+                        select: { name: true, email: true }
+                    },
+                    article: {
+                        select: { id: true, slug: true }
+                    }
+                },
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.task.count({ where: whereClause })
+        ]);
+
+        res.status(200).json(createPaginatedResponse(tasks, total, page, limit));
     } catch (error) {
         next(error);
     }

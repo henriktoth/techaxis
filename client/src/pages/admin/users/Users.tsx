@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { User } from '../../../types';
+import type { User, PaginatedResult } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserCard from '../../../components/dashboard/UserCard';
+import Pagination from '../../../components/shared/Pagination';
 import { UserPlus, AlertTriangle, Ban, CheckCircle, Search } from 'lucide-react';
 import { isAdminRole } from '../../../utils/roles';
 
@@ -21,6 +22,10 @@ const Users = () => {
     const [toggleModal, setToggleModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
     const [processing, setProcessing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const ITEMS_PER_PAGE = 12;
 
     //FETCH: User details + all users (calls: GET /api/auth/me, GET /api/users)
     useEffect(() => {
@@ -35,17 +40,25 @@ const Users = () => {
                 const config = {
                     headers: { Authorization: `Bearer ${token}` }
                 };
+                
+                // Fetch current user only if needed or optimized
+                if (!currentUser) {
+                    const userRes = await axios.get('http://localhost:8000/api/auth/me', config);
+                    setCurrentUser(userRes.data);
 
-                const userRes = await axios.get('http://localhost:8000/api/auth/me', config);
-                setCurrentUser(userRes.data);
-
-                if (!isAdminRole(userRes.data.role)) {
-                     navigate('/admin/dashboard');
-                     return;
+                    if (!isAdminRole(userRes.data.role)) {
+                        navigate('/admin/dashboard');
+                        return;
+                    }
                 }
 
-                const usersRes = await axios.get('http://localhost:8000/api/users', config);
-                setUsers(usersRes.data);
+                // Use the new excludeRole parameter to get actual staff members for pagination
+                let url = `http://localhost:8000/api/users?page=${currentPage}&limit=${ITEMS_PER_PAGE}&excludeRole=READER`;
+                if (searchQuery) url += `&search=${searchQuery}`;
+
+                const usersRes = await axios.get<PaginatedResult<User>>(url, config);
+                setUsers(usersRes.data.data);
+                setTotalPages(usersRes.data.meta.totalPages ?? 1);
 
             } catch (err) {
                 console.error('Error fetching data:', err);
@@ -65,9 +78,14 @@ const Users = () => {
                 setIsLoading(false);
             }
         };
+        
+        const timeoutId = setTimeout(() => {
+            fetchData();
+        }, 300);
 
-        fetchData();
-    }, [navigate]);
+        return () => clearTimeout(timeoutId);
+
+    }, [navigate, currentPage, searchQuery]); // Re-fetch on query change
 
     //HANDLER: Delete user (calls: DELETE /api/users/:id)
     const handleDeleteUser = (id: number) => {
@@ -83,6 +101,8 @@ const Users = () => {
             await axios.delete(`http://localhost:8000/api/users/${deleteModal.user.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            // Re-fetch to update list properly with pagination
+            // For simple UI update:
             setUsers(users.filter(u => u.id !== deleteModal.user!.id));
             toast.success('User deleted and articles transferred successfully');
         } catch (err) {
@@ -127,14 +147,11 @@ const Users = () => {
         }
     };
 
-    const filteredUsers = users.filter(u =>
-        u.role !== 'READER' && u.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    const superadmins = filteredUsers.filter(u => u.role === 'SUPERADMIN');
-    const admins = filteredUsers.filter(u => u.role === 'ADMIN');
-    const writers = filteredUsers.filter(u => u.role === 'WRITER');
+    const handleEditUser = (id: number) => {
+        navigate(`/admin/users/edit/${id}`);
+    };
 
-    if (isLoading) {
+    if (isLoading && users.length === 0) {
         return (
             <div className="flex justify-center items-center min-h-screen">Loading...</div>
         );
@@ -148,116 +165,75 @@ const Users = () => {
             <div className="p-8">
                 <div className="max-w-7xl mx-auto space-y-6">
                     <div className="flex justify-between items-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900">Staff</h1>
-                        <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="Search staff..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
-                                />
-                            </div>
-                            <button
-                                onClick={() => navigate('/admin/users/create')}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-                            >
-                                <UserPlus size={20} />
-                                Add User
-                            </button>
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
+                            <p className="text-gray-500 mt-1">Manage administrators and writers</p>
                         </div>
+                        
+                        <button
+                            onClick={() => navigate('/admin/users/create')}
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2 transition-colors font-medium shadow-sm shadow-indigo-200"
+                        >
+                            <UserPlus size={18} />
+                            Add New User
+                        </button>
+                    </div>
+
+                    <div className="relative max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
+                        />
                     </div>
 
                     {error && (
-                        <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md border border-red-200">
+                        <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 shadow-sm">
                             {error}
                         </div>
                     )}
 
-                    {/* Super Admins Section */}
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-semibold text-gray-800">
-                            Super Admins
-                        </h2>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {superadmins.map(user => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {users.length === 0 ? (
+                            <div className="col-span-full py-12 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                                {searchQuery ? 'No users found matching your search.' : 'No users found.'}
+                            </div>
+                        ) : (
+                            users.map(user => (
                                 <UserCard
                                     key={user.id}
                                     user={user}
                                     currentUser={currentUser}
-                                    onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
+                                    onEdit={handleEditUser}
                                     onDelete={handleDeleteUser}
                                     onToggleDisabled={handleToggleDisabled}
                                 />
-                            ))}
-                            {superadmins.length === 0 && (
-                                <div className="col-span-full text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                    No super admin users found.
-                                </div>
-                            )}
-                        </div>
+                            ))
+                        )}
                     </div>
-
-                    {/* Admins Section */}
-                    <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-800">
-                            Admins
-                        </h2>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {admins.map(user => (
-                                <UserCard
-                                    key={user.id}
-                                    user={user}
-                                    currentUser={currentUser}
-                                    onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
-                                    onDelete={handleDeleteUser}
-                                    onToggleDisabled={handleToggleDisabled}
-                                />
-                            ))}
-                            {admins.length === 0 && (
-                                <div className="col-span-full text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                    No admin users found.
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Writers Section */}
-                    <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-800">
-                            Writers
-                        </h2>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {writers.map(user => (
-                                <UserCard
-                                    key={user.id}
-                                    user={user}
-                                    currentUser={currentUser}
-                                    onEdit={(id) => navigate(`/admin/users/edit/${id}`)}
-                                    onDelete={handleDeleteUser}
-                                    onToggleDisabled={handleToggleDisabled}
-                                />
-                            ))}
-                            {writers.length === 0 && (
-                                <div className="col-span-full text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                    No writer users found.
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    
+                    <Pagination 
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={setCurrentPage}
+                    />
 
                 </div>
             </div>
 
-            {/* Delete User Modal */}
-            {deleteModal.open && deleteModal.user && (
+            {/* Delete Modal */}
+             {deleteModal.open && deleteModal.user && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="fixed inset-0 bg-black/50" onClick={() => !processing && setDeleteModal({ open: false, user: null })} />
-                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 scale-100 animate-in fade-in zoom-in duration-200">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                             <div className="shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                                 <AlertTriangle className="text-red-600" size={24} />
                             </div>
                             <div>
@@ -267,11 +243,9 @@ const Users = () => {
                         </div>
                         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                             <p className="text-sm text-red-800">
-                                You are about to permanently delete <span className="font-semibold">{deleteModal.user.name}</span> ({deleteModal.user.email}).
+                                You are about to permanently delete <span className="font-semibold">{deleteModal.user.name}</span>.
+                                All their articles will be transferred to a Superadmin account.
                                 This action <span className="font-semibold">cannot be undone</span>.
-                            </p>
-                            <p className="text-sm text-red-700 mt-2">
-                                All articles by this user will be transferred to your account.
                             </p>
                         </div>
                         <div className="flex justify-end gap-3">
@@ -300,7 +274,7 @@ const Users = () => {
             {toggleModal.open && toggleModal.user && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="fixed inset-0 bg-black/50" onClick={() => !processing && setToggleModal({ open: false, user: null })} />
-                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6 scale-100 animate-in fade-in zoom-in duration-200">
                         <div className="flex items-center gap-3 mb-4">
                             <div className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
                                 toggleModal.user.isDisabled ? 'bg-green-100' : 'bg-orange-100'
@@ -315,18 +289,18 @@ const Users = () => {
                                     {toggleModal.user.isDisabled ? 'Enable' : 'Disable'} Account
                                 </h3>
                                 <p className="text-sm text-gray-500">
-                                    {toggleModal.user.name} ({toggleModal.user.email})
+                                    {toggleModal.user.name}
                                 </p>
                             </div>
                         </div>
                         <p className="text-sm text-gray-600 mb-4">
                             {toggleModal.user.isDisabled
-                                ? 'This will re-enable the account. The user will be able to log in again and all their data remains intact.'
-                                : 'This will disable the account. The user will not be able to log in, but all their data (articles, tasks) will be preserved. You can re-enable the account at any time.'
+                                ? 'This will re-enable the account. The user will be able to log in again.'
+                                : 'This will disable the account. The user will not be able to log in, but their data will be preserved.'
                             }
                         </p>
                         <div className="flex justify-end gap-3">
-                            <button
+                             <button
                                 type="button"
                                 disabled={processing}
                                 onClick={() => setToggleModal({ open: false, user: null })}

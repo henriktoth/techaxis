@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Send, Trash2, MessageSquare, AlertTriangle } from 'lucide-react';
-import type { User, Comment } from '../../types';
+import type { User, Comment, PaginatedResult } from '../../types';
+import Pagination from '../../components/shared/Pagination';
 
 interface CommentSectionProps {
   articleId: number;
@@ -15,16 +16,21 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<number | null>(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   useEffect(() => {
     fetchComments();
-  }, [articleId]);
+  }, [articleId, currentPage]);
 
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const res = await axios.get<Comment[]>(`http://localhost:8000/api/comments/article/${articleId}`);
-      setComments(res.data);
+      const res = await axios.get<PaginatedResult<Comment>>(`http://localhost:8000/api/comments/article/${articleId}?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
+      setComments(res.data.data);
+      setTotalPages(res.data.meta.totalPages);
     } catch (err) {
       console.error('Failed to fetch comments', err);
     } finally {
@@ -40,17 +46,18 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
     setSubmitError(null);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post<Comment>(
+      await axios.post<Comment>(
         'http://localhost:8000/api/comments',
         { articleId, content: newComment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setComments((prev) => [res.data, ...prev]);
       setNewComment('');
+      setCurrentPage(1);
+      fetchComments();
     } catch (err) {
       console.error('Failed to post comment', err);
-      // setSubmitError('Failed to post comment. Please try again.');
+      setSubmitError('Failed to post comment. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -68,7 +75,7 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
       await axios.delete(`http://localhost:8000/api/comments/${showDeleteModal}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
-      setComments((prev) => prev.filter(c => c.id !== showDeleteModal));
+      fetchComments();
       setShowDeleteModal(null);
     } catch (err) {
       console.error('Failed to delete comment', err);
@@ -98,7 +105,7 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
     });
   };
 
-  if (loading && comments.length === 0) {
+  if (loading && comments.length === 0 && currentPage === 1) {
     return (
       <div className="mt-12 py-12 text-center text-slate-500 animate-pulse border-t border-white/5">
         Loading discussion...
@@ -143,9 +150,6 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
         <h3 className="text-2xl font-bold text-slate-200">
           Discussion
         </h3>
-        <span className="px-3 py-1 bg-white/5 text-slate-400 text-sm font-medium rounded-full border border-white/5">
-          {comments.length}
-        </span>
       </div>
       
       {user ? (
@@ -281,6 +285,12 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
           })
         )}
       </div>
+
+      <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+      />
     </div>
   );
 };

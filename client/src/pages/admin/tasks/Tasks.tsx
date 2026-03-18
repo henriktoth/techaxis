@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import type { Task, User } from '../../../types';
+import type { Task, User, PaginatedResult } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import TaskCard from '../../../components/dashboard/TaskCard';
 import { Plus, Save } from 'lucide-react';
 import { isAdminRole } from '../../../utils/roles';
 import TaskFilters from '../../../components/dashboard/TaskFilters';
+import Pagination from '../../../components/shared/Pagination';
 
 import { useNavigate, useBlocker } from 'react-router-dom';
 
@@ -20,6 +21,10 @@ const Tasks = () => {
     const [priorityFilter, setPriorityFilter] = useState('');
     const [dateFilter, setDateFilter] = useState('');
     const [assigneeFilter, setAssigneeFilter] = useState('');
+    
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     const hasUnsavedChanges = Object.keys(pendingChanges).length > 0;
 
@@ -53,12 +58,7 @@ const Tasks = () => {
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [hasUnsavedChanges]);
 
-    //EFFECT: Calls fetchData on component mount
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    //FETCH: Tasks + user details (calls: GET /api/tasks, GET /api/auth/me)
+    // FETCH: Tasks + user details (calls: GET /api/tasks, GET /api/auth/me)
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -68,12 +68,20 @@ const Tasks = () => {
                 headers: { Authorization: `Bearer ${token}` }
             };
 
+            // Build query params
+            let url = `http://localhost:8000/api/tasks?page=${currentPage}&limit=${ITEMS_PER_PAGE}`;
+            if (searchQuery) url += `&search=${searchQuery}`;
+            if (priorityFilter) url += `&priority=${priorityFilter}`;
+            if (assigneeFilter) url += `&assignedToId=${assigneeFilter}`;
+            // Date filter not implemented on backend yet
+
             const [tasksRes, userDataRes] = await Promise.all([
-                axios.get('http://localhost:8000/api/tasks', config),
-                 axios.get('http://localhost:8000/api/auth/me', config)
+                axios.get<PaginatedResult<Task>>(url, config),
+                 axios.get<User>('http://localhost:8000/api/auth/me', config)
             ]);
 
-            setTasks(tasksRes.data);
+            setTasks(tasksRes.data.data);
+            setTotalPages(tasksRes.data.meta.totalPages);
             setCurrentUser(userDataRes.data);
         } catch (err) {
             console.error(err);
@@ -82,6 +90,19 @@ const Tasks = () => {
             setLoading(false);
         }
     };
+    
+    // Initial fetch and fetch on dependencies change
+    useEffect(() => {
+        const debounceTimer = setTimeout(() => {
+            fetchData();
+        }, 300);
+        return () => clearTimeout(debounceTimer);
+    }, [currentPage, searchQuery, priorityFilter, assigneeFilter]);
+    
+    // Reset page on filter change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, priorityFilter, assigneeFilter]);
 
     //HANDLER: Logout (deletes token, redirects to login)
     const handleLogout = () => {
@@ -201,13 +222,12 @@ const Tasks = () => {
         }
     });
 
-    //CONSTANTS: Filter by search, priority, date, assignee, then separate into "My Tasks" and "Unassigned Tasks"
-    const filteredTasks = tasks.filter(task => {
-        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase());
-        if (!matchesSearch) return false;
-
-        if (priorityFilter && task.priority !== Number(priorityFilter)) return false;
-
+    //CONSTANTS: Filter logic removed (backend handles filtering now) 
+    // Wait, client side logic for splits (My Tasks vs Unassigned) still needed
+    // But since backend returns subset, we just split the subset.
+    
+    // Client-side date filtering remains as it's not implemented on backend
+     const filteredTasks = tasks.filter(task => {
         if (dateFilter) {
             if (!task.dueDate) return false;
             const taskDate = new Date(task.dueDate);
@@ -224,11 +244,9 @@ const Tasks = () => {
                 if (taskDate.getFullYear() !== now.getFullYear()) return false;
             }
         }
-
-        if (assigneeFilter && task.assignedToId !== Number(assigneeFilter)) return false;
-
         return true;
     });
+
     const myTasks = filteredTasks.filter(task => !!task.assignedToId);
     const unassignedTasks = filteredTasks.filter(task => !task.assignedToId);
 
@@ -309,7 +327,7 @@ const Tasks = () => {
                         })}
                         {myTasks.length === 0 && (
                             <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                No tasks found.
+                                No tasks found in this page.
                             </div>
                         )}
                     </div>
@@ -346,12 +364,18 @@ const Tasks = () => {
                             })}
                             {unassignedTasks.length === 0 && (
                                 <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                    No available tasks.
+                                    No available tasks in this page.
                                 </div>
                             )}
                         </div>
                     </div>
                 )}
+                
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
             </div>
           </div>
         </DashboardLayout>
