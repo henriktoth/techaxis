@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
@@ -6,8 +6,89 @@ import type { User, PaginatedResult } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserCard from '../../../components/dashboard/UserCard';
 import Pagination from '../../../components/shared/Pagination';
-import { UserPlus, AlertTriangle, Ban, CheckCircle, Search } from 'lucide-react';
+import { UserPlus, AlertTriangle, Ban, CheckCircle, Search, X, ChevronDown } from 'lucide-react';
 import { isAdminRole } from '../../../utils/roles';
+
+interface DropdownOption {
+    value: string;
+    label: string;
+}
+
+const FilterDropdown = ({
+    label,
+    value,
+    onChange,
+    options,
+}: {
+    label: string;
+    value: string;
+    onChange: (v: string) => void;
+    options: DropdownOption[];
+}) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const selected = options.find(option => option.value === value) ?? options[0];
+
+    return (
+        <div ref={ref} className="relative min-w-[160px]">
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">{label}</label>
+            <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                className="flex items-center gap-2 w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-left hover:border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors cursor-pointer"
+            >
+                <span className={`truncate grow ${value ? 'text-gray-900' : 'text-gray-500'}`}>
+                    {selected?.label}
+                </span>
+                <ChevronDown size={14} className={`text-gray-400 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+
+            {open && (
+                <div className="absolute z-20 mt-1.5 w-full min-w-[180px] bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                    <ul className="max-h-48 overflow-y-auto py-1">
+                        {options.map(option => (
+                            <li key={option.value}>
+                                <button
+                                    type="button"
+                                    onClick={() => { onChange(option.value); setOpen(false); }}
+                                    className={`w-full text-left px-3 py-2 text-sm transition-colors cursor-pointer ${
+                                        value === option.value
+                                            ? 'bg-blue-50 text-blue-700 font-medium'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    {option.label}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const roleOptions: DropdownOption[] = [
+    { value: 'ALL', label: 'All roles' },
+    { value: 'ADMIN', label: 'Admin' },
+    { value: 'SUPERADMIN', label: 'Superadmin' },
+    { value: 'WRITER', label: 'Writer' },
+];
+
+const statusOptions: DropdownOption[] = [
+    { value: 'ALL', label: 'All statuses' },
+    { value: 'ACTIVE', label: 'Active' },
+    { value: 'DISABLED', label: 'Disabled' },
+];
 
 const Users = () => {
     const navigate = useNavigate();
@@ -22,6 +103,8 @@ const Users = () => {
     const [toggleModal, setToggleModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
     const [processing, setProcessing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState('ALL');
     
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -55,6 +138,8 @@ const Users = () => {
                 // Use the new excludeRole parameter to get actual staff members for pagination
                 let url = `http://localhost:8000/api/users?page=${currentPage}&limit=${ITEMS_PER_PAGE}&excludeRole=READER`;
                 if (searchQuery) url += `&search=${searchQuery}`;
+                if (roleFilter !== 'ALL') url += `&role=${roleFilter}`;
+                if (statusFilter !== 'ALL') url += `&isDisabled=${statusFilter === 'DISABLED'}`;
 
                 const usersRes = await axios.get<PaginatedResult<User>>(url, config);
                 setUsers(usersRes.data.data);
@@ -85,7 +170,7 @@ const Users = () => {
 
         return () => clearTimeout(timeoutId);
 
-    }, [navigate, currentPage, searchQuery]); // Re-fetch on query change
+    }, [navigate, currentPage, searchQuery, roleFilter, statusFilter]); // Re-fetch on query change
 
     //HANDLER: Delete user (calls: DELETE /api/users/:id)
     const handleDeleteUser = (id: number) => {
@@ -179,18 +264,62 @@ const Users = () => {
                         </button>
                     </div>
 
-                    <div className="relative max-w-md">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full"
-                        />
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+                        <div className="p-6 border-b border-gray-100 space-y-4">
+                            <div className="flex flex-wrap items-end gap-3">
+                                <div className="relative grow min-w-[200px]">
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Search</label>
+                                    <div className="relative">
+                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search users..."
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="w-full px-4 py-2 pl-10 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                                        />
+                                    </div>
+                                </div>
+
+                                <FilterDropdown
+                                    label="Role"
+                                    value={roleFilter}
+                                    onChange={(value) => {
+                                        setRoleFilter(value);
+                                        setCurrentPage(1);
+                                    }}
+                                    options={roleOptions}
+                                />
+
+                                <FilterDropdown
+                                    label="Status"
+                                    value={statusFilter}
+                                    onChange={(value) => {
+                                        setStatusFilter(value);
+                                        setCurrentPage(1);
+                                    }}
+                                    options={statusOptions}
+                                />
+
+                                {(searchQuery || roleFilter !== 'ALL' || statusFilter !== 'ALL') && (
+                                    <button
+                                        onClick={() => {
+                                            setSearchQuery('');
+                                            setRoleFilter('ALL');
+                                            setStatusFilter('ALL');
+                                            setCurrentPage(1);
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 rounded-lg transition-colors cursor-pointer self-end"
+                                    >
+                                        <X size={14} />
+                                        Clear Filters
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {error && (

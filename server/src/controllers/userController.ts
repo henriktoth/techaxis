@@ -13,7 +13,7 @@ import { getPaginationParams, createPaginatedResponse } from '../utils/paginatio
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { page, limit, skip } = getPaginationParams(req);
-        const { role, excludeRole, search } = req.query;
+        const { role, excludeRole, search, isDisabled } = req.query;
 
         const whereClause: Prisma.UserWhereInput = {};
         
@@ -28,6 +28,10 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
                 { name: { contains: String(search), mode: 'insensitive' } },
                 { email: { contains: String(search), mode: 'insensitive' } }
             ];
+        }
+
+        if (isDisabled !== undefined) {
+            whereClause.isDisabled = String(isDisabled) === 'true';
         }
 
         const [users, total] = await Promise.all([
