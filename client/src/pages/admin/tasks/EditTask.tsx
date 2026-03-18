@@ -45,7 +45,10 @@ const EditTask = () => {
                     axios.get(`http://localhost:8000/api/tasks/${id}`, config)
                 ]);
 
-                setUsers(usersRes.data);
+                const usersData = Array.isArray(usersRes.data)
+                    ? usersRes.data
+                    : (usersRes.data?.data as User[] | undefined) || [];
+                setUsers(usersData);
                 setCurrentUser(meRes.data);
                 
                 if (!isAdminRole(meRes.data.role)) {

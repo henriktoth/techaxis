@@ -35,7 +35,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0B1120]/80 backdrop-blur-xl supports-backdrop-filter:bg-[#0B1120]/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-20">
           <div
             className="shrink-0 cursor-pointer group"
@@ -46,7 +46,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
             </span>
           </div>
 
-          <div className="hidden xl:flex items-center space-x-2">
+          <div className="hidden xl:flex items-center space-x-2 xl:ml-8 xl:mr-3">
             <button
               onClick={() => onSelectCategory(null)}
               className={getNavItemClass(selectedCategoryId === null)}
@@ -65,7 +65,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
             ))}
           </div>
 
-          <div className="flex items-center ml-auto xl:ml-4 gap-3">
+          <div className="flex items-center ml-auto xl:ml-6 gap-3">
             <div className="relative">
               <input
                 type="text"
@@ -80,22 +80,12 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
 
             {user ? (
               <>
-                <Link
-                  to="/favorites"
-                  className="relative p-2 text-slate-400 hover:text-indigo-400 transition-colors duration-200"
-                  title="Favorites"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </Link>
-
                 <div className="relative" ref={menuRef}>
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-200"
                   >
-                    <div className="w-7 h-7 rounded-full bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-xs font-bold">
+                    <div className="w-8 h-8 shrink-0 rounded-full overflow-hidden bg-indigo-600/30 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-xs font-bold">
                       {user.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="hidden sm:inline">{user.name}</span>
@@ -105,7 +95,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                   </button>
 
                   {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-[#1F2937] border border-white/10 rounded-xl shadow-xl py-2 z-50">
+                    <div className="absolute right-0 mt-2 w-64 bg-[#1F2937] border border-white/10 rounded-xl shadow-xl py-2 z-50">
                       <div className="px-4 py-2 border-b border-white/10">
                         <p className="text-sm font-medium text-white truncate">{user.name}</p>
                         <p className="text-xs text-slate-400 truncate">{user.email}</p>

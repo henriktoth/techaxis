@@ -43,7 +43,10 @@ const CreateTask = () => {
                     axios.get('http://localhost:8000/api/auth/me', config)
                 ]);
 
-                setUsers(usersRes.data);
+                const usersData = Array.isArray(usersRes.data)
+                    ? usersRes.data
+                    : (usersRes.data?.data as User[] | undefined) || [];
+                setUsers(usersData);
                 setCurrentUser(meRes.data);
                 
                  if (!isAdminRole(meRes.data.role)) {

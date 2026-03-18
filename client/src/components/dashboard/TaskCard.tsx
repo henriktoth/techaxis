@@ -263,17 +263,24 @@ const TaskCard = ({
                         >
                             Close
                         </button>
-                        {canToggle && !isCompleted && (
+                        {currentUser && !isCompleted && (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onToggleStatus(task.id);
+                                    if (task.assignedToId) {
+                                        return;
+                                    }
+                                    onTake(task.id);
                                     setIsModalOpen(false);
                                 }}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center gap-2"
+                                disabled={!!task.assignedToId}
+                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                    task.assignedToId
+                                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                        : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                }`}
                             >
-                                <Check size={16} />
-                                Mark as Ready
+                                Take Task
                             </button>
                         )}
                         {canToggle && isCompleted && (
