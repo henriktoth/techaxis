@@ -6,6 +6,18 @@ import { deleteThumbnailFile } from '../config/upload.config';
 import { isAdminRole } from '../utils/roles';
 import { getPaginationParams, createPaginatedResponse } from '../utils/pagination';
 
+const parseContentDelta = (input: unknown) => {
+    if (input === undefined || input === null || input === '') return undefined;
+    if (typeof input === 'string') {
+        try {
+            return JSON.parse(input);
+        } catch {
+            return undefined;
+        }
+    }
+    return input;
+};
+
 /**
     * List all published articles (public).
     * @returns 200 with Article[]
@@ -250,6 +262,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
         }
 
         const { title, summary, content, categoryId, status, isFeatured, taskId } = req.body;
+        const contentDelta = parseContentDelta(req.body.contentDelta);
         const thumbnail = req.file ? `/uploads/thumbnails/${req.file.filename}` : null;
 
         if (!title || !summary || !content) {
@@ -318,6 +331,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
                 title,
                 summary,
                 content,
+                contentDelta,
                 thumbnail,
                 status: articleStatus,
                 isFeatured: isFeatured === true || isFeatured === 'true',
@@ -456,6 +470,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         }
 
         const { title, summary, content, categoryId, status, isFeatured, taskId, removeThumbnail, scheduledAt } = req.body;
+        const contentDelta = parseContentDelta(req.body.contentDelta);
         const data: Prisma.ArticleUpdateInput = {};
 
         if (req.file) {
@@ -484,6 +499,9 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         }
         if (summary) data.summary = summary;
         if (content) data.content = content;
+        if (Object.prototype.hasOwnProperty.call(req.body, 'contentDelta')) {
+            data.contentDelta = contentDelta ?? null;
+        }
         if (categoryId) {
             data.category = {
                 connect: { id: Number(categoryId) }

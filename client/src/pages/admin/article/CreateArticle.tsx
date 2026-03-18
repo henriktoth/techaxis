@@ -18,6 +18,7 @@ const CreateArticle = () => {
         title: '',
         summary: '',
         content: '',
+        contentDelta: null as Record<string, unknown> | null,
         thumbnail: '',
         categoryId: 0,
         status: 'DRAFT' as Article['status'],
@@ -61,7 +62,9 @@ const CreateArticle = () => {
                 setUser(userRes.data);
                 setCategories(categoriesRes.data);
 
-                const tasks = tasksRes.data as Task[];
+                const tasks = Array.isArray(tasksRes.data)
+                    ? (tasksRes.data as Task[])
+                    : (tasksRes.data?.data as Task[] | undefined) || [];
                 const filteredTasks = tasks.filter(t => (!t.article && !t.isCompleted) || t.id === Number(taskIdParam));
                 setAvailableTasks(filteredTasks);
 
@@ -101,6 +104,9 @@ const CreateArticle = () => {
             payload.append('title', formData.title);
             payload.append('summary', formData.summary);
             payload.append('content', formData.content);
+            if (formData.contentDelta) {
+                payload.append('contentDelta', JSON.stringify(formData.contentDelta));
+            }
             payload.append('categoryId', String(formData.categoryId));
             payload.append('status', formData.status);
             if (isAdminRole(user?.role)) {
@@ -186,6 +192,7 @@ const CreateArticle = () => {
                         title: formData.title || 'Untitled Article',
                         summary: formData.summary,
                         content: formData.content,
+                        contentDelta: formData.contentDelta,
                         thumbnail: thumbnailPreviewUrl
                             || (formData.thumbnail && !removeThumbnail ? formData.thumbnail : null),
                         status: formData.status,

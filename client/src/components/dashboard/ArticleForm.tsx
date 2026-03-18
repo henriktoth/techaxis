@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import ReactQuill from 'react-quill-new';
 import { Eye } from 'lucide-react';
 import type { Article, Category, User, Task } from '../../types';
 import { isAdminRole } from '../../utils/roles';
@@ -9,6 +10,7 @@ interface ArticleFormProps {
     title: string;
     summary: string;
     content: string;
+    contentDelta?: Record<string, unknown> | null;
     thumbnail: string;
     categoryId: number;
     status: Article['status'];
@@ -64,7 +66,7 @@ const ArticleForm = ({
 
   const generatedSlug = generateSlug(formData.title);
 
-  const handleChange = (field: keyof typeof formData, value: string | number | boolean | Article['status']) => {
+  const handleChange = (field: keyof typeof formData, value: string | number | boolean | Article['status'] | Record<string, unknown> | null) => {
     setFormData((prev: typeof formData) => ({ ...prev, [field]: value }));
   };
 
@@ -72,6 +74,34 @@ const ArticleForm = ({
   const labelClass = 'block text-sm font-medium text-gray-700';
   const sectionClass = 'bg-white rounded-xl shadow-sm border border-gray-100 p-6';
   const sectionTitleClass = 'text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4';
+  const quillModules = {
+    toolbar: isRestricted
+      ? false
+      : [
+          [{ header: [1, 2, 3, false] }],
+          [{ size: ['small', false, 'large', 'huge'] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ color: [] }, { background: [] }],
+          [{ align: [] }],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['link', 'blockquote'],
+          ['clean'],
+        ],
+  };
+  const quillFormats = [
+    'header',
+    'size',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'color',
+    'background',
+    'align',
+    'list',
+    'link',
+    'blockquote',
+  ];
 
   return (
     <form onSubmit={onSubmit}>
@@ -108,32 +138,9 @@ const ArticleForm = ({
       </div>
 
       {/* Two Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Column - Content Only */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Content */}
-          <section className={sectionClass}>
-            <h2 className={sectionTitleClass}>Content</h2>
-            <div>
-              <label htmlFor="content" className={labelClass}>
-                Article Body (HTML)
-              </label>
-              <textarea
-                id="content"
-                rows={40}
-                required
-                disabled={isRestricted}
-                value={formData.content}
-                onChange={(e) => handleChange('content', e.target.value)}
-                className={`${inputClass} font-mono`}
-                placeholder="Write your article content in HTML..."
-              />
-            </div>
-          </section>
-        </div>
-
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Sidebar Column - Everything Else */}
-        <div className="space-y-6">
+        <div className="space-y-6 lg:order-1">
           {/* Title & Slug */}
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Title</h2>
@@ -188,7 +195,6 @@ const ArticleForm = ({
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Thumbnail</h2>
 
-            {/* Show current/preview thumbnail */}
             {(thumbnailPreviewUrl || (formData.thumbnail && !removeThumbnail)) && (
               <div className="mt-2 relative inline-block">
                 <img
@@ -213,7 +219,6 @@ const ArticleForm = ({
               </div>
             )}
 
-            {/* File input shown when no thumbnail or after removal */}
             {!thumbnailPreviewUrl && (removeThumbnail || !formData.thumbnail) && (
               <input
                 ref={fileInputRef}
@@ -232,7 +237,6 @@ const ArticleForm = ({
               />
             )}
 
-            {/* Replace button when existing thumbnail is shown */}
             {!thumbnailPreviewUrl && formData.thumbnail && !removeThumbnail && !isRestricted && (
               <input
                 ref={fileInputRef}
@@ -369,6 +373,37 @@ const ArticleForm = ({
             </div>
           </section>
         </div>
+
+        {/* Main Column - Content Only */}
+        <div className="lg:col-span-2 space-y-6 lg:order-2 h-full">
+          {/* Content */}
+          <section className={`${sectionClass} h-full flex flex-col`}>
+            <h2 className={sectionTitleClass}>Content</h2>
+            <div>
+              <label htmlFor="content" className={labelClass}>
+                Article Body
+              </label>
+              <div className="quill-editor mt-1 rounded-md border border-gray-300 shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                <ReactQuill
+                  theme="snow"
+                  value={formData.content}
+                  readOnly={isRestricted}
+                  onChange={(value, _delta, _source, editor) => {
+                    setFormData((prev: typeof formData) => ({
+                      ...prev,
+                      content: value,
+                      contentDelta: editor.getContents() as unknown as Record<string, unknown>,
+                    }));
+                  }}
+                  modules={quillModules}
+                  formats={quillFormats}
+                  placeholder="Write your article content..."
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+
       </div>
     </form>
   );

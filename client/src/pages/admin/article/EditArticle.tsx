@@ -17,6 +17,7 @@ const EditArticle = () => {
         title: '',
         summary: '',
         content: '',
+        contentDelta: null as Record<string, unknown> | null,
         thumbnail: '',
         categoryId: 0,
         status: 'DRAFT' as Article['status'],
@@ -65,7 +66,9 @@ const EditArticle = () => {
                 setCategories(categoriesRes.data);
 
                 const article = articleRes.data;
-                const tasks = tasksRes.data as Task[];
+                const tasks = Array.isArray(tasksRes.data)
+                    ? (tasksRes.data as Task[])
+                    : (tasksRes.data?.data as Task[] | undefined) || [];
 
                 setOriginalArticle(article);
 
@@ -80,6 +83,7 @@ const EditArticle = () => {
                     title: article.title,
                     summary: article.summary || '',
                     content: article.content,
+                    contentDelta: article.contentDelta ?? null,
                     thumbnail: article.thumbnail || '',
                     categoryId: article.categoryId,
                     status: article.status,
@@ -130,6 +134,9 @@ const EditArticle = () => {
             payload.append('title', formData.title);
             payload.append('summary', formData.summary);
             payload.append('content', formData.content);
+            if (formData.contentDelta) {
+                payload.append('contentDelta', JSON.stringify(formData.contentDelta));
+            }
             payload.append('categoryId', String(formData.categoryId));
             payload.append('status', formData.status);
             payload.append('taskId', formData.taskId ? String(formData.taskId) : '');
@@ -250,6 +257,7 @@ const EditArticle = () => {
                         title: formData.title || 'Untitled Article',
                         summary: formData.summary,
                         content: formData.content,
+                        contentDelta: formData.contentDelta,
                         thumbnail: thumbnailPreviewUrl
                             || (formData.thumbnail && !removeThumbnail ? formData.thumbnail : null),
                         status: formData.status,

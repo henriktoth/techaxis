@@ -24,6 +24,7 @@ export interface Article {
   title: string;
   summary: string;
   content: string;
+  contentDelta?: Record<string, unknown> | null;
   thumbnail: string | null;
   status: 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'SCHEDULED' | 'REJECTED';
   rejectionReason?: string | null;

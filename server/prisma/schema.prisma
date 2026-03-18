@@ -52,6 +52,7 @@ model Article {
   title           String
   summary         String
   content         String        @db.Text
+  contentDelta    Json?
   thumbnail       String?
   status          ArticleStatus @default(DRAFT)
   rejectionReason String?

@@ -155,91 +155,152 @@ const ReviewArticle = () => {
         );
     }
 
+    const statusStyles: Record<Article['status'], string> = {
+        PUBLISHED: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+        DRAFT: 'bg-slate-50 text-slate-700 ring-slate-200',
+        REVIEW: 'bg-blue-50 text-blue-700 ring-blue-200',
+        SCHEDULED: 'bg-amber-50 text-amber-700 ring-amber-200',
+        REJECTED: 'bg-rose-50 text-rose-700 ring-rose-200'
+    };
+
+    const statusStyle = statusStyles[article.status];
+
     return (
         <>
         <DashboardLayout user={currentUser} onLogout={() => {
             localStorage.removeItem('token');
             navigate('/login');
         }}>
-            <div className="p-8 font-sans pt-24">
-                <div className="max-w-7xl mx-auto">
-                    <div className="mb-6 flex items-center justify-between pr-8">
-                        <h1 className="text-2xl font-bold text-gray-900">Review Article</h1>
-                        <button
-                            onClick={() => navigate('/admin/dashboard')}
-                            type="button"
-                            className="text-gray-600 hover:text-gray-900"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-
-                    <div className="bg-white shadow-sm ring-1 ring-gray-900/5 rounded-xl p-8 space-y-8">
-                        {/* Meta Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-500 border-b border-gray-100 pb-6">
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900">Author:</span> 
-                                <span className="bg-gray-50 px-2 py-1 rounded-md text-gray-700">{author?.name}</span>
-                                <span className="text-gray-400">({author?.email})</span>
+            <div className="px-6 lg:px-10 py-8 pt-24">
+                <div className="max-w-7xl mx-auto space-y-8">
+                    <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="space-y-2">
+                                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                                    Editorial Review
+                                </p>
+                                <h1 className="text-3xl font-semibold text-gray-900">Review Article</h1>
+                                <p className="text-sm text-gray-500 max-w-2xl">
+                                    Validate content quality, check metadata, and decide the next publishing step.
+                                </p>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900">Category:</span>
-                                <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md">{category?.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900">Status:</span> 
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border
-                                    ${article.status === 'PUBLISHED' ? 'bg-green-50 text-green-700 border-green-200' :
-                                      article.status === 'DRAFT' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 
-                                      article.status === 'REVIEW' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                      article.status === 'SCHEDULED' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                                      'bg-red-50 text-red-700 border-red-200'
-                                    }`}>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${statusStyle}`}>
                                     {article.status}
                                 </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-900">Slug:</span>
-                                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{article.slug}</span>
-                            </div>
-                        </div>
-
-                        {/* Title */}
-                        <div>
-                            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">{article.title}</h2>
-                        </div>
-
-                        {/* Summary */}
-                        <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
-                            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Summary</h3>
-                            <p className="text-gray-600 leading-relaxed text-lg">{article.summary}</p>
-                        </div>
-
-                        {/* Thumbnail */}
-                        {article.thumbnail && (
-                             <div>
-                                <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Thumbnail</h3>
-                                <img src={article.thumbnail} alt="Article Thumbnail" className="max-w-2xl w-full h-auto rounded-xl shadow-sm ring-1 ring-gray-900/5 object-cover" />
-                             </div>
-                        )}
-
-
-                        {/* Content */}
-                        <div>
-                            <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Content</h3>
-                            <div className="prose prose-gray max-w-none p-8 rounded-xl bg-white ring-1 ring-gray-200 shadow-sm whitespace-pre-wrap font-sans text-base leading-relaxed">
-                                {article.content}
+                                <button
+                                    type="button"
+                                    onClick={() => navigate(`/admin/article/preview/${article.id}`)}
+                                    className="inline-flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Preview Article
+                                </button>
+                                <button
+                                    onClick={() => navigate('/admin/dashboard')}
+                                    type="button"
+                                    className="text-sm font-medium text-gray-500 hover:text-gray-800"
+                                >
+                                    Back to Dashboard
+                                </button>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Actions */}
-                        <div className="pt-6 border-t border-gray-100 sticky bottom-0 bg-white/80 backdrop-blur-sm p-4 -mx-6 -mb-6 rounded-b-xl border-x-0 space-y-4">
-                            <div className="flex justify-end gap-3">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+                        <div className="lg:col-span-8 space-y-6">
+                            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 space-y-4">
+                                <h2 className="text-3xl font-semibold text-gray-900 tracking-tight">{article.title}</h2>
+                                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
+                                        {category?.name}
+                                    </span>
+                                    <span className="text-gray-400">By {author?.name}</span>
+                                    {article.publishedAt && (
+                                        <span>
+                                            Published {new Date(article.publishedAt).toLocaleDateString()}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
+                                <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">Summary</h3>
+                                <p className="text-gray-600 leading-relaxed text-lg">{article.summary}</p>
+                            </div>
+
+                            {article.thumbnail && (
+                                <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">Thumbnail</h3>
+                                    <img
+                                        src={article.thumbnail}
+                                        alt="Article Thumbnail"
+                                        className="w-full h-auto rounded-xl shadow-sm ring-1 ring-gray-900/5 object-cover"
+                                    />
+                                </div>
+                            )}
+
+                            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
+                                <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">Content</h3>
+                                <div className="prose prose-gray max-w-none p-6 rounded-xl bg-gray-50 ring-1 ring-gray-200 shadow-sm font-sans text-base leading-relaxed ql-snow">
+                                    <div className="ql-editor" dangerouslySetInnerHTML={{ __html: article.content }} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit">
+                            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 space-y-4">
+                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Article Details</h3>
+                                <div className="space-y-3 text-sm text-gray-600">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <span className="text-gray-400">Author</span>
+                                        <span className="text-right text-gray-800 font-medium">
+                                            {author?.name}
+                                            <span className="block text-xs text-gray-400">{author?.email}</span>
+                                        </span>
+                                    </div>
+                                    <div className="flex items-start justify-between gap-4">
+                                        <span className="text-gray-400">Category</span>
+                                        <span className="text-right font-medium text-gray-800">{category?.name}</span>
+                                    </div>
+                                    <div className="flex items-start justify-between gap-4">
+                                        <span className="text-gray-400">Slug</span>
+                                        <span className="text-right font-mono text-xs bg-gray-100 px-2 py-1 rounded">{article.slug}</span>
+                                    </div>
+                                    {article.createdAt && (
+                                        <div className="flex items-start justify-between gap-4">
+                                            <span className="text-gray-400">Submitted</span>
+                                            <span className="text-right font-medium text-gray-800">
+                                                {new Date(article.createdAt).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {article.scheduledAt && (
+                                        <div className="flex items-start justify-between gap-4">
+                                            <span className="text-gray-400">Scheduled</span>
+                                            <span className="text-right font-medium text-gray-800">
+                                                {new Date(article.scheduledAt).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {article.rejectionReason && (
+                                        <div className="rounded-lg border border-rose-100 bg-rose-50 p-3 text-xs text-rose-700">
+                                            {article.rejectionReason}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6 space-y-3">
+                                <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Review Actions</h3>
                                 <button
                                     type="button"
                                     onClick={() => setShowRejectModal(true)}
                                     disabled={processing}
-                                    className="px-6 py-2.5 rounded-lg text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 transition-colors"
+                                    className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-50 transition-colors"
                                 >
                                     {processing ? 'Processing...' : 'Reject Article'}
                                 </button>
@@ -247,7 +308,7 @@ const ReviewArticle = () => {
                                     type="button"
                                     onClick={() => setShowScheduleModal(true)}
                                     disabled={processing || article.status === 'PUBLISHED'}
-                                    className="px-6 py-2.5 rounded-lg text-sm font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-full px-4 py-2.5 rounded-lg text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Schedule Publish
                                 </button>
@@ -255,7 +316,7 @@ const ReviewArticle = () => {
                                     type="button"
                                     onClick={() => setShowPublishModal(true)}
                                     disabled={processing || article.status === 'PUBLISHED'}
-                                    className="px-6 py-2.5 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md"
+                                    className="w-full px-4 py-2.5 rounded-lg shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md"
                                 >
                                     {processing ? 'Processing...' : article.status === 'PUBLISHED' ? 'Already Published' : 'Publish Now'}
                                 </button>

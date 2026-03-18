@@ -1,7 +1,31 @@
 @import "tailwindcss";
+@import "react-quill-new/dist/quill.snow.css";
 
 @layer base {
   button {
     cursor: pointer;
   }
 }
+
+.quill-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.quill-editor .ql-container.ql-snow {
+  border: none;
+  flex: 1;
+}
+
+.quill-editor .ql-editor {
+  min-height: 842px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.quill-editor .ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+}
+
