@@ -316,7 +316,6 @@ const Tasks = () => {
                                     currentUser={currentUser}
                                     isCompleted={isCompleted}
                                     hasUnsavedChanges={hasUnsavedChanges}
-                                    onToggleStatus={toggleTaskStatus}
                                     onEdit={() => navigate(`/admin/tasks/edit/${task.id}`)}
                                     onDelete={handleDeleteTask}
                                     onTake={handleTakeTask}
@@ -353,7 +352,6 @@ const Tasks = () => {
                                         currentUser={currentUser}
                                         isCompleted={isCompleted}
                                         hasUnsavedChanges={hasUnsavedChanges}
-                                        onToggleStatus={toggleTaskStatus}
                                         onEdit={() => navigate(`/admin/tasks/edit/${task.id}`)}
                                         onDelete={handleDeleteTask}
                                         onTake={handleTakeTask}

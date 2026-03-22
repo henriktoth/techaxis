@@ -2,6 +2,10 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/db.config';
 import { getPaginationParams, createPaginatedResponse } from '../utils/pagination';
 
+/**
+ * Create a new comment.
+ * @returns 201 with created comment, 401 if unauthorized
+ */
 export const createComment = async (req: Request, res: Response) => {
   try {
     const { articleId, content } = req.body;
@@ -35,6 +39,10 @@ export const createComment = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Get comments for an article
+ * @returns 200 with paginated comments
+ */
 export const getCommentsByArticle = async (req: Request, res: Response) => {
   try {
     const { articleId } = req.params;
@@ -74,6 +82,11 @@ export const getCommentsByArticle = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Delete a comment.
+ * Only the comment author, ADMIN, or SUPERADMIN can delete a comment.
+ * @returns 200 with success message, 401 if unauthorized, 403 if forbidden, 404 if comment not found
+ */
 export const deleteComment = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

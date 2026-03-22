@@ -152,7 +152,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-all duration-200 hover:shadow-[0_0_20px_-5px_theme(colors.indigo.500/0.5)]"
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-all duration-200 hover:shadow-[0_0_20px_-5px_--theme(--color-indigo-500/0.5)]"
                 >
                   Register
                 </Link>

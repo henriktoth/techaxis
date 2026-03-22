@@ -8,7 +8,6 @@ interface TaskCardProps {
     currentUser: User | null;
     isCompleted: boolean;
     hasUnsavedChanges: boolean;
-    onToggleStatus: (id: number) => void;
     onEdit: (id: number) => void;
     onDelete: (id: number) => void;
     onTake: (id: number) => void;
@@ -21,7 +20,6 @@ const TaskCard = ({
     currentUser,
     isCompleted,
     hasUnsavedChanges,
-    onToggleStatus,
     onEdit,
     onDelete,
     onTake,
@@ -29,7 +27,6 @@ const TaskCard = ({
     onWriteArticle
 }: TaskCardProps) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const canToggle = isAdminRole(currentUser?.role) || (currentUser?.role === 'WRITER' && task.assignedToId === currentUser?.id && !task.isCompleted);
 
     return (
         <>
@@ -40,7 +37,7 @@ const TaskCard = ({
                 <div className="flex justify-between items-start">
                     <div className="flex items-start gap-4">
                         <div
-                            className={`mt-1 h-6 w-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                            className={`mt-1 h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
                                 isCompleted
                                     ? 'bg-green-500 border-green-500 text-white'
                                     : 'border-gray-200 bg-gray-100 text-gray-300'
@@ -306,7 +303,7 @@ const TaskCard = ({
                                 Take Task
                             </button>
                         )}
-                        {canToggle && isCompleted && (
+                        {isCompleted && (
                             <div className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-500 border border-gray-200">
                                 Completed
                             </div>

@@ -49,7 +49,7 @@ const UserCard = ({
                                 </span>
                             )}
                         </h3>
-                        <p className="text-gray-600 mt-1 break-words">{user.email}</p>
+                        <p className="text-gray-600 mt-1 wrap-break-word">{user.email}</p>
                         
                         <div className="flex flex-wrap gap-2 mt-3">
                             <span className={`px-2 py-1 rounded-md text-xs font-medium ${

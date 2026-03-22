@@ -39,7 +39,7 @@ const FilterDropdown = ({
     const selected = options.find(option => option.value === value) ?? options[0];
 
     return (
-        <div ref={ref} className="relative min-w-[160px]">
+        <div ref={ref} className="relative min-w-40">
             <label className="block text-xs font-medium text-gray-500 mb-1.5">{label}</label>
             <button
                 type="button"
@@ -53,7 +53,7 @@ const FilterDropdown = ({
             </button>
 
             {open && (
-                <div className="absolute z-20 mt-1.5 w-full min-w-[180px] bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                <div className="absolute z-20 mt-1.5 w-full min-w-45 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
                     <ul className="max-h-48 overflow-y-auto py-1">
                         {options.map(option => (
                             <li key={option.value}>
@@ -170,7 +170,7 @@ const Users = () => {
 
         return () => clearTimeout(timeoutId);
 
-    }, [navigate, currentPage, searchQuery, roleFilter, statusFilter]); // Re-fetch on query change
+    }, [navigate, currentPage, searchQuery, roleFilter, statusFilter, currentUser]);
 
     //HANDLER: Delete user (calls: DELETE /api/users/:id)
     const handleDeleteUser = (id: number) => {
@@ -267,7 +267,7 @@ const Users = () => {
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
                         <div className="p-6 border-b border-gray-100 space-y-4">
                             <div className="flex flex-wrap items-end gap-3">
-                                <div className="relative grow min-w-[200px]">
+                                <div className="relative grow min-w-50">
                                     <label className="block text-xs font-medium text-gray-500 mb-1.5">Search</label>
                                     <div className="relative">
                                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />

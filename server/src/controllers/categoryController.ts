@@ -3,7 +3,7 @@ import { prisma } from '../config/db.config';
 
 /**
  * Get all categories.
- * @returns 200 with categories or 500 if server error
+ * @returns 200 with array of categories
  */
 export const getCategories = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -15,6 +15,10 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
   }
 };
 
+/**
+ * Get a category by id.
+ * @returns 200 with category, 400 if invalid id, 404 if not found
+ */
 export const getCategoryById = async (req: Request, res: Response, next: NextFunction) => {
   try{
     const { id } = req.params;
@@ -35,6 +39,10 @@ export const getCategoryById = async (req: Request, res: Response, next: NextFun
   }
 };
 
+/**
+ * Create a new category.
+ * @returns 201 with created category, 400 if name missing, 409 if category with same name exists
+ */
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.body) {
@@ -66,7 +74,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
 /**
  * Delete a category.
  * If the category has articles, their categoryId is reassigned to 5 (Other).
- * @param req.params.id Category id
+ * @returns 200 with deleted category, 400 if invalid id or trying to delete "Other", 404 if not found
  */
 export const deleteCategory = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
@@ -102,6 +110,10 @@ export const deleteCategory = async (req: Request, res: Response, next: NextFunc
     }
 };
 
+/**
+ * Update a category.
+ * @returns 200 with updated category, 400 if invalid id or name missing, 404 if not found
+ */
 export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;

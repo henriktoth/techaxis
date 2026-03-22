@@ -5,7 +5,6 @@ import { authorizeAdmin } from '../middleware/authorizeAdmin';
 
 const router = Router();
 
-router.post('/register', createUser);
 router.patch('/profile', authenticate, updateProfile);
 router.get('/', authenticate, authorizeAdmin, getAllUsers);
 router.post('/', authenticate, authorizeAdmin, createUser);

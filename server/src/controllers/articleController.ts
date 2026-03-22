@@ -1,22 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../config/db.config';
-import { Prisma } from '../generated/prisma/client';
+import { Prisma, ArticleStatus } from '../generated/prisma/client';
 import slugify from 'slugify';
 import { deleteThumbnailFile } from '../config/upload.config';
 import { isAdminRole } from '../utils/roles';
 import { getPaginationParams, createPaginatedResponse } from '../utils/pagination';
-
-const parseContentDelta = (input: unknown) => {
-    if (input === undefined || input === null || input === '') return undefined;
-    if (typeof input === 'string') {
-        try {
-            return JSON.parse(input);
-        } catch {
-            return undefined;
-        }
-    }
-    return input;
-};
+import { parseContentDelta } from '../utils/contentDelta';
 
 /**
     * List all published articles (public).
@@ -114,10 +103,9 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
         const { page, limit, skip } = getPaginationParams(req);
         const { search, status, authorId } = req.query;
 
-        let whereClause: Prisma.ArticleWhereInput = {};
+        const whereClause: Prisma.ArticleWhereInput = {};
 
         if (isAdminRole(user.role)) {
-            // Admin sees all
             if (authorId) {
                 whereClause.authorId = Number(authorId);
             }
@@ -135,7 +123,10 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
         }
 
         if (status) {
-            whereClause.status = String(status).toUpperCase() as any;
+            const normalizedStatus = String(status).toUpperCase();
+            if (Object.values(ArticleStatus).includes(normalizedStatus as ArticleStatus)) {
+                whereClause.status = normalizedStatus as ArticleStatus;
+            }
         }
 
         const [articles, total] = await Promise.all([
@@ -217,6 +208,11 @@ export const getArticleForUserById = async (req: Request, res: Response, next: N
     }
 };
 
+/**
+ * Get article statistics for the authenticated user.
+ * ADMIN: all articles; WRITER: only own articles.
+ * @returns 200 with { total, published, draft, review, scheduled }
+ */
 export const getArticleStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = (req as Request & { user?: { userId: number; role: string } }).user;
@@ -246,12 +242,6 @@ export const getArticleStats = async (req: Request, res: Response, next: NextFun
 /**
  * Create a new article.
  * Access: WRITER (DRAFT, REVIEW), ADMIN (REVIEW, REJECTED)
- * @param req.body.title string
- * @param req.body.summary string
- * @param req.body.content string
- * @param req.body.thumbnail string (optional)
- * @param req.body.categoryId number (optional)
- * @param req.body.status 'DRAFT' | 'REVIEW' | 'REJECTED' (optional)
  * @returns 201 with created Article
  */
 export const addArticle = async (req: Request, res: Response, next: NextFunction) => {
@@ -351,7 +341,6 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             });
         }
 
-        // Notify all admins when an article is submitted for review
         if (newArticle.status === 'REVIEW') {
             const author = await prisma.user.findUnique({ where: { id: user.userId }, select: { name: true } });
             const admins = await prisma.user.findMany({ where: { role: { in: ['ADMIN', 'SUPERADMIN'] } } });
@@ -373,9 +362,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
 
 /**
  * Delete an article.
- * WRITER: Only own articles in DRAFT or REVIEW.
- * ADMIN: Any article.
- * @param req.params.id Article id (number)
+ * ADMIN: Can delete any article; WRITER: Can delete own articles if not PUBLISHED or SCHEDULED.
  * @returns 200 on success, 403 if forbidden, 404 if not found
  */
 export const deleteArticle = async (req: Request, res: Response, next: NextFunction) => {
@@ -428,7 +415,6 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
  * Update an article.
  * ADMIN: Can update PUBLISHED articles OR own articles.
  * WRITER: Can update own articles if DRAFT, REVIEW, or REJECTED.
- * @param req.params.id Article id (number)
  * @param req.body fields to update: title, summary, content, thumbnail, categoryId, status
  * @returns 200 with updated Article
  */

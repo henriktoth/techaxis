@@ -3,7 +3,7 @@ import { prisma } from '../config/db.config';
 
 /**
  * Get all notifications for the authenticated user.
- * Returns notifications ordered by newest first.
+ * @returns 200 with array of notifications, 401 if unauthorized
  */
 export const getNotifications = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -26,6 +26,7 @@ export const getNotifications = async (req: Request, res: Response, next: NextFu
 
 /**
  * Get the count of unread notifications for the authenticated user.
+ * @returns 200 with count, 401 if unauthorized
  */
 export const getUnreadCount = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -46,7 +47,7 @@ export const getUnreadCount = async (req: Request, res: Response, next: NextFunc
 
 /**
  * Mark a single notification as read.
- * @param req.params.id Notification id
+ * @returns 200 with updated notification, 400 if invalid id, 401 if unauthorized, 403 if forbidden, 404 if notification not found
  */
 export const markAsRead = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
@@ -83,6 +84,7 @@ export const markAsRead = async (req: Request, res: Response, next: NextFunction
 
 /**
  * Mark all notifications as read for the authenticated user.
+ * @returns 200 with success message, 401 if unauthorized
  */
 export const markAllAsRead = async (req: Request, res: Response, next: NextFunction) => {
     try {

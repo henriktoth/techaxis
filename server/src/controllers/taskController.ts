@@ -80,7 +80,6 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
  * - ADMIN: can see any task
  * - WRITER: can see only tasks assigned to them
  * @returns 200 with task or 401 if not authenticated, 403 if access denied, 404 if task not found
- * @param req.params.id Task id
  */
 export const getTaskById = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
@@ -132,12 +131,7 @@ export const getTaskById = async (req: Request, res: Response, next: NextFunctio
 
 /**
  * Create a new task.
- * @param req.body.title string (required)
- * @param req.body.description string (required)
- * @param req.body.isCompleted boolean (optional, default false)
- * @param req.body.priority number (optional, default 0)
- * @param req.body.dueDate string/Date (optional)
- * @param req.body.assignedToId number (optional) - defaults to null if not provided
+ * @returns 201 with created task, 400 if invalid request body, 401 if unauthorized, 403 if forbidden
  */
 export const createTask = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -199,7 +193,7 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
  * Update an existing task.
  * - ADMIN: Can update any field on any task.
  * - WRITER: Can only update tasks assigned to them. Cannot change 'assignedToId'.
- * @param req.params.id Task id
+ * @returns 200 with updated task, 400 if invalid request body, 401 if unauthorized, 403 if forbidden, 404 if task not found
  */
 export const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
@@ -275,7 +269,7 @@ export const updateTask = async (req: Request, res: Response, next: NextFunction
 /**
  * Delete a task.
  * - ADMIN: can delete any task
- * @param req.params.id Task id
+ * @returns 200 with deleted task, 400 if invalid id, 401 if unauthorized, 403 if forbidden, 404 if task not found
  */
 export const deleteTask = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
@@ -306,7 +300,7 @@ export const deleteTask = async (req: Request, res: Response, next: NextFunction
  * Toggle task completion status (Done / In Progress).
  * - ADMIN: Can toggle any task.
  * - WRITER: Can only toggle tasks assigned to them.
- * @param req.params.id Task id
+ * @returns 200 with updated task, 400 if invalid id, 401 if unauthorized, 403 if forbidden, 404 if task not found
  */
 export const toggleTaskStatus = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
@@ -348,6 +342,10 @@ export const toggleTaskStatus = async (req: Request, res: Response, next: NextFu
     }
 };
 
+/**
+ * Assign the authenticated user to an unassigned task.
+ * @returns 200 with updated task, 400 if invalid id or task already assigned, 401 if unauthorized, 404 if task not found
+ */
 export const takeTask = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     if (isNaN(id)) {
@@ -385,6 +383,10 @@ export const takeTask = async (req: Request, res: Response, next: NextFunction) 
     }
 };
 
+/** 
+ * Drop the authenticated user from a task they are assigned to (make it unassigned).
+ * @returns 200 with updated task, 400 if invalid id or task not assigned to user, 401 if unauthorized, 404 if task not found
+ */
 export const dropTask = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     if (isNaN(id)) {

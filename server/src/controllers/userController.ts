@@ -94,8 +94,6 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
 /**
  * Update user by id. (Admin only)
  * @returns 200 with updated user or 404 if not found
- * @param req.params.id User id
- * @param req.body User data to update
  */
 export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -185,10 +183,6 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
  * - Public (no auth): creates a READER and returns a JWT token.
  * - Admin (authenticated): creates user with the given role.
  * @returns 201 with created user (+ token for readers) or 400/409 on error
- * @param req.body.name Name
- * @param req.body.email Email
- * @param req.body.password Password
- * @param req.body.role Role (optional for public, required for admin)
  */
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -257,7 +251,6 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
  * Transfers all articles from the deleted user to the admin performing the deletion.
  * Cannot delete admin accounts or yourself.
  * @returns 200 with deleted user or 404 if not found
- * @param req.params.id User id
  */
 export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -361,7 +354,6 @@ export const getReaders = async (req: Request, res: Response, next: NextFunction
 /**
  * Toggle user disabled status. (Admin only)
  * @returns 200 with updated user or 404 if not found
- * @param req.params.id User id
  */
 export const toggleUserDisabled = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -429,7 +421,7 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const data: any = {};
+        const data: Prisma.UserUpdateInput = {};
         if (name) data.name = name;
 
         if (email && email !== user.email) {
