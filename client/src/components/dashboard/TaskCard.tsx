@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Calendar, User as UserIcon, Edit, Trash2, PenTool, X } from 'lucide-react';
+import { Check, Calendar, User as UserIcon, Edit, Trash2, PenTool, X, Eye } from 'lucide-react';
 import type { Task, User } from '../../types';
 import { isAdminRole } from '../../utils/roles';
 
@@ -39,29 +39,40 @@ const TaskCard = ({
             >
                 <div className="flex justify-between items-start">
                     <div className="flex items-start gap-4">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                canToggle && onToggleStatus(task.id);
-                            }}
-                            disabled={!canToggle}
-                            className={`mt-1 h-6 w-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                        <div
+                            className={`mt-1 h-6 w-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                                 isCompleted
                                     ? 'bg-green-500 border-green-500 text-white'
-                                    : canToggle 
-                                        ? 'border-gray-300 hover:border-blue-500 cursor-pointer hover:bg-white'
-                                        : 'border-gray-200 bg-gray-100 cursor-not-allowed'
+                                    : 'border-gray-200 bg-gray-100 text-gray-300'
                             }`}
-                            title={!canToggle ? "You can only complete tasks assigned to you" : "Toggle status"}
+                            title={isCompleted ? 'Completed' : 'In Progress'}
                         >
                             {isCompleted && <Check size={14} />}
-                        </button>
+                        </div>
                         <div>
                         <h3 className={`font-semibold text-lg ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                             {task.title}
                         </h3>
                         
                         <div className="flex flex-wrap gap-4 mt-4 text-sm text-gray-500">
+                            {task.article?.status === 'REVIEW' && (
+                                <div className="flex items-center gap-1 text-indigo-600 font-medium">
+                                    <Eye size={14} />
+                                    <span>In Review</span>
+                                </div>
+                            )}
+                            {task.article?.status === 'REJECTED' && (
+                                <div className="flex items-center gap-1 text-red-600 font-medium">
+                                    <X size={14} />
+                                    <span>Rejected</span>
+                                </div>
+                            )}
+                            {task.article?.status === 'SCHEDULED' && (
+                                <div className="flex items-center gap-1 text-amber-600 font-medium">
+                                    <Calendar size={14} />
+                                    <span>Scheduled</span>
+                                </div>
+                            )}
                             {task.dueDate ? (
                                 <div className={`flex items-center gap-1 ${
                                     !isCompleted && new Date(task.dueDate) < new Date(new Date().setHours(0, 0, 0, 0)) 
@@ -263,7 +274,19 @@ const TaskCard = ({
                         >
                             Close
                         </button>
-                        {currentUser && !isCompleted && (
+                        {currentUser && !isCompleted && task.assignedToId === currentUser.id && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDrop(task.id);
+                                    setIsModalOpen(false);
+                                }}
+                                className="px-4 py-2 rounded-lg font-medium transition-colors bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                            >
+                                Drop Task
+                            </button>
+                        )}
+                        {currentUser && !isCompleted && task.assignedToId !== currentUser.id && (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -284,17 +307,9 @@ const TaskCard = ({
                             </button>
                         )}
                         {canToggle && isCompleted && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onToggleStatus(task.id);
-                                    setIsModalOpen(false);
-                                }}
-                                className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium transition-colors flex items-center gap-2"
-                            >
-                                <Check size={16} />
-                                Mark as Incomplete
-                            </button>
+                            <div className="px-4 py-2 rounded-lg font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                                Completed
+                            </div>
                         )}
                     </div>
                 </div>

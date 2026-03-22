@@ -59,7 +59,7 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
                         select: { name: true, email: true }
                     },
                     article: {
-                        select: { id: true, slug: true }
+                        select: { id: true, slug: true, status: true }
                     }
                 },
                 skip,
@@ -100,6 +100,9 @@ export const getTaskById = async (req: Request, res: Response, next: NextFunctio
             include: {
                 assignedTo: {
                     select: { name: true, email: true }
+                },
+                article: {
+                    select: { id: true, slug: true, status: true }
                 }
             }
         });

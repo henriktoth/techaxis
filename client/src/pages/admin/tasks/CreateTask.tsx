@@ -39,7 +39,7 @@ const CreateTask = () => {
                 };
 
                 const [usersRes, meRes] = await Promise.all([
-                    axios.get('http://localhost:8000/api/users', config),
+                    axios.get('http://localhost:8000/api/users?excludeRole=READER', config),
                     axios.get('http://localhost:8000/api/auth/me', config)
                 ]);
 

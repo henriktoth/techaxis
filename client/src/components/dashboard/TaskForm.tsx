@@ -81,7 +81,9 @@ const TaskForm = ({
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                 >
                     <option value="">Unassigned</option>
-                    {(Array.isArray(users) ? users : []).map(user => (
+                    {(Array.isArray(users) ? users : [])
+                        .filter(user => user.role !== 'READER')
+                        .map(user => (
                         <option key={user.id} value={user.id}>
                             {user.name} ({user.email})
                         </option>

@@ -13,6 +13,7 @@ export interface Task {
   article?: {
     id: number;
     slug: string;
+    status: 'DRAFT' | 'REVIEW' | 'PUBLISHED' | 'SCHEDULED' | 'REJECTED';
   };
   createdAt: string;
   updatedAt: string;
