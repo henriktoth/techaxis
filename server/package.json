@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "src/server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dev": "nodemon --exec ts-node src/index.ts",
     "seed": "ts-node prisma/seed.ts",
     "lint": "eslint . --ext .ts,.js",
@@ -37,6 +38,7 @@
     "@types/pg": "^8.18.0",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
@@ -48,6 +50,7 @@
     "prisma": "^7.4.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.3"
+    "typescript-eslint": "^8.46.3",
+    "vitest": "^3.2.4"
   }
 }
