@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import type { Article, Category, User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { isAdminRole } from '../../../utils/roles';
+import { resolveMediaUrl } from '../../../utils/media';
 
 const ReviewArticle = () => {
     const { id } = useParams<{ id: string }>();
@@ -236,7 +237,7 @@ const ReviewArticle = () => {
                                 <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-6">
                                     <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">Thumbnail</h3>
                                     <img
-                                        src={article.thumbnail}
+                                        src={resolveMediaUrl(article.thumbnail)}
                                         alt="Article Thumbnail"
                                         className="w-full h-auto rounded-xl shadow-sm ring-1 ring-gray-900/5 object-cover"
                                     />

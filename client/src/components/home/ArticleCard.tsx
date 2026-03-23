@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import type { Article } from "../../types";
+import { resolveMediaUrl } from "../../utils/media";
 
 interface ArticleCardProps {
   article: Article;
@@ -30,7 +31,7 @@ const ArticleCard = ({ article, isFavorited, onToggleFavorite, isLoggedIn }: Art
 
         {article.thumbnail ? (
           <img
-            src={article.thumbnail.startsWith('/') ? `http://localhost:8000${article.thumbnail}` : article.thumbnail}
+            src={resolveMediaUrl(article.thumbnail)}
             alt={article.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />

@@ -4,6 +4,7 @@ import { Eye } from 'lucide-react';
 import type { Article, Category, User, Task } from '../../types';
 import { isAdminRole } from '../../utils/roles';
 import { generateSlug } from '../../utils/slug';
+import { resolveMediaUrl } from '../../utils/media';
 
 interface ArticleFormProps {
   formData: {
@@ -198,7 +199,7 @@ const ArticleForm = ({
             {(thumbnailPreviewUrl || (formData.thumbnail && !removeThumbnail)) && (
               <div className="mt-2 relative inline-block">
                 <img
-                  src={thumbnailPreviewUrl || `http://localhost:8000${formData.thumbnail}`}
+                  src={thumbnailPreviewUrl || resolveMediaUrl(formData.thumbnail)}
                   alt="Thumbnail preview"
                   className="h-48 w-auto rounded-lg border border-gray-200 object-cover"
                 />
