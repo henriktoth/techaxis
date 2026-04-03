@@ -67,7 +67,7 @@ model Article {
   authorId Int
 
   category   Category @relation(fields: [categoryId], references: [id])
-  categoryId Int      @default(5) // id 5 = Other
+  categoryId Int      @default(5)
 
   task   Task? @relation(fields: [taskId], references: [id])
   taskId Int?  @unique
