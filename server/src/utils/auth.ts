@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import ENV from '../config/env.config';
 
 /**
-  * Sign a JWT token with given payload.
+  * Sign a JWT token with a payload.
   * @returns JWT token string
   * @param payload object to include in token
 */

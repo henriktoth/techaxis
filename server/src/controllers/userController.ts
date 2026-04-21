@@ -279,7 +279,6 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
             return res.status(403).json({ message: `Cannot delete a ${existingUser.role.toLowerCase()} account` });
         }
 
-        // Transfer all articles to the admin performing the deletion, then delete the user
         await prisma.$transaction(async (tx) => {
             await tx.article.updateMany({
                 where: { authorId: userId },

@@ -10,7 +10,9 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 /**
- * Multer configuration for handling thumbnail uploads. Files are stored on disk with unique names, and only certain image types are allowed. Also includes a helper function to delete thumbnail files from disk when needed.
+ * Multer configuration for handling thumbnail uploads. 
+ * Files are stored on disk with unique names, and only certain image types are allowed. 
+ * Also includes a helper function to delete thumbnail files from disk when needed.
  */
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => {
@@ -23,11 +25,12 @@ const storage = multer.diskStorage({
     },
 });
 
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 /**
- * Multer middleware for handling thumbnail uploads. Validates file type and size, and stores files on disk with unique names.
+ * Multer middleware for handling thumbnail uploads. 
+ * Validates file type and size, and stores files on disk with unique names.
  */
 export const uploadThumbnail = multer({
     storage,
@@ -42,8 +45,8 @@ export const uploadThumbnail = multer({
 });
 
 /**
- * Delete a thumbnail file from disk given its URL path.
- * @param thumbnailUrl e.g. "/uploads/thumbnails/abc123.jpg"
+ * Delete a thumbnail file from disk via its URL path.
+ * @param thumbnailUrl url of the thumbnail
  */
 export const deleteThumbnailFile = (thumbnailUrl: string) => {
     if (!thumbnailUrl) return;

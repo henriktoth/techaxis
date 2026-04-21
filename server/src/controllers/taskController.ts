@@ -24,8 +24,7 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
         let whereClause: Prisma.TaskWhereInput = {};
 
         if (isAdminRole(user.role)) {
-            // Admin sees all
-             if (assignedToId) { // Admin filter by assignee
+             if (assignedToId) {
                 whereClause.assignedToId = Number(assignedToId);
              }
         } else if (user.role === 'WRITER') {
@@ -35,7 +34,6 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
                     { assignedToId: null }
                 ]
             };
-            // Writer cannot filter by assignee arbitrary
         } else {
             return res.status(403).json({ message: 'Access denied' });
         }
@@ -247,7 +245,6 @@ export const updateTask = async (req: Request, res: Response, next: NextFunction
             },
         });
 
-        // Notify the newly assigned user (only if assignee changed)
         if (updatedTask.assignedToId && updatedTask.assignedToId !== existingTask.assignedToId) {
             await prisma.notification.create({
                 data: {
