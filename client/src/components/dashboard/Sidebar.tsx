@@ -8,10 +8,12 @@ import {
     ExternalLink,
     ClipboardList,
     BookUser,
-    User as UserIcon
+    User as UserIcon,
+    Tags
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import { isSuperAdmin } from '../../utils/roles';
 
 interface SidebarProps {
   user: User | null;
@@ -72,6 +74,9 @@ const Sidebar = ({ user, onLogout }: SidebarProps) => {
         )}
         {(user?.role === 'ADMIN' || user?.role === 'SUPERADMIN') && (
             <NavItem to="/admin/readers" icon={BookUser} title="Readers" />
+        )}
+        {isSuperAdmin(user?.role) && (
+            <NavItem to="/admin/categories" icon={Tags} title="Categories" />
         )}
       </nav>
 

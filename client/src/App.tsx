@@ -19,6 +19,7 @@ import Readers from "./pages/admin/readers/Readers";
 import Tasks from "./pages/admin/tasks/Tasks";
 import CreateTask from "./pages/admin/tasks/CreateTask";
 import EditTask from "./pages/admin/tasks/EditTask";
+import Categories from "./pages/admin/categories/Categories";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -40,6 +41,8 @@ const router = createBrowserRouter([
   { path: "/admin/users/edit/:id", element: <EditUser /> },
 
   { path: "/admin/readers", element: <Readers /> },
+
+  { path: "/admin/categories", element: <Categories /> },
   
   { path: "/admin/tasks", element: <Tasks /> },
   { path: "/admin/tasks/create", element: <CreateTask /> },
