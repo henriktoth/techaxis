@@ -3,8 +3,6 @@ import type { Request } from 'express';
 
 import { createPaginatedResponse, getPaginationParams } from '../pagination';
 
-type TestRequest = Partial<Request> & { query: Record<string, string | undefined> };
-
 const createReq = (query: Record<string, string | undefined>): Request => {
   return { query } as unknown as Request;
 };
