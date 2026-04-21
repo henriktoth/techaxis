@@ -542,8 +542,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
                 data: { isCompleted: true }
             });
         }
-
-        // Notify all admins when an article is submitted for review
+        
         if (updatedArticle.status === 'REVIEW' && article.status !== 'REVIEW') {
             const author = await prisma.user.findUnique({ where: { id: updatedArticle.authorId }, select: { name: true } });
             const admins = await prisma.user.findMany({ where: { role: { in: ['ADMIN', 'SUPERADMIN'] } } });

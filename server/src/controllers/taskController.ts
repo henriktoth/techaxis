@@ -171,7 +171,6 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
             },
         });
 
-        // Notify the assigned user
         if (newTask.assignedToId) {
             await prisma.notification.create({
                 data: {
