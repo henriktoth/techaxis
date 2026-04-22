@@ -14,12 +14,22 @@ interface NavbarProps {
 const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, user, onSignOut }: NavbarProps) => {
   const navigate = useNavigate();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const desktopCategoryMenuRef = useRef<HTMLDivElement>(null);
+  const mobileCategoryMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setShowUserMenu(false);
+      }
+      const clickedOutsideDesktop = desktopCategoryMenuRef.current
+        && !desktopCategoryMenuRef.current.contains(e.target as Node);
+      const clickedOutsideMobile = mobileCategoryMenuRef.current
+        && !mobileCategoryMenuRef.current.contains(e.target as Node);
+      if (clickedOutsideDesktop && clickedOutsideMobile) {
+        setShowCategoryMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -32,6 +42,10 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
         ? "text-white bg-indigo-600/10 text-indigo-400 shadow-[0_0_20px_-5px_theme(colors.indigo.500/0.5)] border border-indigo-500/20"
         : "text-slate-400 hover:text-white hover:bg-white/5"
     }`;
+
+  const limitedCategories = categories;
+  const showCategoryDropdown = limitedCategories.length > 5;
+  const visibleCategories = showCategoryDropdown ? [] : limitedCategories;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0B1120]/80 backdrop-blur-xl supports-backdrop-filter:bg-[#0B1120]/60">
@@ -54,7 +68,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
               Latest
             </button>
 
-            {categories.map((cat) => (
+            {visibleCategories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => onSelectCategory(cat.id)}
@@ -63,6 +77,48 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                 {cat.name}
               </button>
             ))}
+
+            {showCategoryDropdown && (
+              <div className="relative" ref={desktopCategoryMenuRef}>
+                <button
+                  onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+                  className={getNavItemClass(limitedCategories.some((cat) => cat.id === selectedCategoryId))}
+                >
+                  Categories
+                  <svg
+                    className={`ml-2 inline-block h-4 w-4 transition-transform duration-200 ${showCategoryMenu ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showCategoryMenu && (
+                  <div className="absolute left-0 mt-2 w-56 max-h-80 overflow-y-auto rounded-xl bg-[#0F172A] border border-white/10 shadow-xl z-50">
+                    <div className="py-2">
+                      {limitedCategories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            onSelectCategory(cat.id);
+                            setShowCategoryMenu(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                            selectedCategoryId === cat.id
+                              ? 'text-indigo-300 bg-white/5'
+                              : 'text-slate-300 hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center ml-auto xl:ml-6 gap-3">
@@ -163,15 +219,15 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
         </div>
       </div>
 
-      <div className="xl:hidden border-t border-white/5 overflow-x-auto">
-        <div className="flex px-4 py-3 space-x-3 min-w-max">
+      <div className="xl:hidden border-t border-white/5">
+        <div className="flex px-4 py-3 space-x-3 overflow-x-auto min-w-max">
             <button
               onClick={() => onSelectCategory(null)}
               className={getNavItemClass(selectedCategoryId === null)}
             >
               Latest
             </button>
-            {categories.map((cat) => (
+            {visibleCategories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => onSelectCategory(cat.id)}
@@ -180,6 +236,48 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                 {cat.name}
               </button>
             ))}
+
+            {showCategoryDropdown && (
+              <div className="relative" ref={mobileCategoryMenuRef}>
+                <button
+                  onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+                  className={getNavItemClass(limitedCategories.some((cat) => cat.id === selectedCategoryId))}
+                >
+                  Categories
+                  <svg
+                    className={`ml-2 inline-block h-4 w-4 transition-transform duration-200 ${showCategoryMenu ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showCategoryMenu && (
+                  <div className="absolute left-0 mt-2 w-56 max-h-80 overflow-y-auto rounded-xl bg-[#0F172A] border border-white/10 shadow-xl z-50">
+                    <div className="py-2">
+                      {limitedCategories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={() => {
+                            onSelectCategory(cat.id);
+                            setShowCategoryMenu(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                            selectedCategoryId === cat.id
+                              ? 'text-indigo-300 bg-white/5'
+                              : 'text-slate-300 hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       </div>
     </nav>

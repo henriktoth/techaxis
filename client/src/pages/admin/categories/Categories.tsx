@@ -121,6 +121,7 @@ const Categories = () => {
     } finally {
       setProcessing(false);
       setDeleteModal({ open: false, category: null });
+
     }
   };
 
