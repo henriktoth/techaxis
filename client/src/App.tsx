@@ -20,6 +20,7 @@ import Tasks from "./pages/admin/tasks/Tasks";
 import CreateTask from "./pages/admin/tasks/CreateTask";
 import EditTask from "./pages/admin/tasks/EditTask";
 import Categories from "./pages/admin/categories/Categories";
+import NotFound from "./pages/public/NotFound";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -47,6 +48,8 @@ const router = createBrowserRouter([
   { path: "/admin/tasks", element: <Tasks /> },
   { path: "/admin/tasks/create", element: <CreateTask /> },
   { path: "/admin/tasks/edit/:id", element: <EditTask /> },
+
+  { path: "*", element: <NotFound /> },
 ]);
 
 function App() {
