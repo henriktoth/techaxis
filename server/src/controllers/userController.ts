@@ -117,13 +117,16 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const caller = (req as Request & { user?: { userId: number; role: string } }).user;
+        const caller = req.user;
+        if (!caller?.userId || !caller.role) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
 
-        if (isAdminRole(existingUser.role) && !isHigherThan(caller!.role, existingUser.role) && caller!.userId !== userId) {
+        if (isAdminRole(existingUser.role) && !isHigherThan(caller.role, existingUser.role) && caller.userId !== userId) {
             return res.status(403).json({ message: 'Only a superadmin can edit admin users' });
         }
 
-        if (role && caller!.userId === userId) {
+        if (role && caller.userId === userId) {
             return res.status(403).json({ message: 'You cannot change your own role' });
         }
 
@@ -131,7 +134,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
             return res.status(403).json({ message: 'Cannot assign the superadmin role' });
         }
 
-        if (role && isAdminRole(role) && caller!.role !== 'SUPERADMIN') {
+        if (role && isAdminRole(role) && caller.role !== 'SUPERADMIN') {
             return res.status(403).json({ message: 'Only a superadmin can assign admin roles' });
         }
 
@@ -189,7 +192,7 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
  */
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const caller = (req as Request & { user?: { userId: number; role: string } }).user;
+        const caller = req.user;
         const isAdmin = caller?.role === 'ADMIN' || caller?.role === 'SUPERADMIN';
 
         const { name, email, password, role } = req.body;
@@ -208,7 +211,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
             return res.status(403).json({ message: 'Cannot create a superadmin account' });
         }
 
-        if (isAdmin && isAdminRole(assignedRole) && caller!.role !== 'SUPERADMIN') {
+        if (isAdmin && isAdminRole(assignedRole) && caller?.role !== 'SUPERADMIN') {
             return res.status(403).json({ message: 'Only a superadmin can create admin users' });
         }
 
@@ -259,8 +262,12 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
     try {
         const { id } = req.params;
         const userId = Number(id);
-        const admin = (req as Request & { user?: { userId: number; role: string } }).user;
+        const admin = req.user;
         const adminId = admin?.userId;
+
+        if (!adminId || !admin?.role) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
 
         if (isNaN(userId)) {
             return res.status(400).json({ message: 'Invalid user ID' });
@@ -278,14 +285,14 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
             return res.status(404).json({ message: 'User not found' });
         }
 
-        if (!isHigherThan(admin!.role, existingUser.role)) {
+        if (!isHigherThan(admin.role, existingUser.role)) {
             return res.status(403).json({ message: `Cannot delete a ${existingUser.role.toLowerCase()} account` });
         }
 
         await prisma.$transaction(async (tx) => {
             await tx.article.updateMany({
                 where: { authorId: userId },
-                data: { authorId: adminId! },
+                data: { authorId: adminId },
             });
 
             await tx.task.updateMany({
@@ -376,9 +383,12 @@ export const toggleUserDisabled = async (req: Request, res: Response, next: Next
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const caller = (req as Request & { user?: { userId: number; role: string } }).user;
+        const caller = req.user;
+        if (!caller?.role) {
+            return res.status(401).json({ message: 'Authentication required' });
+        }
 
-        if (!isHigherThan(caller!.role, existingUser.role)) {
+        if (!isHigherThan(caller.role, existingUser.role)) {
             return res.status(403).json({ message: `Cannot disable a ${existingUser.role.toLowerCase()} account` });
         }
 
@@ -409,7 +419,7 @@ export const toggleUserDisabled = async (req: Request, res: Response, next: Next
  */
 export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const caller = (req as Request & { user?: { userId: number; role: string } }).user;
+        const caller = req.user;
         const userId = caller?.userId;
 
         if (!userId) {
