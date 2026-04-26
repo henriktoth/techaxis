@@ -143,7 +143,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                   </button>
 
                   {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-64 bg-[#1F2937] border border-white/10 rounded-xl shadow-xl py-2 z-50">
+                    <div className="absolute right-0 mt-2 w-64 bg-[#1F2937] border border-white/10 rounded-xl shadow-xl py-2 z-80">
                       <div className="px-4 py-2 border-b border-white/10">
                         <p className="text-sm font-medium text-white truncate">{user.name}</p>
                         <p className="text-xs text-slate-400 truncate">{user.email}</p>
@@ -203,8 +203,9 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
         </div>
       </div>
 
-      <div className="xl:hidden border-t border-white/5">
-        <div className="flex px-4 py-3 space-x-3 overflow-x-auto min-w-max">
+      <div className="xl:hidden border-t border-white/5 relative z-60">
+        <div className="px-4 py-3 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+          <div className="flex w-max space-x-3 pr-4">
             <button
               onClick={() => onSelectCategory(null)}
               className={getNavItemClass(selectedCategoryId === null)}
@@ -234,7 +235,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                 </button>
 
                 {showCategoryMenu && (
-                  <div className="absolute left-0 mt-2 w-56 max-h-80 overflow-y-auto rounded-xl bg-[#0F172A] border border-white/10 shadow-xl z-50">
+                  <div className="fixed left-4 right-4 top-34 max-h-[min(60vh,22rem)] overflow-y-auto overscroll-contain rounded-xl bg-[#0F172A] border border-white/10 shadow-xl z-70">
                     <div className="py-2">
                       {limitedCategories.map((cat) => (
                         <button
@@ -257,6 +258,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                 )}
               </div>
             )}
+          </div>
         </div>
       </div>
     </nav>
