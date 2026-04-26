@@ -3,17 +3,17 @@ import { prisma } from '../config/db.config';
 
 /**
  * Get all favorites for the authenticated user.
- * @returns 200 with array of favorites (with article data)
+ * @returns 200 with array of favorites (with article data), 401 if unauthorized, 500 if error fetching favorites
  */
 export const getFavorites = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
         const favorites = await prisma.favorite.findMany({
-            where: { userId: user.userId },
+            where: { userId: userId },
             include: {
                 article: {
                     include: {
@@ -34,12 +34,12 @@ export const getFavorites = async (req: Request, res: Response, next: NextFuncti
 
 /**
  * Add an article to favorites.
- * @returns 201 with { message: string }
+ * @returns 201 with success message, 400 if invalid article ID, 401 if unauthorized, 404 if article not found, 409 if article already in favorites, 500 if error adding favorite
  */
 export const addFavorite = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -54,7 +54,7 @@ export const addFavorite = async (req: Request, res: Response, next: NextFunctio
         }
 
         const existing = await prisma.favorite.findUnique({
-            where: { userId_articleId: { userId: user.userId, articleId } },
+            where: { userId_articleId: { userId, articleId } },
         });
 
         if (existing) {
@@ -62,7 +62,7 @@ export const addFavorite = async (req: Request, res: Response, next: NextFunctio
         }
 
         await prisma.favorite.create({
-            data: { userId: user.userId, articleId },
+            data: { userId, articleId },
         });
 
         res.status(201).json({ message: 'Article added to favorites' });
@@ -73,12 +73,12 @@ export const addFavorite = async (req: Request, res: Response, next: NextFunctio
 
 /**
  * Remove an article from favorites.
- * @returns 200 with { message: string }
+ * @returns 200 with success message, 400 if invalid article ID, 401 if unauthorized, 404 if favorite not found, 500 if error removing favorite
  */
 export const removeFavorite = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -88,7 +88,7 @@ export const removeFavorite = async (req: Request, res: Response, next: NextFunc
         }
 
         const existing = await prisma.favorite.findUnique({
-            where: { userId_articleId: { userId: user.userId, articleId } },
+            where: { userId_articleId: { userId, articleId } },
         });
 
         if (!existing) {
@@ -96,7 +96,7 @@ export const removeFavorite = async (req: Request, res: Response, next: NextFunc
         }
 
         await prisma.favorite.delete({
-            where: { userId_articleId: { userId: user.userId, articleId } },
+            where: { userId_articleId: { userId, articleId } },
         });
 
         res.json({ message: 'Article removed from favorites' });
@@ -107,12 +107,12 @@ export const removeFavorite = async (req: Request, res: Response, next: NextFunc
 
 /**
  * Check if an article is in the user's favorites.
- * @returns 200 with { isFavorited: boolean }
+ * @returns 200 with isFavorited boolean, 400 if invalid article ID, 401 if unauthorized, 500 if error checking favorite
  */
 export const checkFavorite = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -122,7 +122,7 @@ export const checkFavorite = async (req: Request, res: Response, next: NextFunct
         }
 
         const existing = await prisma.favorite.findUnique({
-            where: { userId_articleId: { userId: user.userId, articleId } },
+            where: { userId_articleId: { userId, articleId } },
         });
 
         res.json({ isFavorited: !!existing });
@@ -133,17 +133,17 @@ export const checkFavorite = async (req: Request, res: Response, next: NextFunct
 
 /**
  * Get all favorite article IDs for the authenticated user.
- * @returns 200 with array of article IDs
+ * @returns 200 with array of article IDs, 401 if unauthorized, 500 if error fetching favorite IDs
  */
 export const getFavoriteIds = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
         const favorites = await prisma.favorite.findMany({
-            where: { userId: user.userId },
+            where: { userId },
             select: { articleId: true },
         });
 

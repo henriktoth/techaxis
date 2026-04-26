@@ -22,6 +22,11 @@ enum ArticleStatus {
   REJECTED
 }
 
+enum NotificationType {
+  TASK_ASSIGNED
+  ARTICLE_REVIEW
+}
+
 model User {
   id            Int     @id @default(autoincrement())
   email         String  @unique
@@ -90,11 +95,6 @@ model Task {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-enum NotificationType {
-  TASK_ASSIGNED
-  ARTICLE_REVIEW
 }
 
 model Notification {

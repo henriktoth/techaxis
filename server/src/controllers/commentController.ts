@@ -4,7 +4,7 @@ import { getPaginationParams, createPaginatedResponse } from '../utils/paginatio
 
 /**
  * Create a new comment.
- * @returns 201 with created comment, 401 if unauthorized
+ * @returns 201 with created comment, 401 if unauthorized, 500 if error creating comment
  */
 export const createComment = async (req: Request, res: Response) => {
   try {
@@ -41,7 +41,7 @@ export const createComment = async (req: Request, res: Response) => {
 
 /**
  * Get comments for an article
- * @returns 200 with paginated comments
+ * @returns 200 with paginated comments, 500 if error fetching comments
  */
 export const getCommentsByArticle = async (req: Request, res: Response) => {
   try {
@@ -85,7 +85,7 @@ export const getCommentsByArticle = async (req: Request, res: Response) => {
 /**
  * Delete a comment.
  * Only the comment author, ADMIN, or SUPERADMIN can delete a comment.
- * @returns 200 with success message, 401 if unauthorized, 403 if forbidden, 404 if comment not found
+ * @returns 200 with success message, 401 if unauthorized, 403 if forbidden, 404 if comment not found, 500 if error deleting comment
  */
 export const deleteComment = async (req: Request, res: Response) => {
   try {

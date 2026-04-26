@@ -6,6 +6,7 @@ const { mockPrisma } = vi.hoisted(() => ({
     category: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       delete: vi.fn(),
       update: vi.fn(),
@@ -57,6 +58,7 @@ const createNext = (): NextFunction => vi.fn() as unknown as NextFunction;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockPrisma.category.findFirst.mockResolvedValue({ id: 5, name: 'Other' });
 });
 
 describe('categoryController unit tests', () => {
@@ -235,6 +237,7 @@ describe('categoryController unit tests', () => {
       const res = createRes();
       const next = createNext();
 
+      mockPrisma.category.findFirst.mockResolvedValue({ id: 5, name: 'Other' });
       mockPrisma.category.findUnique.mockResolvedValue(null);
 
       await deleteCategory(req, res, next);
@@ -249,6 +252,7 @@ describe('categoryController unit tests', () => {
       const res = createRes();
       const next = createNext();
 
+      mockPrisma.category.findFirst.mockResolvedValue({ id: 5, name: 'Other' });
       mockPrisma.category.findUnique.mockResolvedValue({ id: 3, name: 'News' });
       mockPrisma.article.updateMany.mockResolvedValue({ count: 2 });
       mockPrisma.category.delete.mockResolvedValue({ id: 3, name: 'News' });
@@ -271,6 +275,7 @@ describe('categoryController unit tests', () => {
       const next = createNext();
       const error = new Error('delete failed');
 
+      mockPrisma.category.findFirst.mockResolvedValue({ id: 5, name: 'Other' });
       mockPrisma.category.findUnique.mockResolvedValue({ id: 3, name: 'News' });
       mockPrisma.article.updateMany.mockResolvedValue({ count: 1 });
       mockPrisma.category.delete.mockRejectedValue(error);

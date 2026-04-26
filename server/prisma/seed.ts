@@ -8,9 +8,12 @@ async function main() {
     console.log('Seeding database...');
 
     try {
-        await prisma.$executeRawUnsafe(`TRUNCATE TABLE "Task", "Article", "Category", "User" RESTART IDENTITY CASCADE;`);
+        await prisma.$executeRawUnsafe(`TRUNCATE TABLE "Comment", "Favorite", "Notification", "Task", "Article", "Category", "User" RESTART IDENTITY CASCADE;`);
     } catch {
         console.log('Truncate failed, trying deleteMany');
+        await prisma.comment.deleteMany();
+        await prisma.favorite.deleteMany();
+        await prisma.notification.deleteMany();
         await prisma.task.deleteMany();
         await prisma.article.deleteMany();
         await prisma.category.deleteMany();
@@ -24,6 +27,7 @@ async function main() {
         { name: 'Writer One', email: 'writer@techaxis.com', role: Role.WRITER },
         { name: 'Writer Two', email: 'writer2@techaxis.com', role: Role.WRITER },
         { name: 'Super Admin', email: 'superadmin@techaxis.com', role: Role.SUPERADMIN },
+        { name: 'Reader User', email: 'reader@techaxis.com', role: Role.READER },
     ];
 
     const users = [];

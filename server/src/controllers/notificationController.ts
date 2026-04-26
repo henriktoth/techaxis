@@ -3,17 +3,17 @@ import { prisma } from '../config/db.config';
 
 /**
  * Get all notifications for the authenticated user.
- * @returns 200 with array of notifications, 401 if unauthorized
+ * @returns 200 with array of notifications, 401 if unauthorized, 500 if error fetching notifications
  */
 export const getNotifications = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
         const notifications = await prisma.notification.findMany({
-            where: { userId: user.userId },
+            where: { userId },
             orderBy: { createdAt: 'desc' },
             take: 50,
         });
@@ -26,17 +26,17 @@ export const getNotifications = async (req: Request, res: Response, next: NextFu
 
 /**
  * Get the count of unread notifications for the authenticated user.
- * @returns 200 with count, 401 if unauthorized
+ * @returns 200 with count, 401 if unauthorized, 500 if error fetching count
  */
 export const getUnreadCount = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
         const count = await prisma.notification.count({
-            where: { userId: user.userId, isRead: false },
+            where: { userId, isRead: false },
         });
 
         res.status(200).json({ count });
@@ -47,17 +47,17 @@ export const getUnreadCount = async (req: Request, res: Response, next: NextFunc
 
 /**
  * Mark a single notification as read.
- * @returns 200 with updated notification, 400 if invalid id, 401 if unauthorized, 403 if forbidden, 404 if notification not found
+ * @returns 200 with updated notification, 400 if invalid id, 401 if unauthorized, 403 if forbidden, 404 if notification not found, 500 if error updating notification
  */
 export const markAsRead = async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
-    if (isNaN(id)) {
-        return res.status(400).json({ message: 'Invalid notification id' });
-    }
-
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const id = Number(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ message: 'Invalid notification id' });
+        }
+
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -67,7 +67,7 @@ export const markAsRead = async (req: Request, res: Response, next: NextFunction
             return res.status(404).json({ message: 'Notification not found' });
         }
 
-        if (notification.userId !== user.userId) {
+        if (notification.userId !== userId) {
             return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -84,17 +84,17 @@ export const markAsRead = async (req: Request, res: Response, next: NextFunction
 
 /**
  * Mark all notifications as read for the authenticated user.
- * @returns 200 with success message, 401 if unauthorized
+ * @returns 200 with success message, 401 if unauthorized, 500 if error updating notifications
  */
 export const markAllAsRead = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
         await prisma.notification.updateMany({
-            where: { userId: user.userId, isRead: false },
+            where: { userId, isRead: false },
             data: { isRead: true },
         });
 

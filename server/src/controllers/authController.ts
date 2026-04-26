@@ -4,10 +4,9 @@ import bcrypt from 'bcrypt';
 import { signToken } from '../utils/auth';
 
 /**
-    * Login user and return JWT token.
-    * @returns 200 with { token: string } or 401 if missing or invalid credentials, 400 if missing fields
-    * @param req.body.email User email
-    * @param req.body.password User password
+ * Login user and return JWT token.
+ * @param {Request} req - Express request object containing email and password in the body
+ * @returns 200 with { token: string }, 400 if missing fields, 401 if invalid credentials, or 403 if account disabled
  */
 export const login = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
@@ -44,20 +43,19 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 };
 
 /**
-     * Get info about the authenticated user.
-     * @returns 200 with { id: number, name: string, email: string, role: string } or 401 if not authenticated, 404 if user not found
-     * @param req.user.userId Authenticated user id
-     * @param req.user.role Authenticated user role
+ * Get info about the authenticated user.
+ * @param {Request} req - Express request object containing authenticated user info
+ * @returns 200 with { id: number, name: string, email: string, role: string }, 401 if not authenticated, or 404 if user not found
  */
 export const getUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
         const existingUser = await prisma.user.findUnique({
-            where: { id: user.userId },
+            where: { id: userId },
             select: { id: true, name: true, email: true, role: true },
         });
 

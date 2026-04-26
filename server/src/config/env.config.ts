@@ -8,7 +8,7 @@ const schema = z.object({
     PORT: z.coerce.number().positive().int().default(8000),
     HOST: z.string().default('localhost'),
 
-    DATABASE_URL: z.string().min(1),
+    DATABASE_URL: z.string(),
     DB_HOST: z.string(),
     DB_PORT: z.coerce.number(),
     DB_NAME: z.string(),

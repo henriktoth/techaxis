@@ -8,8 +8,8 @@ import { getPaginationParams, createPaginatedResponse } from '../utils/paginatio
 import { parseContentDelta } from '../utils/contentDelta';
 
 /**
-    * List all published articles (public).
-    * @returns 200 with Article[]
+ * List all published articles (public).
+ * @returns 200 with paginated Article list { data, total, page, limit }
  */
 export const getPublishedArticles = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -55,9 +55,9 @@ export const getPublishedArticles = async (req: Request, res: Response, next: Ne
 };
 
 /**
-    * Get a single published article by id or slug (public).
-    * @param req.params.id Article id (number) or slug (string)
-    * @returns 200 with Article or 404 if not published/not found
+ * Get a single published article by id or slug (public).
+ * @param {Request} req - Express request object containing id or slug in params
+ * @returns 200 with Article or 404 if not published/not found
  */
 export const getPublishedArticleById = async (req: Request, res: Response, next: NextFunction) => {
     const param = req.params.id;
@@ -89,14 +89,15 @@ export const getPublishedArticleById = async (req: Request, res: Response, next:
 };
 
 /**
-    * List articles for the authenticated user.
-    * ADMIN: all articles; WRITER: own articles.
-    * @returns 200 with Article[]
+ * List articles for the authenticated user.
+ * ADMIN: all articles; WRITER: own articles.
+ * @returns 200 with paginated Article list { data, total, page, limit }
  */
 export const getArticlesForUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        const role = req.user?.role;
+        if (!userId || !role) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -105,12 +106,12 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
 
         const whereClause: Prisma.ArticleWhereInput = {};
 
-        if (isAdminRole(user.role)) {
+        if (isAdminRole(role)) {
             if (authorId) {
                 whereClause.authorId = Number(authorId);
             }
-        } else if (user.role === 'WRITER') {
-            whereClause.authorId = user.userId;
+        } else if (role === 'WRITER') {
+            whereClause.authorId = userId;
         } else {
             return res.status(403).json({ message: 'Access denied' });
         }
@@ -159,19 +160,20 @@ export const getArticlesForUser = async (req: Request, res: Response, next: Next
 };
 
 /**
-    * Get one article for the authenticated user.
-    * ADMIN: any article; WRITER: only own articles; 404 if missing; 403 if forbidden.
-    * @param req.params.id Article id (number)
+ * Get one article for the authenticated user.
+ * ADMIN: any article; WRITER: only own articles; 404 if missing; 403 if forbidden.
+ * @param {Request} req - Express request object containing article id in params
  */
 export const getArticleForUserById = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (isNaN(Number(id))) {
+    if (isNaN(id)) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        const role = req.user?.role;
+        if (!userId || !role) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -191,12 +193,12 @@ export const getArticleForUserById = async (req: Request, res: Response, next: N
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        if (isAdminRole(user.role)) {
+        if (isAdminRole(role)) {
             return res.status(200).json(article);
         }
 
-        if (user.role === 'WRITER') {
-            if (article.authorId === user.userId) {
+        if (role === 'WRITER') {
+            if (article.authorId === userId) {
                 return res.status(200).json(article);
             }
             return res.status(403).json({ message: 'Access denied' });
@@ -215,13 +217,14 @@ export const getArticleForUserById = async (req: Request, res: Response, next: N
  */
 export const getArticleStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) return res.status(401).json({ message: 'Authentication required' });
+        const userId = req.user?.userId;
+        const role = req.user?.role;
+        if (!userId || !role) return res.status(401).json({ message: 'Authentication required' });
 
         let whereClause: Prisma.ArticleWhereInput = {};
-        if (user.role === 'WRITER') {
-            whereClause = { authorId: user.userId };
-        } else if (!isAdminRole(user.role)) {
+        if (role === 'WRITER') {
+            whereClause = { authorId: userId };
+        } else if (!isAdminRole(role)) {
             return res.status(403).json({ message: 'Access denied' });
         }
         
@@ -241,13 +244,14 @@ export const getArticleStats = async (req: Request, res: Response, next: NextFun
 
 /**
  * Create a new article.
- * Access: WRITER (DRAFT, REVIEW), ADMIN (REVIEW, REJECTED)
+ * Access: WRITER (DRAFT, REVIEW), ADMIN (Cannot set to REVIEW)
  * @returns 201 with created Article
  */
 export const addArticle = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        const role = req.user?.role;
+        if (!userId || !role) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -264,11 +268,11 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
             articleStatus = 'DRAFT';
         }
 
-        if (user.role === 'WRITER') {
+        if (role === 'WRITER') {
             if (articleStatus !== 'DRAFT' && articleStatus !== 'REVIEW') {
                 return res.status(400).json({ message: 'Writers can only create articles with DRAFT or REVIEW status' });
             }
-        } else if (isAdminRole(user.role)) {
+        } else if (isAdminRole(role)) {
             if (articleStatus === 'REVIEW') {
                 return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
             }
@@ -328,7 +332,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
                 publishedAt,
                 scheduledAt,
                 slug: uniqueSlug,
-                authorId: user.userId,
+                authorId: userId,
                 categoryId: resolvedCategoryId,
                 taskId: taskId ? Number(taskId) : null,
             },
@@ -342,7 +346,7 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
         }
 
         if (newArticle.status === 'REVIEW') {
-            const author = await prisma.user.findUnique({ where: { id: user.userId }, select: { name: true } });
+            const author = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
             const admins = await prisma.user.findMany({ where: { role: { in: ['ADMIN', 'SUPERADMIN'] } } });
             await prisma.notification.createMany({
                 data: admins.map((admin) => ({
@@ -367,14 +371,15 @@ export const addArticle = async (req: Request, res: Response, next: NextFunction
  */
 export const deleteArticle = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (isNaN(Number(id))) {
+    if (isNaN(id)) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
-             return res.status(401).json({ message: 'Authentication required' });
+        const userId = req.user?.userId;
+        const role = req.user?.role;
+        if (!userId || !role) {
+            return res.status(401).json({ message: 'Authentication required' });
         }
 
         const article = await prisma.article.findUnique({
@@ -386,14 +391,14 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
              return res.status(404).json({ message: 'Article not found' });
         }
 
-        if (user.role === 'WRITER') {
-             if (article.authorId !== user.userId) {
+        if (role === 'WRITER') {
+             if (article.authorId !== userId) {
                   return res.status(403).json({ message: 'Access denied' });
              }
              if (article.status === 'PUBLISHED' || article.status === 'SCHEDULED') {
                   return res.status(403).json({ message: 'Writers can only delete non published articles' });
              }
-        } else if (!isAdminRole(user.role)) {
+        } else if (!isAdminRole(role)) {
              return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -413,21 +418,22 @@ export const deleteArticle = async (req: Request, res: Response, next: NextFunct
 
 /**
  * Update an article.
- * ADMIN: Can update PUBLISHED articles OR own articles.
+ * ADMIN: Can update any article except other users' DRAFT articles.
  * WRITER: Can update own articles if DRAFT, REVIEW, or REJECTED.
- * @param req.body fields to update: title, summary, content, thumbnail, categoryId, status
+ * @param {Request} req - Express request object containing update fields in body
  * @returns 200 with updated Article
  */
 export const updateArticle = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (isNaN(Number(id))) {
+    if (isNaN(id)) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        const userId = req.user?.userId;
+        const role = req.user?.role;
         
-        if (!user) {
+        if (!userId || !role) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -439,16 +445,16 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(404).json({ message: 'Article not found' });
         }
 
-        if (user.role === 'WRITER') {
-            if (article.authorId !== user.userId) {
+        if (role === 'WRITER') {
+            if (article.authorId !== userId) {
                 return res.status(403).json({ message: 'Access denied' });
             }
 
             if (!['DRAFT', 'REVIEW', 'REJECTED'].includes(article.status)) {
                 return res.status(403).json({ message: 'Writers can only edit articles in DRAFT, REVIEW or REJECTED status' });
             }
-        } else if (isAdminRole(user.role)) {
-            if (article.authorId !== user.userId && article.status === 'DRAFT') {
+        } else if (isAdminRole(role)) {
+            if (article.authorId !== userId && article.status === 'DRAFT') {
                 return res.status(403).json({ message: 'Admins cannot edit other users\' draft articles' });
             }
         } else {
@@ -485,7 +491,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         }
         if (summary) data.summary = summary;
         if (content) data.content = content;
-        if (Object.prototype.hasOwnProperty.call(req.body, 'contentDelta')) {
+        if (req.body.contentDelta !== undefined) {
             data.contentDelta = contentDelta ?? null;
         }
         if (categoryId) {
@@ -500,11 +506,11 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
         }
 
         if (status) {
-            if (user.role === 'WRITER' && !['DRAFT', 'REVIEW'].includes(status)) {
+            if (role === 'WRITER' && !['DRAFT', 'REVIEW'].includes(status)) {
                 return res.status(400).json({ message: 'Writers can only set status to DRAFT or REVIEW' });
             }
 
-            if (isAdminRole(user.role) && status === 'REVIEW' && article.authorId === user.userId) {
+            if (isAdminRole(role) && status === 'REVIEW' && article.authorId === userId) {
                 return res.status(400).json({ message: 'Admins cannot set their own articles to review status' });
             }
             
@@ -571,7 +577,7 @@ export const updateArticle = async (req: Request, res: Response, next: NextFunct
  */
 export const reviewArticle = async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
-    if (isNaN(Number(id))) {
+    if (isNaN(id)) {
         return res.status(400).json({ message: 'Invalid article id' });
     }
 
@@ -582,9 +588,10 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        const userId = req.user?.userId;
+        const role = req.user?.role;
         
-        if (!user || !isAdminRole(user.role)) {
+        if (!userId || !role || !isAdminRole(role)) {
             return res.status(403).json({ message: 'Access denied. Only Admins can review articles.' });
         }
 
@@ -600,7 +607,7 @@ export const reviewArticle = async (req: Request, res: Response, next: NextFunct
             return res.status(403).json({ message: 'Cannot review articles that are still in draft' });
         }
 
-        if (article.authorId === user.userId) {
+        if (article.authorId === userId) {
             return res.status(403).json({ message: 'Admins cannot review their own articles' });
         }
 

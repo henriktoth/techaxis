@@ -7,7 +7,8 @@ import { Prisma } from '../generated/prisma/client';
 import { getPaginationParams, createPaginatedResponse } from '../utils/pagination';
 
 /**
- * Get all users. (Admin only)
+ * Get all users with optional filters and pagination.
+ * Access is typically restricted by route middleware.
  * @returns 200 with users list
  */
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -58,8 +59,9 @@ export const getAllUsers = async (req: Request, res: Response, next: NextFunctio
 };
 
 /**
- * Get user by id. (Admin only)
- * @returns 200 with user or 404 if not found
+ * Get a user by id.
+ * Access is typically restricted by route middleware.
+ * @returns 200 with user, 400 if invalid id, or 404 if not found
  * @param req.params.id User id
  */
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
@@ -92,8 +94,9 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
 };
 
 /**
- * Update user by id. (Admin only)
- * @returns 200 with updated user or 404 if not found
+ * Update a user by id with role-based validation.
+ * Access is typically restricted by route middleware.
+ * @returns 200 with updated user, 400 if invalid id, 403 if role rules are violated, 404 if not found, or 409 if email is already in use
  */
 export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -180,9 +183,9 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 
 /**
  * Create a new user.
- * - Public (no auth): creates a READER and returns a JWT token.
- * - Admin (authenticated): creates user with the given role.
- * @returns 201 with created user (+ token for readers) or 400/409 on error
+ * - Public requests create a READER and return a JWT token.
+ * - Admin requests can create a user with the supplied role.
+ * @returns 201 with created user (+ token for public reader signup) or 400/403/409 on error
  */
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -247,10 +250,10 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
- * Delete user by id. (Admin only)
- * Transfers all articles from the deleted user to the admin performing the deletion.
- * Cannot delete admin accounts or yourself.
- * @returns 200 with deleted user or 404 if not found
+ * Delete user by id.
+ * Transfers all articles from the deleted user to the deleting admin.
+ * Cannot delete yourself or a user with an equal/higher role.
+ * @returns 200 with deletion success message, 400 if invalid id, 403 if forbidden, or 404 if not found
  */
 export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -306,7 +309,8 @@ export const deleteUser = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
- * Get all readers with favourite count. (Admin only)
+ * Get all readers with favourite count and optional search.
+ * Access is typically restricted by route middleware.
  * @returns 200 with readers list including _count.favorites
  */
 export const getReaders = async (req: Request, res: Response, next: NextFunction) => {
@@ -351,8 +355,9 @@ export const getReaders = async (req: Request, res: Response, next: NextFunction
 };
 
 /**
- * Toggle user disabled status. (Admin only)
- * @returns 200 with updated user or 404 if not found
+ * Toggle user disabled status.
+ * Access is typically restricted by route middleware.
+ * @returns 200 with updated user, 400 if invalid id, 403 if the target has an equal/higher role, or 404 if not found
  */
 export const toggleUserDisabled = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -398,8 +403,9 @@ export const toggleUserDisabled = async (req: Request, res: Response, next: Next
 };
 
 /**
- * Update current user profile.
- * @returns 200 with updated user
+ * Update the authenticated user's profile.
+ * Writers and admins cannot change their own email address.
+ * @returns 200 with updated user, 401 if not authenticated, 403 if email change is forbidden, 404 if the user record is missing, or 409 if email is already in use
  */
 export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -424,7 +430,7 @@ export const updateProfile = async (req: Request, res: Response, next: NextFunct
         if (name) data.name = name;
 
         if (email && email !== user.email) {
-            if (user.role === 'WRITER' || user.role === 'ADMIN') {
+            if (caller?.role === 'WRITER' || caller?.role === 'ADMIN') {
                 return res.status(403).json({ message: 'You are not allowed to update your email.' });
             }
 

@@ -12,9 +12,10 @@ import { getPaginationParams, createPaginatedResponse } from '../utils/paginatio
  */
 export const getAllTasks = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        const userId = req.user?.userId;
+        const role = req.user?.role;
 
-        if (!user) {
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -23,14 +24,14 @@ export const getAllTasks = async (req: Request, res: Response, next: NextFunctio
         
         let whereClause: Prisma.TaskWhereInput = {};
 
-        if (isAdminRole(user.role)) {
+          if (role && isAdminRole(role)) {
              if (assignedToId) {
                 whereClause.assignedToId = Number(assignedToId);
              }
-        } else if (user.role === 'WRITER') {
+        } else if (role === 'WRITER') {
             whereClause = {
                 OR: [
-                    { assignedToId: user.userId },
+                    { assignedToId: userId },
                     { assignedToId: null }
                 ]
             };
@@ -86,9 +87,10 @@ export const getTaskById = async (req: Request, res: Response, next: NextFunctio
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        const userId = req.user?.userId;
+        const role = req.user?.role;
 
-        if (!user) {
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -108,12 +110,12 @@ export const getTaskById = async (req: Request, res: Response, next: NextFunctio
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        if (isAdminRole(user.role)) {
+        if (role && isAdminRole(role)) {
             return res.status(200).json(task);
         } 
         
-        if (user.role === 'WRITER') {
-            if (task.assignedToId === user.userId || task.assignedToId === null) {
+        if (role === 'WRITER') {
+            if (task.assignedToId === userId || task.assignedToId === null) {
                 return res.status(200).json(task);
             } else {
                 return res.status(403).json({ message: 'Access denied. You can only view tasks assigned to you or unassigned tasks.' });
@@ -305,9 +307,10 @@ export const toggleTaskStatus = async (req: Request, res: Response, next: NextFu
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
+        const userId = req.user?.userId;
+        const role = req.user?.role;
 
-        if (!user) {
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -319,9 +322,9 @@ export const toggleTaskStatus = async (req: Request, res: Response, next: NextFu
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        const isAssignee = existingTask.assignedToId === user.userId;
+        const isAssignee = existingTask.assignedToId === userId;
         
-        if (!isAdminRole(user.role) && !isAssignee) {
+        if (!role || (!isAdminRole(role) && !isAssignee)) {
             return res.status(403).json({ message: 'Access denied. You can only update the status of tasks assigned to you.' });
         }
 
@@ -349,8 +352,8 @@ export const takeTask = async (req: Request, res: Response, next: NextFunction) 
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -365,7 +368,7 @@ export const takeTask = async (req: Request, res: Response, next: NextFunction) 
 
         const updatedTask = await prisma.task.update({
             where: { id },
-            data: { assignedToId: user.userId },
+            data: { assignedToId: userId },
             include: {
                 assignedTo: {
                     select: { name: true, email: true }
@@ -390,8 +393,8 @@ export const dropTask = async (req: Request, res: Response, next: NextFunction) 
     }
 
     try {
-        const user = (req as Request & { user?: { userId: number; role: string } }).user;
-        if (!user) {
+        const userId = req.user?.userId;
+        if (!userId) {
             return res.status(401).json({ message: 'Authentication required' });
         }
 
@@ -400,7 +403,7 @@ export const dropTask = async (req: Request, res: Response, next: NextFunction) 
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        if (task.assignedToId !== user.userId) {
+        if (task.assignedToId !== userId) {
             return res.status(403).json({ message: 'Access denied. You can only drop tasks assigned to you.' });
         }
 
