@@ -58,7 +58,7 @@ const FilterDropdown = ({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 w-full min-w-[160px] px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-left hover:border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors cursor-pointer"
+        className="flex items-center gap-2 w-full min-w-40 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-left hover:border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors cursor-pointer"
       >
         {Icon && <Icon size={14} className="text-gray-400 shrink-0" />}
         <span className={`truncate grow ${value ? 'text-gray-900' : 'text-gray-500'}`}>
@@ -68,7 +68,7 @@ const FilterDropdown = ({
       </button>
 
       {open && (
-        <div className="absolute z-20 mt-1.5 w-full min-w-[180px] bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute z-20 mt-1.5 w-full min-w-45 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
           <ul className="max-h-48 overflow-y-auto py-1">
             {options.map(option => (
               <li key={option.value}>
@@ -126,7 +126,7 @@ const AuthorCombobox = ({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 w-full min-w-[160px] px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-left hover:border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors cursor-pointer"
+        className="flex items-center gap-2 w-full min-w-40 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-left hover:border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors cursor-pointer"
       >
         <UserSearch size={14} className="text-gray-400 shrink-0" />
         <span className={`truncate grow ${selectedAuthor ? 'text-gray-900' : 'text-gray-500'}`}>
@@ -136,7 +136,7 @@ const AuthorCombobox = ({
       </button>
 
       {open && (
-        <div className="absolute z-20 mt-1.5 w-full min-w-[220px] bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+        <div className="absolute z-20 mt-1.5 w-full min-w-55 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
           <div className="p-2 border-b border-gray-100">
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -236,7 +236,7 @@ const ArticleFilters = ({
       <hr className="border-gray-100" />
 
       <div className="flex flex-wrap items-end gap-3">
-        <div className="relative grow min-w-[180px]">
+        <div className="relative grow min-w-45">
           <label className="block text-xs font-medium text-gray-500 mb-1.5">Search</label>
           <div className="relative">
             <input

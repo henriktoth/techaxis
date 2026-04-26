@@ -5,7 +5,6 @@ import { toast } from 'react-hot-toast';
 import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserForm from '../../../components/dashboard/UserForm';
-import { ArrowLeft } from 'lucide-react';
 import { isAdminRole } from '../../../utils/roles';
 
 const CreateUser = () => {

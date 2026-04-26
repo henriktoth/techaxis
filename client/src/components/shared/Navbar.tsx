@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ChevronDown, Heart, LayoutGrid, LogOut, Search, User as UserIcon } from "lucide-react";
 import type { Category, User } from "../../types";
 
 interface NavbarProps {
@@ -85,14 +86,9 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                   className={getNavItemClass(limitedCategories.some((cat) => cat.id === selectedCategoryId))}
                 >
                   Categories
-                  <svg
+                  <ChevronDown
                     className={`ml-2 inline-block h-4 w-4 transition-transform duration-200 ${showCategoryMenu ? 'rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  />
                 </button>
 
                 {showCategoryMenu && (
@@ -129,9 +125,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                 className="bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500/50 w-32 md:w-64 transition-all"
                 onChange={(e) => onSearch(e.target.value)}
               />
-              <svg className="absolute right-3 top-2.5 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <Search className="absolute right-3 top-2.5 h-4 w-4 text-slate-500" strokeWidth={2} />
             </div>
 
             {user ? (
@@ -145,9 +139,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                       {user.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="hidden sm:inline">{user.name}</span>
-                    <svg className={`w-4 h-4 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showUserMenu ? 'rotate-180' : ''}`} />
                   </button>
 
                   {showUserMenu && (
@@ -161,9 +153,7 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                           onClick={() => { navigate('/admin/dashboard'); setShowUserMenu(false); }}
                           className="w-full text-left px-4 py-2.5 text-sm text-indigo-400 hover:text-indigo-300 hover:bg-white/5 transition-colors flex items-center gap-2 font-medium"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                          </svg>
+                          <LayoutGrid className="w-4 h-4" strokeWidth={2} />
                           DASHBOARD
                         </button>
                       )}
@@ -171,27 +161,21 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                         onClick={() => { navigate('/profile'); setShowUserMenu(false); }}
                         className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
                       >
-                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                           <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                         </svg>
+                        <UserIcon className="w-4 h-4" strokeWidth={2} />
                         Profile
                       </button>
                       <button
                         onClick={() => { navigate('/favorites'); setShowUserMenu(false); }}
                         className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2"
                       >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
+                        <Heart className="w-4 h-4" strokeWidth={2} />
                         My Favorites
                       </button>
                       <button
                         onClick={() => { onSignOut?.(); setShowUserMenu(false); }}
                         className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors flex items-center gap-2"
                       >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
+                        <LogOut className="w-4 h-4" strokeWidth={2} />
                         Sign Out
                       </button>
                     </div>
@@ -244,14 +228,9 @@ const Navbar = ({ categories, selectedCategoryId, onSelectCategory, onSearch, us
                   className={getNavItemClass(limitedCategories.some((cat) => cat.id === selectedCategoryId))}
                 >
                   Categories
-                  <svg
+                  <ChevronDown
                     className={`ml-2 inline-block h-4 w-4 transition-transform duration-200 ${showCategoryMenu ? 'rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  />
                 </button>
 
                 {showCategoryMenu && (

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import type { Article } from "../../types";
 import { resolveMediaUrl } from "../../utils/media";
 
@@ -53,19 +54,7 @@ const HeroArticle = ({ article }: HeroArticleProps) => {
           <div className="mt-auto">
             <span className="inline-flex items-center text-base font-semibold text-white border-b-2 border-indigo-500 pb-1 hover:text-indigo-400 transition-colors">
               Read Full Story
-              <svg
-                className="w-5 h-5 ml-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
+              <ArrowRight className="w-5 h-5 ml-2" />
             </span>
           </div>
         </div>

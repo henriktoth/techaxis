@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Heart } from "lucide-react";
 import type { Article, Category, User } from "../../../types";
 
 import Navbar from "../../../components/shared/Navbar";
@@ -22,7 +23,6 @@ const ArticleDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // FETCH: Reader auth state
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -40,7 +40,6 @@ const ArticleDetails = () => {
     fetchUser();
   }, []);
 
-  //FETCH: Article + Categories (calls: GET /api/articles/:slug, GET /api/categories)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -64,7 +63,6 @@ const ArticleDetails = () => {
     }
   }, [slug]);
 
-  // FETCH: Check if article is favorited
   useEffect(() => {
     if (!article || !user) return;
     const token = localStorage.getItem("token");
@@ -161,15 +159,7 @@ const ArticleDetails = () => {
                   : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:border-white/20"
             }`}
           >
-            <svg
-              className={`w-5 h-5 transition-colors duration-200 ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              fill={isFavorited ? "currentColor" : "none"}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+            <Heart className={`w-5 h-5 transition-colors duration-200 ${isFavorited ? "fill-current text-red-500" : ""}`} />
             {isFavorited ? "Saved to Favorites" : user ? "Add to Favorites" : "Sign in to Save"}
           </button>
         </div>

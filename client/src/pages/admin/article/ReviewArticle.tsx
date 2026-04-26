@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { Eye } from 'lucide-react';
 import type { Article, Category, User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import { isAdminRole } from '../../../utils/roles';
@@ -25,7 +26,6 @@ const ReviewArticle = () => {
     const [showPublishModal, setShowPublishModal] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
 
-    //FETCH: Article details + user details + categories (calls: GET /api/articles/:id, GET /api/auth/me, GET /api/categories)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -194,10 +194,7 @@ const ReviewArticle = () => {
                                     onClick={() => navigate(`/admin/article/preview/${article.id}`)}
                                     className="inline-flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 hover:bg-amber-100 transition-colors"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
+                                    <Eye className="w-4 h-4" />
                                     Preview Article
                                 </button>
                                 <button
@@ -328,7 +325,6 @@ const ReviewArticle = () => {
             </div>
         </DashboardLayout>
 
-        {/* Publish Now Modal */}
         {showPublishModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
                 <div className="fixed inset-0 bg-black/50" onClick={() => setShowPublishModal(false)} />
@@ -356,7 +352,6 @@ const ReviewArticle = () => {
             </div>
         )}
 
-        {/* Schedule Publish Modal */}
         {showScheduleModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
                 <div className="fixed inset-0 bg-black/50" onClick={() => { setShowScheduleModal(false); setScheduledAt(''); }} />
@@ -403,7 +398,6 @@ const ReviewArticle = () => {
             </div>
         )}
 
-        {/* Rejection Modal */}
         {showRejectModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
                 <div className="fixed inset-0 bg-black/50" onClick={() => { setShowRejectModal(false); setRejectionReason(''); }} />

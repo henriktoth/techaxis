@@ -30,7 +30,7 @@ const NotificationBell = () => {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // poll every 30s
+    const interval = setInterval(fetchNotifications, 30000); 
     return () => clearInterval(interval);
   }, []);
 
@@ -132,8 +132,7 @@ const NotificationBell = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-full bottom-0 ml-6 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[480px] flex flex-col animate-in fade-in slide-in-from-left-2 duration-200">
-          {/* Header */}
+        <div className="absolute left-full bottom-0 ml-6 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-120 flex flex-col animate-in fade-in slide-in-from-left-2 duration-200">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
             {unreadCount > 0 && (
@@ -147,7 +146,6 @@ const NotificationBell = () => {
             )}
           </div>
 
-          {/* Notification list */}
           <div className="overflow-y-auto flex-1">
             {notifications.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-gray-400">

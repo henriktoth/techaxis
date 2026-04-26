@@ -88,7 +88,7 @@ const Login = () => {
             className={`w-full font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-sm mt-2 ${
               isLoading
                 ? 'bg-indigo-400 cursor-not-allowed text-white/70'
-                : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:shadow-[0_0_20px_-5px_theme(colors.indigo.500/0.5)]'
+                : 'bg-indigo-600 hover:bg-indigo-500 text-white hover:shadow-[0_0_20px_-5px_--theme(--color-indigo-500/0.5)]'
             }`}
           >
             {isLoading ? 'Signing In...' : 'Sign In'}

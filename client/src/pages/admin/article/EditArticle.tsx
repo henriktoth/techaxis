@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { CircleX } from 'lucide-react';
 import type { Article, Category, User, Task } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import ArticleForm from '../../../components/dashboard/ArticleForm';
@@ -9,20 +10,33 @@ import ArticlePreviewModal from '../../../components/dashboard/ArticlePreviewMod
 import { isAdminRole } from '../../../utils/roles';
 import { generateSlug } from '../../../utils/slug';
 
+interface EditArticleFormData {
+    title: string;
+    summary: string;
+    content: string;
+    contentDelta?: Record<string, unknown> | null;
+    thumbnail: string;
+    categoryId: number;
+    status: Article['status'];
+    isFeatured: boolean;
+    taskId?: number | null;
+    scheduledAt?: string;
+}
+
 const EditArticle = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<EditArticleFormData>({
         title: '',
         summary: '',
         content: '',
-        contentDelta: null as Record<string, unknown> | null,
+        contentDelta: null,
         thumbnail: '',
         categoryId: 0,
-        status: 'DRAFT' as Article['status'],
+        status: 'DRAFT',
         isFeatured: false,
-        taskId: null as number | null,
+        taskId: null,
         scheduledAt: ''
     });
 
@@ -125,6 +139,7 @@ const EditArticle = () => {
 
         const token = localStorage.getItem('token');
         if (!token) {
+            setSaving(false);
             navigate('/login');
             return;
         }
@@ -210,9 +225,7 @@ const EditArticle = () => {
                         <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
                             <div className="flex">
                                 <div className="shrink-0">
-                                    <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
+                                    <CircleX className="h-5 w-5 text-red-400" aria-hidden="true" />
                                 </div>
                                 <div className="ml-3">
                                     <h3 className="text-sm font-medium text-red-800">Article Rejected</h3>

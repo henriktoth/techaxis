@@ -29,7 +29,6 @@ const Readers = () => {
     const [sortField, setSortField] = useState<'name' | 'email' | 'favorites'>('name');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-    //FETCH: User details + all readers (calls: GET /api/auth/me, GET /api/users/readers)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -43,8 +42,6 @@ const Readers = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 };
 
-                // Only fetch current user if not already set (re-fetching on every page/search change is redundant if we assume user doesn't change)
-                // However, to be safe and consistent with Users.tsx pattern:
                 if (!currentUser) {
                     const userRes = await axios.get('http://localhost:8000/api/auth/me', config);
                     setCurrentUser(userRes.data);
@@ -55,7 +52,6 @@ const Readers = () => {
                     }
                 }
 
-                // Server-side pagination and search
                 let url = `http://localhost:8000/api/users/readers?page=${currentPage}&limit=${ITEMS_PER_PAGE}`;
                 if (searchQuery) {
                     url += `&search=${searchQuery}`;
@@ -90,9 +86,8 @@ const Readers = () => {
 
         return () => clearTimeout(timeoutId);
 
-    }, [navigate, currentPage, searchQuery]); // Re-fetch on query change
+    }, [navigate, currentPage, searchQuery, currentUser]);
 
-    //HANDLER: Delete reader (calls: DELETE /api/users/:id)
     const handleDeleteReader = (id: number) => {
         const reader = readers.find(r => r.id === id) || null;
         setDeleteModal({ open: true, reader });
@@ -121,7 +116,6 @@ const Readers = () => {
         }
     };
 
-    //HANDLER: Toggle reader disabled status (calls: PATCH /api/users/:id/toggle-disabled)
     const handleToggleDisabled = (id: number) => {
         const reader = readers.find(r => r.id === id) || null;
         setToggleModal({ open: true, reader });
@@ -223,7 +217,6 @@ const Readers = () => {
                 </div>
             </div>
 
-            {/* Delete Reader Modal */}
             {deleteModal.open && deleteModal.reader && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="fixed inset-0 bg-black/50" onClick={() => !processing && setDeleteModal({ open: false, reader: null })} />
@@ -265,7 +258,6 @@ const Readers = () => {
                 </div>
             )}
 
-            {/* Toggle Disable Modal */}
             {toggleModal.open && toggleModal.reader && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="fixed inset-0 bg-black/50" onClick={() => !processing && setToggleModal({ open: false, reader: null })} />

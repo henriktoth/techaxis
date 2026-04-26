@@ -5,6 +5,12 @@ import { toast } from "react-hot-toast";
 import Navbar from "../../../components/shared/Navbar";
 import type { User, Category } from "../../../types";
 
+interface ProfileUpdatePayload {
+    name: string;
+    email?: string;
+    password?: string;
+}
+
 const Profile = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState<User | null>(null);
@@ -64,7 +70,7 @@ const Profile = () => {
             const token = localStorage.getItem("token");
             const headers = { Authorization: `Bearer ${token}` };
             
-            const data: any = { name };
+            const data: ProfileUpdatePayload = { name };
             if (canEditEmail() && email !== user?.email) {
                 data.email = email;
             }
@@ -78,8 +84,11 @@ const Profile = () => {
             toast.success("Profile updated successfully");
             setPassword("");
             setConfirmPassword("");
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to update profile");
+        } catch (error: unknown) {
+            const message = axios.isAxiosError(error)
+                ? error.response?.data?.message
+                : null;
+            toast.error(message || "Failed to update profile");
         }
     };
 
@@ -162,7 +171,7 @@ const Profile = () => {
                         <div className="pt-6">
                             <button
                                 type="submit"
-                                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-[0_0_20px_-5px_theme(colors.indigo.500/0.5)]"
+                                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-lg transition-all shadow-[0_0_20px_-5px_--theme(--color-indigo-500/0.5)]"
                             >
                                 Save Changes
                             </button>

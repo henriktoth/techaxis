@@ -5,7 +5,6 @@ import { toast } from 'react-hot-toast';
 import type { User } from '../../../types';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import UserForm from '../../../components/dashboard/UserForm';
-import { ArrowLeft } from 'lucide-react';
 import { isAdminRole, isSuperAdmin } from '../../../utils/roles';
 
 const EditUser = () => {
@@ -23,7 +22,6 @@ const EditUser = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
-    //FETCH: User details + user details (calls: GET /api/users/:id, GET /api/auth/me)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -64,7 +62,6 @@ const EditUser = () => {
         if (id) fetchData();
     }, [id, navigate]);
 
-    //HANDLER: Form submit (calls: PUT /api/users/:id)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);

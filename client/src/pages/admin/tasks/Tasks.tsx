@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import type { Task, User, PaginatedResult } from '../../../types';
@@ -28,13 +28,11 @@ const Tasks = () => {
 
     const hasUnsavedChanges = Object.keys(pendingChanges).length > 0;
 
-    //BLOCKER: Warn about unsaved changes when navigating away
     const blocker = useBlocker(
         ({ currentLocation, nextLocation }) =>
             hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
     );
 
-    //EFFECT: Show confirmation dialog if there are unsaved changes when trying to navigate away
     useEffect(() => {
         if (blocker?.state === "blocked") {
             const confirmLeave = window.confirm("You have unsaved changes. Do you want to leave without saving?");
@@ -46,7 +44,6 @@ const Tasks = () => {
         }
     }, [blocker]);
 
-    //EFFECT: Warn about unsaved changes when trying to close the tab or refresh the page
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (hasUnsavedChanges) {
@@ -58,8 +55,7 @@ const Tasks = () => {
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [hasUnsavedChanges]);
 
-    // FETCH: Tasks + user details (calls: GET /api/tasks, GET /api/auth/me)
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) return;
@@ -68,12 +64,10 @@ const Tasks = () => {
                 headers: { Authorization: `Bearer ${token}` }
             };
 
-            // Build query params
             let url = `http://localhost:8000/api/tasks?page=${currentPage}&limit=${ITEMS_PER_PAGE}`;
             if (searchQuery) url += `&search=${searchQuery}`;
             if (priorityFilter) url += `&priority=${priorityFilter}`;
             if (assigneeFilter) url += `&assignedToId=${assigneeFilter}`;
-            // Date filter not implemented on backend yet
 
             const [tasksRes, userDataRes] = await Promise.all([
                 axios.get<PaginatedResult<Task>>(url, config),
@@ -89,28 +83,24 @@ const Tasks = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, searchQuery, priorityFilter, assigneeFilter]);
     
-    // Initial fetch and fetch on dependencies change
     useEffect(() => {
         const debounceTimer = setTimeout(() => {
             fetchData();
         }, 300);
         return () => clearTimeout(debounceTimer);
-    }, [currentPage, searchQuery, priorityFilter, assigneeFilter]);
+    }, [fetchData]);
     
-    // Reset page on filter change
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery, priorityFilter, assigneeFilter]);
 
-    //HANDLER: Logout (deletes token, redirects to login)
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/login');
     };
 
-    //HANDLER: Delete task (calls: DELETE /api/tasks/:id)
     const handleDeleteTask = async (id: number) => {
         if (!confirm('Are you sure you want to delete this task?')) return;
         try {
@@ -126,7 +116,6 @@ const Tasks = () => {
         }
     };
 
-    //HANDLER: Save changes (calls: PATCH /api/tasks/:id/toggle-status for each changed task)
     const handleSaveChanges = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -152,29 +141,6 @@ const Tasks = () => {
         }
     };
 
-    //HANDLER: Toggle task completion status (updates pendingChanges state)
-    const toggleTaskStatus = (id: number) => {
-        const task = tasks.find(t => t.id === id);
-        if (!task) return;
-
-        setPendingChanges(prev => {
-            const currentPending = prev[id];
-          
-            const currentState = currentPending !== undefined ? currentPending : task.isCompleted;
-            const newState = !currentState;
-
-            const newChanges = { ...prev };
-
-            if (newState === task.isCompleted) {
-                delete newChanges[id];
-            } else {
-                newChanges[id] = newState;
-            }
-            return newChanges;
-        });
-    };
-
-    //HANDLER: Take task (calls: POST /api/tasks/:id/take)
     const handleTakeTask = async (id: number) => {
         if (!confirm('Are you sure you want to take this task?')) return;
         try {
@@ -194,7 +160,6 @@ const Tasks = () => {
         }
     };
 
-    //HANDLER: Drop task (calls: POST /api/tasks/:id/drop)
     const handleDropTask = async (id: number) => {
         if (!confirm('Are you sure you want to drop this task?')) return;
         try {
@@ -214,7 +179,6 @@ const Tasks = () => {
         }
     };
 
-    //CONSTANTS: Build assignees map from task data
     const assignees: Record<number, { name: string; email: string }> = {};
     tasks.forEach(task => {
         if (task.assignedToId && task.assignedTo) {
@@ -222,11 +186,6 @@ const Tasks = () => {
         }
     });
 
-    //CONSTANTS: Filter logic removed (backend handles filtering now) 
-    // Wait, client side logic for splits (My Tasks vs Unassigned) still needed
-    // But since backend returns subset, we just split the subset.
-    
-    // Client-side date filtering remains as it's not implemented on backend
      const filteredTasks = tasks.filter(task => {
         if (dateFilter) {
             if (!task.dueDate) return false;
@@ -298,7 +257,6 @@ const Tasks = () => {
                     </div>
                 )}
 
-                {/* My Tasks Section */}
                 <div className="space-y-4">
                     <h2 className="text-xl font-semibold text-gray-800">
                         {isAdminRole(currentUser?.role) ? 'All Assigned Tasks' : 'My Tasks'}
@@ -332,7 +290,6 @@ const Tasks = () => {
                     </div>
                 </div>
 
-                {/* Unassigned Tasks Section */}
                 {(currentUser?.role === 'WRITER' || isAdminRole(currentUser?.role)) && (
                     <div className="space-y-4 mt-8 pt-6 border-t border-gray-200">
 

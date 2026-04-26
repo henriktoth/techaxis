@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Heart } from "lucide-react";
 import type { Article } from "../../types";
 import { resolveMediaUrl } from "../../utils/media";
 
@@ -47,19 +48,13 @@ const ArticleCard = ({ article, isFavorited, onToggleFavorite, isLoggedIn }: Art
             className="absolute top-3 right-3 z-40 p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 hover:bg-black/60 transition-all duration-200 group/fav"
             title={isFavorited ? "Remove from favorites" : "Add to favorites"}
           >
-            <svg
+            <Heart
               className={`w-4 h-4 transition-colors duration-200 ${
                 isFavorited
-                  ? "text-red-500 fill-red-500"
+                  ? "text-red-500 fill-current"
                   : "text-white/70 group-hover/fav:text-red-400"
               }`}
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              fill={isFavorited ? "currentColor" : "none"}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+            />
           </button>
         )}
       </div>
@@ -80,19 +75,7 @@ const ArticleCard = ({ article, isFavorited, onToggleFavorite, isLoggedIn }: Art
 
            <span className="inline-flex items-center text-sm font-semibold text-indigo-400 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
             Read
-            <svg
-              className="w-4 h-4 ml-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
+            <ArrowRight className="w-4 h-4 ml-2" />
           </span>
         </div>
       </div>

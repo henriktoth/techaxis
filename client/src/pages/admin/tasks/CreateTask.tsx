@@ -23,7 +23,6 @@ const CreateTask = () => {
     
     const [isLoading, setIsLoading] = useState(true);
 
-    //FETCH: User details + all users (calls: GET /api/auth/me, GET /api/users)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -66,7 +65,6 @@ const CreateTask = () => {
         fetchData();
     }, [navigate]);
 
-    //HANDLER: Form submit (calls: POST /api/tasks)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         

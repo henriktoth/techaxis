@@ -9,21 +9,34 @@ import ArticlePreviewModal from '../../../components/dashboard/ArticlePreviewMod
 import { isAdminRole } from '../../../utils/roles';
 import { generateSlug } from '../../../utils/slug';
 
+interface CreateArticleFormData {
+    title: string;
+    summary: string;
+    content: string;
+    contentDelta?: Record<string, unknown> | null;
+    thumbnail: string;
+    categoryId: number;
+    status: Article['status'];
+    isFeatured: boolean;
+    taskId?: number | null;
+    scheduledAt?: string;
+}
+
 const CreateArticle = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const taskIdParam = searchParams.get('taskId');
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<CreateArticleFormData>({
         title: '',
         summary: '',
         content: '',
-        contentDelta: null as Record<string, unknown> | null,
+        contentDelta: null,
         thumbnail: '',
         categoryId: 0,
-        status: 'DRAFT' as Article['status'],
+        status: 'DRAFT',
         isFeatured: false,
-        taskId: taskIdParam ? Number(taskIdParam) : null as number | null,
+        taskId: taskIdParam ? Number(taskIdParam) : null,
         scheduledAt: ''
     });
 
@@ -39,7 +52,6 @@ const CreateArticle = () => {
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
-    //FETCH: User details + categories + tasks (calls: GET /api/auth/me, GET /api/categories, GET /api/tasks)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -88,13 +100,13 @@ const CreateArticle = () => {
         fetchData();
     }, [navigate, taskIdParam]);
 
-    //HANDLER: Form submit (calls: POST /api/articles)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
 
         const token = localStorage.getItem('token');
         if (!token) {
+            setSaving(false);
             navigate('/login');
             return;
         }

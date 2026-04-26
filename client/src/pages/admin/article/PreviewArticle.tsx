@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Eye } from "lucide-react";
 import type { Article, Category } from "../../../types";
 
 import Footer from "../../../components/shared/Footer";
@@ -98,27 +99,9 @@ const PreviewArticle = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0B1120] text-gray-100 font-sans selection:bg-indigo-500/30">
-      {/* Preview Banner */}
+
       <div className={`fixed top-0 left-0 right-0 z-50 ${colors.bg} ${colors.text} text-center py-2 px-4 font-semibold text-sm shadow-lg flex items-center justify-center gap-3`}>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-          className="w-5 h-5"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
+        <Eye className="w-5 h-5" />
         <span>
           Preview Mode — This article is not published yet (
           <span className="font-bold">{article.status}</span>)

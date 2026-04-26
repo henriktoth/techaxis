@@ -7,19 +7,8 @@ import { generateSlug } from '../../utils/slug';
 import { resolveMediaUrl } from '../../utils/media';
 
 interface ArticleFormProps {
-  formData: {
-    title: string;
-    summary: string;
-    content: string;
-    contentDelta?: Record<string, unknown> | null;
-    thumbnail: string;
-    categoryId: number;
-    status: Article['status'];
-    isFeatured: boolean;
-    taskId?: number | null;
-    scheduledAt?: string;
-  };
-  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  formData: ArticleFormData;
+  setFormData: React.Dispatch<React.SetStateAction<ArticleFormData>>;
   thumbnailFile: File | null;
   setThumbnailFile: React.Dispatch<React.SetStateAction<File | null>>;
   removeThumbnail: boolean;
@@ -39,10 +28,22 @@ interface ArticleFormProps {
   setThumbnailPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
+interface ArticleFormData {
+  title: string;
+  summary: string;
+  content: string;
+  contentDelta?: Record<string, unknown> | null;
+  thumbnail: string;
+  categoryId: number;
+  status: Article['status'];
+  isFeatured: boolean;
+  taskId?: number | null;
+  scheduledAt?: string;
+}
+
 const ArticleForm = ({
   formData,
   setFormData,
-  thumbnailFile,
   setThumbnailFile,
   removeThumbnail,
   setRemoveThumbnail,
@@ -67,8 +68,8 @@ const ArticleForm = ({
 
   const generatedSlug = generateSlug(formData.title);
 
-  const handleChange = (field: keyof typeof formData, value: string | number | boolean | Article['status'] | Record<string, unknown> | null) => {
-    setFormData((prev: typeof formData) => ({ ...prev, [field]: value }));
+  const handleChange = <K extends keyof ArticleFormData>(field: K, value: ArticleFormData[K]) => {
+    setFormData((prev: ArticleFormData) => ({ ...prev, [field]: value }));
   };
 
   const inputClass = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border disabled:bg-gray-100 disabled:text-gray-500';
@@ -106,7 +107,6 @@ const ArticleForm = ({
 
   return (
     <form onSubmit={onSubmit}>
-      {/* Sticky Action Bar */}
       <div className="sticky top-0 z-10 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200 -mx-8 px-8 py-4 mb-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-2xl font-bold text-gray-900">{pageTitle}</h1>
@@ -138,11 +138,8 @@ const ArticleForm = ({
         </div>
       </div>
 
-      {/* Two Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-        {/* Sidebar Column - Everything Else */}
         <div className="space-y-6 lg:order-1">
-          {/* Title & Slug */}
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Title</h2>
             <div className="space-y-4">
@@ -173,7 +170,6 @@ const ArticleForm = ({
             </div>
           </section>
 
-          {/* Summary */}
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Summary</h2>
             <div>
@@ -192,7 +188,6 @@ const ArticleForm = ({
             </div>
           </section>
 
-          {/* Thumbnail */}
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Thumbnail</h2>
 
@@ -256,7 +251,6 @@ const ArticleForm = ({
             )}
           </section>
 
-          {/* Publishing */}
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Publishing</h2>
             <div className="space-y-4">
@@ -271,7 +265,7 @@ const ArticleForm = ({
                     const newStatus = e.target.value as Article['status'];
                     handleChange('status', newStatus);
                     if (newStatus !== 'PUBLISHED') {
-                      setFormData((prev: typeof formData) => ({ ...prev, scheduledAt: '' }));
+                      setFormData((prev: ArticleFormData) => ({ ...prev, scheduledAt: '' }));
                     }
                   }}
                   className={inputClass}
@@ -309,7 +303,7 @@ const ArticleForm = ({
                     id="scheduledAt"
                     value={formData.scheduledAt || ''}
                     min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
-                    onChange={(e) => setFormData((prev: typeof formData) => ({ ...prev, scheduledAt: e.target.value }))}
+                    onChange={(e) => setFormData((prev: ArticleFormData) => ({ ...prev, scheduledAt: e.target.value }))}
                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2 border"
                   />
                   <p className="mt-1 text-xs text-gray-500">
@@ -320,7 +314,6 @@ const ArticleForm = ({
             </div>
           </section>
 
-          {/* Organization */}
           <section className={sectionClass}>
             <h2 className={sectionTitleClass}>Organization</h2>
             <div className="space-y-4">
@@ -355,7 +348,7 @@ const ArticleForm = ({
                     disabled={isRestricted || formData.status === 'PUBLISHED'}
                     onChange={(e) => {
                       const value = e.target.value ? Number(e.target.value) : null;
-                      setFormData((prev: typeof formData) => ({ ...prev, taskId: value }));
+                      setFormData((prev: ArticleFormData) => ({ ...prev, taskId: value }));
                     }}
                     className={inputClass}
                   >
@@ -375,9 +368,7 @@ const ArticleForm = ({
           </section>
         </div>
 
-        {/* Main Column - Content Only */}
         <div className="lg:col-span-2 space-y-6 lg:order-2 h-full">
-          {/* Content */}
           <section className={`${sectionClass} h-full flex flex-col`}>
             <h2 className={sectionTitleClass}>Content</h2>
             <div>
@@ -390,7 +381,7 @@ const ArticleForm = ({
                   value={formData.content}
                   readOnly={isRestricted}
                   onChange={(value, _delta, _source, editor) => {
-                    setFormData((prev: typeof formData) => ({
+                    setFormData((prev: ArticleFormData) => ({
                       ...prev,
                       content: value,
                       contentDelta: editor.getContents() as unknown as Record<string, unknown>,

@@ -33,7 +33,6 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  //FETCH: Dashboard data
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
@@ -45,7 +44,6 @@ const Dashboard = () => {
       try {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         
-        // Fetch user and stats first
         const [userRes, statsRes] = await Promise.all([
           axios.get('http://localhost:8000/api/auth/me', config),
           axios.get('http://localhost:8000/api/articles/stats', config)
@@ -78,7 +76,6 @@ const Dashboard = () => {
     fetchData();
   }, [navigate]);
 
-  // FETCH: Articles with pagination and filters
   useEffect(() => {
     const fetchArticles = async () => {
         const token = localStorage.getItem('token');
@@ -89,9 +86,7 @@ const Dashboard = () => {
             if (searchQuery) url += `&search=${searchQuery}`;
             if (statusFilter) url += `&status=${statusFilter}`;
             if (authorFilter) url += `&authorId=${authorFilter}`;
-            
-            // Note: Date and Task filters not yet implemented on backend for simplicity or need custom implementation
-            
+                        
             const res = await axios.get<PaginatedResult<Article>>(url, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -99,7 +94,6 @@ const Dashboard = () => {
             setArticles(res.data.data);
             setTotalPages(res.data.meta.totalPages);
             
-            // Only fetch authors for the current page articles
             const uniqueAuthorIds = Array.from(new Set(res.data.data.map(a => a.authorId).filter((id): id is number => id !== undefined)));
             const newAuthors: Record<number, User> = {};
             await Promise.all(uniqueAuthorIds.map(async (id) => {
@@ -126,21 +120,17 @@ const Dashboard = () => {
         }, 300);
         return () => clearTimeout(debounceTimer);
     }
-  }, [user, currentPage, searchQuery, statusFilter, authorFilter]); // Removed dateFilter/taskFilter from dep for now as they don't trigger backend fetch
+  }, [user, currentPage, searchQuery, statusFilter, authorFilter, authors]);
 
-  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, statusFilter, authorFilter]);
 
-
-  //HANDLER: Logout (deletes token, redirects to login)
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
-  //HANDLER: Delete article (calls: DELETE /api/articles/:id)
   const handleDeleteArticle = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this article?')) return;
 
@@ -152,8 +142,8 @@ const Dashboard = () => {
         
         setArticles(articles.filter(a => a.id !== id));
         toast.success('Article deleted successfully');
-        // Ideally re-fetch or update count
-    } catch (err) {
+
+      } catch (err) {
         let errorMessage = 'Failed to delete article';
         if (axios.isAxiosError(err) && err.response?.data?.message) {
              errorMessage = err.response.data.message;
@@ -164,7 +154,6 @@ const Dashboard = () => {
   };
 
   const handleSort = (field: keyof Article | 'author') => {
-      // Basic sorting on current page for now, server side sorting requires backend change
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -173,7 +162,6 @@ const Dashboard = () => {
     }
   };
   
-  // Client-side sort of CURRENT PAGE only (limitations of partial implementations)
   const filteredArticles = [...articles].sort((a, b) => {
     const modifier = sortDirection === 'asc' ? 1 : -1;
     if (sortField === 'title') return a.title.localeCompare(b.title) * modifier;

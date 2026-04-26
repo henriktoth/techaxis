@@ -25,7 +25,6 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // FETCH: Reader auth state
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -46,7 +45,6 @@ const Home = () => {
     fetchUser();
   }, []);
 
-  // FETCH: Categories (calls: GET /api/categories)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -60,7 +58,6 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  //FETCH: Articles (with search query and category)
   useEffect(() => {
     const fetchArticles = async () => {
       try {
@@ -86,7 +83,6 @@ const Home = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery, currentPage, selectedCategoryId]);
 
-  // Reset page on search or category change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedCategoryId]);
@@ -115,7 +111,6 @@ const Home = () => {
     }
   };
 
-  // CONSTANTS: filtered articles is just articles (backend handles filtering)
   const filteredArticles = articles;
   
   const heroArticle = filteredArticles.find((a) => a.isFeatured);

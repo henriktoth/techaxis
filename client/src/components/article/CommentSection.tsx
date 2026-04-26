@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Send, Trash2, MessageSquare, AlertTriangle } from 'lucide-react';
 import type { User, Comment, PaginatedResult } from '../../types';
@@ -21,11 +21,7 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
   const [totalPages, setTotalPages] = useState(1);
   const ITEMS_PER_PAGE = 5;
 
-  useEffect(() => {
-    fetchComments();
-  }, [articleId, currentPage]);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get<PaginatedResult<Comment>>(`http://localhost:8000/api/comments/article/${articleId}?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
@@ -36,7 +32,11 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [articleId, currentPage]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +79,6 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
       setShowDeleteModal(null);
     } catch (err) {
       console.error('Failed to delete comment', err);
-      // alert('Failed to delete comment');
     }
   };
 
@@ -115,7 +114,7 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
 
   return (
     <div className="mt-16 border-t border-white/10 pt-12 max-w-3xl mx-auto px-4 sm:px-6 relative">
-      {/* Delete Confirmation Modal */}
+
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-[#1f2937] border border-white/10 rounded-xl p-6 max-w-sm w-full shadow-2xl scale-100 animate-in fade-in zoom-in duration-200">
@@ -154,7 +153,7 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
       
       {user ? (
         <form onSubmit={handleSubmit} className="mb-12 relative group">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-linear-to-r from-blue-500/10 to-indigo-500/10 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <div className="relative bg-[#111827] p-6 rounded-xl border border-white/10 shadow-lg glow-border">
             <div className="flex gap-4">
               <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-lg shrink-0 border border-indigo-500/20 font-mono">
@@ -174,7 +173,7 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
                   {submitError && (
                     <p className="text-red-400 text-sm">{submitError}</p>
                   )}
-                  <div className="flex-1" /> {/* Spacer */}
+                  <div className="flex-1" />
                   <button 
                     type="submit" 
                     disabled={submitting || !newComment.trim()}
@@ -199,7 +198,7 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
         </form>
       ) : (
         <div className="mb-12 relative overflow-hidden rounded-xl border border-white/10 bg-[#111827]">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5" />
+          <div className="absolute inset-0 bg-linear-to-r from-blue-500/5 to-purple-500/5" />
           <div className="relative p-8 text-center">
             <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
               <MessageSquare size={24} />
@@ -232,8 +231,7 @@ const CommentSection = ({ articleId, user }: CommentSectionProps) => {
 
             return (
               <div key={comment.id} className="group relative pl-4 transition-all">
-                {/* Connector line */}
-                <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-white/5 group-hover:bg-white/10 transition-colors rounded-full" />
+                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-white/5 group-hover:bg-white/10 transition-colors rounded-full" />
                 
                 <div className="flex gap-4 py-2">
                   <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center shrink-0 mt-1">

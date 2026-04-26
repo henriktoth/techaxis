@@ -98,7 +98,6 @@ const Users = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Modal state
     const [deleteModal, setDeleteModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
     const [toggleModal, setToggleModal] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
     const [processing, setProcessing] = useState(false);
@@ -110,7 +109,6 @@ const Users = () => {
     const [totalPages, setTotalPages] = useState(1);
     const ITEMS_PER_PAGE = 12;
 
-    //FETCH: User details + all users (calls: GET /api/auth/me, GET /api/users)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -124,7 +122,6 @@ const Users = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 };
                 
-                // Fetch current user only if needed or optimized
                 if (!currentUser) {
                     const userRes = await axios.get('http://localhost:8000/api/auth/me', config);
                     setCurrentUser(userRes.data);
@@ -135,7 +132,6 @@ const Users = () => {
                     }
                 }
 
-                // Use the new excludeRole parameter to get actual staff members for pagination
                 let url = `http://localhost:8000/api/users?page=${currentPage}&limit=${ITEMS_PER_PAGE}&excludeRole=READER`;
                 if (searchQuery) url += `&search=${searchQuery}`;
                 if (roleFilter !== 'ALL') url += `&role=${roleFilter}`;
@@ -172,7 +168,6 @@ const Users = () => {
 
     }, [navigate, currentPage, searchQuery, roleFilter, statusFilter, currentUser]);
 
-    //HANDLER: Delete user (calls: DELETE /api/users/:id)
     const handleDeleteUser = (id: number) => {
         const user = users.find(u => u.id === id) || null;
         setDeleteModal({ open: true, user });
@@ -186,8 +181,7 @@ const Users = () => {
             await axios.delete(`http://localhost:8000/api/users/${deleteModal.user.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Re-fetch to update list properly with pagination
-            // For simple UI update:
+
             setUsers(users.filter(u => u.id !== deleteModal.user!.id));
             toast.success('User deleted and articles transferred successfully');
         } catch (err) {
@@ -203,7 +197,6 @@ const Users = () => {
         }
     };
 
-    //HANDLER: Toggle user disabled status (calls: PATCH /api/users/:id/toggle-disabled)
     const handleToggleDisabled = (id: number) => {
         const user = users.find(u => u.id === id) || null;
         setToggleModal({ open: true, user });
@@ -356,7 +349,6 @@ const Users = () => {
                 </div>
             </div>
 
-            {/* Delete Modal */}
              {deleteModal.open && deleteModal.user && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="fixed inset-0 bg-black/50" onClick={() => !processing && setDeleteModal({ open: false, user: null })} />
@@ -399,7 +391,6 @@ const Users = () => {
                 </div>
             )}
 
-            {/* Toggle Disable Modal */}
             {toggleModal.open && toggleModal.user && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="fixed inset-0 bg-black/50" onClick={() => !processing && setToggleModal({ open: false, user: null })} />

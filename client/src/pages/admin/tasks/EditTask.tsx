@@ -24,7 +24,6 @@ const EditTask = () => {
     
     const [isLoading, setIsLoading] = useState(true);
 
-    //FETCH: Task details + user details + all users (calls: GET /api/tasks/:id, GET /api/auth/me, GET /api/users)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -79,7 +78,6 @@ const EditTask = () => {
         fetchData();
     }, [navigate, id]);
 
-    //HANDLER: Form submit (calls: PUT /api/tasks/:id)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
