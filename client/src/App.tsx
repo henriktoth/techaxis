@@ -21,33 +21,34 @@ import CreateTask from "./pages/admin/tasks/CreateTask";
 import EditTask from "./pages/admin/tasks/EditTask";
 import Categories from "./pages/admin/categories/Categories";
 import NotFound from "./pages/public/NotFound";
+import { RequireAdmin, RequireAuth } from "./utils/routeGuards";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
   { path: "/article/:slug", element: <ArticleDetails /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
-  { path: "/profile", element: <Profile /> },
-  { path: "/favorites", element: <Favorites /> },
+  { path: "/profile", element: <RequireAuth><Profile /></RequireAuth> },
+  { path: "/favorites", element: <RequireAuth><Favorites /></RequireAuth> },
 
-  { path: "/admin/dashboard", element: <Dashboard /> },
+  { path: "/admin/dashboard", element: <RequireAdmin><Dashboard /></RequireAdmin> },
   
-  { path: "/admin/article/create", element: <CreateArticle /> },
-  { path: "/admin/article/edit/:id", element: <EditArticle /> },
-  { path: "/admin/article/review/:id", element: <ReviewArticle /> },
-  { path: "/admin/article/preview/:id", element: <PreviewArticle /> },
+  { path: "/admin/article/create", element: <RequireAdmin><CreateArticle /></RequireAdmin> },
+  { path: "/admin/article/edit/:id", element: <RequireAdmin><EditArticle /></RequireAdmin> },
+  { path: "/admin/article/review/:id", element: <RequireAdmin><ReviewArticle /></RequireAdmin> },
+  { path: "/admin/article/preview/:id", element: <RequireAdmin><PreviewArticle /></RequireAdmin> },
   
-  { path: "/admin/users", element: <Users /> },
-  { path: "/admin/users/create", element: <CreateUser /> },
-  { path: "/admin/users/edit/:id", element: <EditUser /> },
+  { path: "/admin/users", element: <RequireAdmin><Users /></RequireAdmin> },
+  { path: "/admin/users/create", element: <RequireAdmin><CreateUser /></RequireAdmin> },
+  { path: "/admin/users/edit/:id", element: <RequireAdmin><EditUser /></RequireAdmin> },
 
-  { path: "/admin/readers", element: <Readers /> },
+  { path: "/admin/readers", element: <RequireAdmin><Readers /></RequireAdmin> },
 
-  { path: "/admin/categories", element: <Categories /> },
+  { path: "/admin/categories", element: <RequireAdmin><Categories /></RequireAdmin> },
   
-  { path: "/admin/tasks", element: <Tasks /> },
-  { path: "/admin/tasks/create", element: <CreateTask /> },
-  { path: "/admin/tasks/edit/:id", element: <EditTask /> },
+  { path: "/admin/tasks", element: <RequireAdmin><Tasks /></RequireAdmin> },
+  { path: "/admin/tasks/create", element: <RequireAdmin><CreateTask /></RequireAdmin> },
+  { path: "/admin/tasks/edit/:id", element: <RequireAdmin><EditTask /></RequireAdmin> },
 
   { path: "*", element: <NotFound /> },
 ]);
