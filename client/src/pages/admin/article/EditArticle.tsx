@@ -53,7 +53,6 @@ const EditArticle = () => {
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
-    //FETCH: Article details + user details + categories (calls: GET /api/articles/:id, GET /api/auth/me, GET /api/categories)
     useEffect(() => {
         const fetchData = async () => {
             const token = localStorage.getItem('token');
@@ -132,7 +131,6 @@ const EditArticle = () => {
         }
     }, [id, navigate]);
 
-    //HANDLER: Form submit (calls: PUT /api/articles/:id)
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
