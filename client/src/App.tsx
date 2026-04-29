@@ -21,7 +21,7 @@ import CreateTask from "./pages/admin/tasks/CreateTask";
 import EditTask from "./pages/admin/tasks/EditTask";
 import Categories from "./pages/admin/categories/Categories";
 import NotFound from "./pages/public/NotFound";
-import { RequireAdmin, RequireAuth } from "./utils/routeGuards";
+import { RequireAdmin, RequireAuth, RequireStaff } from "./utils/routeGuards";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -31,12 +31,12 @@ const router = createBrowserRouter([
   { path: "/profile", element: <RequireAuth><Profile /></RequireAuth> },
   { path: "/favorites", element: <RequireAuth><Favorites /></RequireAuth> },
 
-  { path: "/admin/dashboard", element: <RequireAdmin><Dashboard /></RequireAdmin> },
+  { path: "/admin/dashboard", element: <RequireStaff><Dashboard /></RequireStaff> },
   
-  { path: "/admin/article/create", element: <RequireAdmin><CreateArticle /></RequireAdmin> },
-  { path: "/admin/article/edit/:id", element: <RequireAdmin><EditArticle /></RequireAdmin> },
-  { path: "/admin/article/review/:id", element: <RequireAdmin><ReviewArticle /></RequireAdmin> },
-  { path: "/admin/article/preview/:id", element: <RequireAdmin><PreviewArticle /></RequireAdmin> },
+  { path: "/admin/article/create", element: <RequireStaff><CreateArticle /></RequireStaff> },
+  { path: "/admin/article/edit/:id", element: <RequireStaff><EditArticle /></RequireStaff> },
+  { path: "/admin/article/review/:id", element: <RequireStaff><ReviewArticle /></RequireStaff> },
+  { path: "/admin/article/preview/:id", element: <RequireStaff><PreviewArticle /></RequireStaff> },
   
   { path: "/admin/users", element: <RequireAdmin><Users /></RequireAdmin> },
   { path: "/admin/users/create", element: <RequireAdmin><CreateUser /></RequireAdmin> },
@@ -46,7 +46,7 @@ const router = createBrowserRouter([
 
   { path: "/admin/categories", element: <RequireAdmin><Categories /></RequireAdmin> },
   
-  { path: "/admin/tasks", element: <RequireAdmin><Tasks /></RequireAdmin> },
+  { path: "/admin/tasks", element: <RequireStaff><Tasks /></RequireStaff> },
   { path: "/admin/tasks/create", element: <RequireAdmin><CreateTask /></RequireAdmin> },
   { path: "/admin/tasks/edit/:id", element: <RequireAdmin><EditTask /></RequireAdmin> },
 

@@ -33,6 +33,9 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; articleId: number | null }>({ open: false, articleId: null });
+  const [processing, setProcessing] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
@@ -131,18 +134,23 @@ const Dashboard = () => {
     navigate('/login');
   };
 
-  const handleDeleteArticle = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this article?')) return;
+  const handleDeleteArticle = (id: number) => {
+    setDeleteModal({ open: true, articleId: id });
+  };
 
+  const confirmDeleteArticle = async () => {
+    if (!deleteModal.articleId) return;
+    
+    setProcessing(true);
     try {
         const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:8000/api/articles/${id}`, {
+        await axios.delete(`http://localhost:8000/api/articles/${deleteModal.articleId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         
-        setArticles(articles.filter(a => a.id !== id));
+        setArticles(articles.filter(a => a.id !== deleteModal.articleId));
         toast.success('Article deleted successfully');
-
+        setDeleteModal({ open: false, articleId: null });
       } catch (err) {
         let errorMessage = 'Failed to delete article';
         if (axios.isAxiosError(err) && err.response?.data?.message) {
@@ -150,6 +158,8 @@ const Dashboard = () => {
         }
         toast.error(errorMessage);
         console.error(err);
+    } finally {
+        setProcessing(false);
     }
   };
 
@@ -246,6 +256,37 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {deleteModal.open && deleteModal.articleId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 font-sans backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Article</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to delete this article? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeleteModal({ open: false, articleId: null })}
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:opacity-60"
+                  disabled={processing}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteArticle}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-60"
+                  disabled={processing}
+                >
+                  {processing ? 'Deleting...' : 'Delete Article'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };

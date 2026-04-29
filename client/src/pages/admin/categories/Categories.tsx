@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { Plus, Trash2, Tag } from 'lucide-react';
+import { Plus, Trash2, Tag, Edit2 } from 'lucide-react';
 import DashboardLayout from '../../../components/dashboard/DashboardLayout';
 import type { Category, User } from '../../../types';
 import { isSuperAdmin } from '../../../utils/roles';
@@ -18,6 +18,11 @@ const Categories = () => {
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; category: Category | null }>({
     open: false,
     category: null,
+  });
+  const [editModal, setEditModal] = useState<{ open: boolean; category: Category | null; newName: string }>({
+    open: false,
+    category: null,
+    newName: '',
   });
 
   useEffect(() => {
@@ -98,6 +103,42 @@ const Categories = () => {
 
   const handleDeleteCategory = (category: Category) => {
     setDeleteModal({ open: true, category });
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setEditModal({ open: true, category, newName: category.name });
+  };
+
+  const confirmEditCategory = async () => {
+    if (!editModal.category) return;
+    const name = editModal.newName.trim();
+    if (!name) {
+      toast.error('Category name cannot be empty.');
+      return;
+    }
+    
+    setProcessing(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.put<Category>(
+        `http://localhost:8000/api/categories/${editModal.category.id}`,
+        { name },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setCategories((prev) => prev.map((c) => (c.id === res.data.id ? res.data : c)));
+      toast.success('Category updated successfully.');
+      setEditModal({ open: false, category: null, newName: '' });
+    } catch (err) {
+      console.error('Error updating category:', err);
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error('Failed to update category.');
+      }
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const confirmDeleteCategory = async () => {
@@ -193,16 +234,26 @@ const Categories = () => {
                           <p className="text-xs text-gray-500">ID #{category.id}</p>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCategory(category)}
-                        disabled={processing || isDefault}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-100 text-red-600 text-xs font-semibold hover:bg-red-50 disabled:opacity-60"
-                        title={isDefault ? 'Default category cannot be deleted' : 'Delete category'}
-                      >
-                        <Trash2 size={14} />
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleEditCategory(category)}
+                          disabled={processing || isDefault}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 disabled:opacity-60"
+                        >
+                          <Edit2 size={14} />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCategory(category)}
+                          disabled={processing || isDefault}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-100 text-red-600 text-xs font-semibold hover:bg-red-50 disabled:opacity-60"
+                        >
+                          <Trash2 size={14} />
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -211,6 +262,45 @@ const Categories = () => {
           </div>
         </div>
       </div>
+
+      {editModal.open && editModal.category && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 font-sans backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Edit Category</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Enter the new name for the category.
+              </p>
+              <input
+                type="text"
+                autoFocus
+                value={editModal.newName}
+                onChange={(e) => setEditModal(prev => ({ ...prev, newName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
+                placeholder="Category name"
+              />
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  disabled={processing}
+                  onClick={() => setEditModal({ open: false, category: null, newName: '' })}
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={processing}
+                  onClick={confirmEditCategory}
+                  className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+                >
+                  {processing ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteModal.open && deleteModal.category && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

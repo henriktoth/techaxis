@@ -50,7 +50,7 @@ const EditTask = () => {
                 setCurrentUser(meRes.data);
                 
                 if (!isAdminRole(meRes.data.role)) {
-                     navigate('/admin/dashboard');
+                     navigate('/admin/tasks');
                      return;
                 }
 

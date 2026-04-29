@@ -22,6 +22,14 @@ export const RequireAuth = ({ children }: { children: ReactNode }) => {
   return payload ? children : <NotFound />;
 };
 
+export const RequireStaff = ({ children }: { children: ReactNode }) => {
+  const payload = getTokenPayload();
+  const role = payload?.role;
+  const isStaff = role === "ADMIN" || role === "SUPERADMIN" || role === "WRITER";
+
+  return payload && isStaff ? children : <NotFound />;
+};
+
 export const RequireAdmin = ({ children }: { children: ReactNode }) => {
   const payload = getTokenPayload();
   const role = payload?.role;

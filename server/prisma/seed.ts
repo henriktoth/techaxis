@@ -114,6 +114,12 @@ async function main() {
 
     console.log('Tasks created');
 
+    const generateSvgDataUri = (title: string) => {
+        const escapedTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;').replace(/"/g, '&quot;');
+        const svg = `<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f8fafc" /><stop offset="100%" stop-color="#1e293b" /></linearGradient></defs><rect width="100%" height="100%" fill="url(#grad)" /><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="bold" font-size="32" fill="#475569">${escapedTitle}</text></svg>`;
+        return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+    };
+
     for (let i = 0; i < articlesData.length; i++) {
         const a = articlesData[i];
         const slug = slugify(a.title, { lower: true, strict: true });
@@ -127,7 +133,7 @@ async function main() {
                 content: loremContent,
                 status: a.status,
                 isFeatured: a.isFeatured,
-                thumbnail: `https://placehold.co/600x400?text=${encodeURIComponent(a.title)}`,
+                thumbnail: generateSvgDataUri(a.title),
                 publishedAt,
                 authorId: users[a.authorIndex].id,
                 categoryId: categories[a.category],
