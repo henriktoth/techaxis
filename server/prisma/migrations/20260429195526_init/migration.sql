@@ -36,7 +36,7 @@ CREATE TABLE "Article" (
     "title" TEXT NOT NULL,
     "summary" TEXT NOT NULL,
     "content" TEXT NOT NULL,
-    "contentDelta" JSONB NOT NULL,
+    "contentDelta" JSONB,
     "thumbnail" TEXT,
     "status" "ArticleStatus" NOT NULL DEFAULT 'DRAFT',
     "rejectionReason" TEXT,
