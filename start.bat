@@ -1,7 +1,7 @@
 @echo off
 
 cd server
-npx prisma db seed
+call npx prisma db seed
 cd ..
 
 start cmd /k "cd client && npm run dev"
